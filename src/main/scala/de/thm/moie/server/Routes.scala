@@ -14,7 +14,9 @@ import akka.actor.Props
 
 trait Routes {
   val routes =
-    path("connect") {
-      complete("connected stub")
+    pathPrefix("moie") {
+      path("connect") {
+        complete("connected stub")
+      }
     }
 }

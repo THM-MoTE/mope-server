@@ -24,8 +24,8 @@ class Server(port:Int) extends Routes {
   implicit val materializer = ActorMaterializer()
   implicit val context = actorSystem.dispatcher
 
-  val bindingFuture = Http().bindAndHandle(route, "localhost", port)
-  println(s"Server running at localhost/$port")
+  val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
+  println(s"Server running at localhost:$port")
   println("Press Enter to interrupt")
   var char = StdIn.readLine()
 
