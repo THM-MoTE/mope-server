@@ -4,6 +4,17 @@ scalacOptions ++= Seq(
     "-feature"
 )
 
+//include ./conf in classpath
+unmanagedResourceDirectories in Compile += baseDirectory.value / "conf"
+
+lazy val configDir = settingKey[File]("The config directory of moie")
+
+lazy val cleanConfig = taskKey[Unit]("Cleans user's config directory of moie")
+
+configDir := new File(System.getProperty("user.home")) / ".moie"
+
+cleanConfig := IO.delete(configDir.value)
+
 lazy val root = (project in file(".")).
   settings(
     organization := "thm",
