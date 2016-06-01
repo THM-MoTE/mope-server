@@ -1,0 +1,16 @@
+.ensime*
+.idea
+.cache*
+.classpath
+.project
+.settings
+.externalToolBuilders
+
+*.class
+*.*~
+
+*.DS_Store
+
+bin
+target
+project/target
