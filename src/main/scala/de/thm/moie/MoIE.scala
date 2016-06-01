@@ -1,5 +1,7 @@
 package de.thm.moie
 
-object MoIE extends App {
-  println("loaded")
+object MoIE {
+  def main(args:Array[String]) = {
+    println("loaded")
+  }
 }
