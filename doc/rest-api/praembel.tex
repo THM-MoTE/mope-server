@@ -27,6 +27,8 @@
 \colorlet{punct}{red!60!black}
 \definecolor{background}{HTML}{EEEEEE}
 \definecolor{delim}{RGB}{20,105,176}
+\definecolor{eclipseGreen}{RGB}{63,127,95}
+\definecolor{stringOrange}{RGB}{204, 82, 0}
 \colorlet{numb}{magenta!60!black}
 
 \lstdefinelanguage{json}{
@@ -39,6 +41,8 @@
     breaklines=true,
     frame=lines,
     backgroundcolor=\color{background},
+    morecomment=[l]{//}, % l is for line comment
+    morestring=[b]",
     literate=
      *{0}{{{\color{numb}0}}}{1}
       {1}{{{\color{numb}1}}}{1}
@@ -66,6 +70,8 @@
 %  numbers=left,
 %  firstnumber=1,
   literate={~} {$\sim$}{1}, %better-looking ~
+  commentstyle=\color{eclipseGreen}, % style of comments
+  stringstyle=\color{stringOrange}
 }
 
 % cmds
