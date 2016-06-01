@@ -6,17 +6,27 @@ import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.ContentTypes
 import akka.pattern.ask
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import scala.sys.process._
 import scala.concurrent.Future
 import java.io._
-import akka.actor.Props
 
-trait Routes {
+import akka.actor.Props
+import de.thm.moie.project.ProjectDescription
+
+trait Routes extends JsonSupport {
   val routes =
     pathPrefix("moie") {
       path("connect") {
-        complete("connected stub")
+        post {
+          entity(as[ProjectDescription]) { description =>
+            println(description)
+            complete("subscribed")
+          }
+        } ~ get {
+          complete(ProjectDescription("Dummy-URL", List()))
+        }
       }
     }
 }
