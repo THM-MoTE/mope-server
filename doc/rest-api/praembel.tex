@@ -1,0 +1,89 @@
+% packages
+\usepackage[utf8]{inputenc}     %Umlaute, Sonderzeichen aktivieren
+\usepackage[ngerman]{babel}     %Sprache: deutsch
+\usepackage{graphicx} % graphiken
+\usepackage{cite} %zitate
+\usepackage{color}   %Colorize fonts
+\usepackage{hyperref}
+\usepackage{url} % für hyperlinks
+
+\usepackage{geometry}
+\geometry{a4paper,
+  top=25mm,
+  left=25mm,
+  right=20mm,
+  bottom=30mm,
+  headsep=10mm,
+  footskip=12mm}
+
+\usepackage{listings}
+%\input{listings-modelica.cfg}
+%\input{listings-scala.cfg}
+
+\usepackage{bera}% optional: just to have a nice mono-spaced font
+\usepackage{listings}
+\usepackage{xcolor}
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+%    numbers=left,
+%    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
+
+
+\lstset{breaklines=true,label=}
+% \lstset{basicstyle=\ttfamily}
+
+\lstset{
+%  numbers=left,
+%  firstnumber=1,
+  literate={~} {$\sim$}{1}, %better-looking ~
+}
+
+% cmds
+\renewcommand{\familydefault}{\sfdefault}
+
+\newcommand{\imgref}[1]{Abbildung \ref{#1}}
+\newcommand{\lstref}[1]{Listing \ref{#1}}
+\newcommand{\chref}[1]{Kapitel \ref{#1}}
+
+\newcommand{\tbc}{\textcolor{red}{to be continued}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% setup hyperlinks
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black, %colors for content listing
+    urlcolor=blue
+    }

@@ -1,0 +1,107 @@
+\section{REST-API}
+
+\newcommand{\returnline}[1]{\textbf{Returns:} #1}
+\newcommand{\return}[2]{\textbf{Returns:} #1
+  \begin{addmargin}{0.05\textwidth}
+  #2
+  \end{addmargin}
+}
+\newcommand{\param}[2]{\textbf{Request-Body:} #1
+  \begin{addmargin}{0.05\textwidth}
+  #2
+  \end{addmargin}
+}
+
+All Requests and Responses are using \textbf{JSON-Strings} as data.
+
+\begin{itemize}
+  \item \code{POST /connect} \\
+  Connects the client with the server. \\
+  Awaits the content of the \code{project.json} -file as Request-Body. This file should be
+  available in the root-directory of the project. \\
+  \return{Unique ID for the project.}{This ID is later used to identify the project.}
+
+  \item \code{POST /disconnect?project-id=<ID>} \\
+  Disconnects the client from the server and kills all remaining processes associated
+  with the project. \\
+  \returnline{Status-Code: 200; empty body}
+
+  \item \code{POST /stop-server} \\
+  Kills all remaining sessions/projects and stops the server-process. \\
+  \returnline{Status-Code: 200; empty body}
+
+  \item \code{POST /compile?project-id=<ID>} \\
+  Compiles the project identified by ID. \\
+  \return{JSON-Array containing compiler-errors.}{Example:}
+  \begin{lstlisting}[basicstyle=\small,language=json]
+    //list of errors, empty if no error
+    [
+      <ERROR-OBJECT>,
+      <ERROR-OBJECT>,
+      ...
+    ]
+  \end{lstlisting}
+
+  \item \code{POST /complete?project-id=<ID>} \\
+  Returns code-completion suggestions. \\
+  \param{Substring which should get completed and the containing file.}{Example:}
+  \begin{lstlisting}[basicstyle=\small,
+    language=json]
+    {
+      //file for completion
+      file: <RelativePath>
+      //line in which the string occured
+      line: <Number>
+      //column in which the string occured
+      column: <Number>
+      //substring which should get completed
+      string: <String>
+    }
+  \end{lstlisting}
+  \return{Json-Array with possible code-completions}{Example:}
+  \begin{lstlisting}[basicstyle=\small,
+    language=json]
+    [
+      <Completion-Object>,
+      <Completion-Object>,
+      ...
+    ]
+  \end{lstlisting}
+\end{itemize}
+
+Used datatypes and objects.
+\begin{itemize}
+  \item \textbf{Type:} \code{RelativePath} \\
+  String with relative path (relative to the root-directory of the project)
+
+  \item \textbf{Object:} \code{Completion-Object} \\
+  Example:
+  \begin{lstlisting}[basicstyle=\small,
+    language=json]
+    {
+      //type of the completion
+      //1 of the given strings
+      completionType: "type" | "variable" | "method"
+      //completions-name
+      name: <String>
+      //OPTIONAL: a list of parameter-names if completionType = "method"
+      parameters: [
+        <String>,
+        <String>,
+        ...
+      ]
+    }
+  \end{lstlisting}
+
+  \item \textbf{Object:} \code{ERROR-OBJECTS} \\
+  Example:
+  \begin{lstlisting}[basicstyle=\small,
+    language=json]
+    {
+      file: <RelativePath> //file, in which the error occured
+      line: <Number> //Lineno of error
+      column: <Number> //Columnno of error
+      message: <String> //error message
+    }
+  \end{lstlisting}
+\end{itemize}
