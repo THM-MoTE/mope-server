@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 import java.util.ResourceBundle
 
+import de.thm.moie.compiler.{AsyncModelicaCompiler, ModelicaCompiler}
 import de.thm.moie.config.{Config, ConfigLoader}
 
 object Global {
@@ -16,6 +17,10 @@ object Global {
   private val configDirectoryName = ".moie"
   private val homeDirPath = Paths.get(System.getProperty("user.home"))
   private val configDirPath = homeDirPath.resolve(configDirectoryName)
+
+  private val compilerMappings:Map[String, Class[_]] = Map(
+    "omc" -> classOf[de.thm.moie.compiler.OMCompiler]
+  )
 
   /** Check if path exist; if not create it */
   private def withCheckConfigDirectory[A](fn: Path => A): A = {
@@ -39,6 +44,20 @@ object Global {
       copyIfNotExist(filePath, relativePath)
       filePath.toUri.toURL
     }
+
+  def getCompilerClass: Class[ModelicaCompiler with AsyncModelicaCompiler] = {
+    val compilerKey = config.getString("compiler").
+      getOrElse(throw new IllegalStateException("Can't run without a defined compiler"))
+
+    val compilerClazz = compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler with AsyncModelicaCompiler]]
+    compilerClazz
+  }
+
+  def getCompilerExecutable: String = {
+    config.getString("compiler-executable").
+      orElse(config.getString("compiler")).
+      getOrElse(throw new IllegalStateException("Can't run without a defined compiler-executable"))
+  }
 
   lazy val encoding = Charset.forName("UTF-8")
 
