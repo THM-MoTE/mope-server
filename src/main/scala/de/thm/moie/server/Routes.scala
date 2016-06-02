@@ -11,6 +11,7 @@ import de.thm.moie.server.ProjectManagerActor.CompileProject
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId}
 
 import scala.concurrent.ExecutionContext
+import scala.util.Success
 
 trait Routes extends JsonSupport {
   this: ServerSetup =>
@@ -19,7 +20,7 @@ trait Routes extends JsonSupport {
 
   private val withId = parameters("project-id".as[Int])
 
-  val routes =
+  def routes =
     pathPrefix("moie") {
       path("connect") {
         post {
@@ -37,7 +38,7 @@ trait Routes extends JsonSupport {
       path("disconnect") {
          withId { id =>
             projectsManager ! Disconnect(id)
-            complete(StatusCodes.Accepted)
+            complete(StatusCodes.NoContent)
         }
       } ~
       path("stop-server") {
@@ -47,11 +48,14 @@ trait Routes extends JsonSupport {
       } ~
       path("compile") {
         withId { id =>
-          complete {
-            for {
-              projectManager <- (projectsManager ? ProjectId(id)).mapTo[ActorRef]
-              errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
+          val fut = for {
+              projectManagerOpt <- (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
+              if projectManagerOpt.isDefined
+              errors <- (projectManagerOpt.get ? CompileProject).mapTo[Seq[CompilerError]]
             } yield errors.toList
+          onComplete(fut) {
+          case Success(lst) => complete(lst)
+          case _ => complete(StatusCodes.NotFound)
           }
         }
       }

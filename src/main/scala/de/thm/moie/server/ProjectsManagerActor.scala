@@ -20,6 +20,13 @@ class ProjectsManagerActor
 
   private var projects = ArrayBuffer[(ProjectDescription, ActorRef)]()
 
+  private def withIdxExists[T](idx:Int)(f: (ProjectDescription, ActorRef) => T):Option[T] =
+    if(idx>=0 && idx<projects.length) {
+      val (descr, actor) = projects(idx)
+      Some(f(descr, actor))
+    }
+    else None
+
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
       Future {
@@ -40,11 +47,13 @@ class ProjectsManagerActor
             ProjectId(size)
         }
       } pipeTo sender
-    case ProjectId(id) => Future(projects(id)._2) pipeTo sender
+    case ProjectId(id) =>
+      Future(withIdxExists(id) { (_, actor) => actor }) pipeTo sender
     case Disconnect(id) => Future {
-      val (_, actor) = projects(id)
-      projects.remove(id)
-      actor ! PoisonPill
+      withIdxExists(id) { (_, actor) =>
+        projects.remove(id)
+        actor ! PoisonPill
+      }
     }
   }
 
