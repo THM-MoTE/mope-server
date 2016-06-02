@@ -34,10 +34,16 @@ class ProjectsManagerActor
         }
       } pipeTo sender
     case ProjectId(id) => Future(projects(id)) pipeTo sender
+    case Disconnect(id) => Future {
+      val (_, actor) = projects(id)
+      projects.remove(id)
+      actor ! PoisonPill
+    }
   }
 }
 
 object ProjectsManagerActor {
   sealed trait ProjectsManagerMsg
   case class ProjectId(id:Int) extends ProjectsManagerMsg
+  case class Disconnect(id:Int) extends ProjectsManagerMsg
 }
