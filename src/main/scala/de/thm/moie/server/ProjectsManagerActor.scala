@@ -2,6 +2,8 @@ package de.thm.moie.server
 
 import akka.pattern.pipe
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
+import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.actors.UnhandledReceiver
 
@@ -28,7 +30,12 @@ class ProjectsManagerActor
           case Some(descr) => ProjectId(projects.indexOf(descr))
           case None =>
             val size = projects.size
-            val manager = context.actorOf(Props(new ProjectManagerActor(description)), name = s"proj-manager-$size")
+            val executableString = Global.getCompilerExecutable
+            val compilerClazz = Global.getCompilerClass
+            val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String])
+            val compiler = constructor.newInstance(description.compilerFlags, executableString)
+
+            val manager = context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$size")
             projects += ((description, manager))
             ProjectId(size)
         }
