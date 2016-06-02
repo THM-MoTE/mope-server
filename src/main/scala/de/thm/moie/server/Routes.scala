@@ -4,8 +4,10 @@ import akka.pattern.ask
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.project.ProjectDescription._
+import de.thm.moie.server.ProjectManagerActor.CompileProject
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId}
 
 import scala.concurrent.ExecutionContext
@@ -14,6 +16,8 @@ trait Routes extends JsonSupport {
   this: ServerSetup =>
 
   def projectsManager: ActorRef
+
+  private val withId = parameters("project-id".as[Int])
 
   val routes =
     pathPrefix("moie") {
@@ -27,11 +31,11 @@ trait Routes extends JsonSupport {
             }
           }
         } ~ get {
-          complete(ProjectDescription("Dummy-URL", List()))
+          complete(ProjectDescription("Dummy-URL", "target", List()))
         }
       } ~
       path("disconnect") {
-        parameters("project-id".as[Int]) { id =>
+         withId { id =>
             projectsManager ! Disconnect(id)
             complete(StatusCodes.Accepted)
         }
@@ -40,6 +44,16 @@ trait Routes extends JsonSupport {
         projectsManager ! PoisonPill
         actorSystem.terminate()
         complete(StatusCodes.Accepted)
+      } ~
+      path("compile") {
+        withId { id =>
+          complete {
+            for {
+              projectManager <- (projectsManager ? ProjectId(id)).mapTo[ActorRef]
+              errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
+            } yield errors.toList
+          }
+        }
       }
     }
 }
