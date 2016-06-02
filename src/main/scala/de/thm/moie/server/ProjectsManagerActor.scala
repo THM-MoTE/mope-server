@@ -1,14 +1,17 @@
 package de.thm.moie.server
 
 import akka.pattern.pipe
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
-class ProjectsManagerActor extends Actor with UnhandledReceiver {
+class ProjectsManagerActor
+  extends Actor
+  with UnhandledReceiver
+  with LogMessages {
 
   import ProjectsManagerActor._
   import context.dispatcher
@@ -21,7 +24,6 @@ class ProjectsManagerActor extends Actor with UnhandledReceiver {
         val existingEntry = projects.find {
           case (descr, _) => descr.path == description.path
         }
-
         existingEntry match {
           case Some(descr) => ProjectId(projects.indexOf(descr))
           case None =>
