@@ -7,6 +7,7 @@ import akka.pattern.pipe
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import de.thm.moie.compiler.{AsyncModelicaCompiler, ModelicaCompiler}
 import de.thm.moie.project.ProjectDescription
+import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.collection.mutable.ArrayBuffer
@@ -21,7 +22,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   //initialize all files
   val rootDir = Paths.get(description.path)
-  val files = getModelicaFiles(rootDir)
+  val files = getModelicaFiles(rootDir, "mo")
   println("Projects-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
@@ -37,18 +38,21 @@ object ProjectManagerActor {
   sealed trait ProjectManagerMsg
   case object CompilerProject extends ProjectManagerMsg
 
-  def getModelicaFiles(root:Path): List[Path] = {
-    val visitor = new AccumulateFiles()
+  def getModelicaFiles(root:Path, filters:String*): List[Path] = {
+    val visitor = new AccumulateFiles(filters)
     Files.walkFileTree(root, visitor)
     visitor.getFiles
   }
 
-  private class AccumulateFiles extends SimpleFileVisitor[Path] {
+  private class AccumulateFiles(filters:Seq[String]) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
     override def visitFile(file:Path,
                            attr:BasicFileAttributes): FileVisitResult = {
-      if(attr.isRegularFile && !Files.isHidden(file))
+      if(attr.isRegularFile &&
+        !Files.isHidden(file) &&
+        filters.exists(ResourceUtils.getFilename(file).endsWith(_))) {
         buffer = file :: buffer
+      }
 
       FileVisitResult.CONTINUE
     }
