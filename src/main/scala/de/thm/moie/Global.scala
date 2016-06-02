@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 import java.util.ResourceBundle
 
-import de.thm.moie.compiler.{AsyncModelicaCompiler, ModelicaCompiler}
+import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.config.{Config, ConfigLoader}
 
 object Global {
@@ -45,11 +45,11 @@ object Global {
       filePath.toUri.toURL
     }
 
-  def getCompilerClass: Class[ModelicaCompiler with AsyncModelicaCompiler] = {
+  def getCompilerClass: Class[ModelicaCompiler] = {
     val compilerKey = config.getString("compiler").
       getOrElse(throw new IllegalStateException("Can't run without a defined compiler"))
 
-    val compilerClazz = compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler with AsyncModelicaCompiler]]
+    val compilerClazz = compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
     compilerClazz
   }
 
