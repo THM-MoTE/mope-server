@@ -32,8 +32,8 @@ class ProjectsManagerActor
             val size = projects.size
             val executableString = Global.getCompilerExecutable
             val compilerClazz = Global.getCompilerClass
-            val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String])
-            val compiler = constructor.newInstance(description.compilerFlags, executableString)
+            val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[String])
+            val compiler = constructor.newInstance(description.compilerFlags, executableString, description.ouputDirectory)
 
             val manager = context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$size")
             projects += ((description, manager))
