@@ -4,16 +4,14 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
 
 import akka.pattern.pipe
-import akka.actor.{Actor, ActorLogging, ActorRef}
-import de.thm.moie.compiler.{AsyncModelicaCompiler, ModelicaCompiler}
+import akka.actor.Actor
+import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
 
-import scala.collection.mutable.ArrayBuffer
-
 class ProjectManagerActor(description:ProjectDescription,
-                          compiler:ModelicaCompiler with AsyncModelicaCompiler)
+                          compiler:ModelicaCompiler)
   extends Actor
   with UnhandledReceiver
   with LogMessages {
