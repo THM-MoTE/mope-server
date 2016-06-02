@@ -26,7 +26,7 @@ class ProjectManagerActor(description:ProjectDescription,
   println("Projects-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
-    case CompilerProject => println("compiling not implemented yet")
+    case CompileProject => println("compiling not implemented yet")
   }
 
   override def postStop(): Unit = {
@@ -36,7 +36,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
-  case object CompilerProject extends ProjectManagerMsg
+  case object CompileProject extends ProjectManagerMsg
 
   def getModelicaFiles(root:Path, filters:String*): List[Path] = {
     val visitor = new AccumulateFiles(filters)
