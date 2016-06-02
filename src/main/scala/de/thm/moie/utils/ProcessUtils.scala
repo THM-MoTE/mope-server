@@ -19,6 +19,17 @@ object ProcessUtils {
     (exitValue, stdoutStream.toString, stderrStream.toString)
   }
 
+  def runCommand(cmd:ProcessBuilder): (Int, String, String) = {
+    val stdoutStream = new ByteArrayOutputStream
+    val stderrStream = new ByteArrayOutputStream
+    val stdoutWriter = new PrintWriter(stdoutStream)
+    val stderrWriter = new PrintWriter(stderrStream)
+    val exitValue = cmd.!(ProcessLogger(stdoutWriter.println, stderrWriter.println))
+    stdoutWriter.close()
+    stderrWriter.close()
+    (exitValue, stdoutStream.toString, stderrStream.toString)
+  }
+
   def runCommandAsync(cmd:Seq[String])(
     implicit exec:ExecutionContext): Future[(Int, String, String)] =
       Future(runCommand(cmd))

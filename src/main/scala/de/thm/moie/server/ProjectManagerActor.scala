@@ -17,6 +17,7 @@ class ProjectManagerActor(description:ProjectDescription,
   with LogMessages {
 
   import ProjectManagerActor._
+  import context.dispatcher
 
   //initialize all files
   val rootDir = Paths.get(description.path)
@@ -24,7 +25,7 @@ class ProjectManagerActor(description:ProjectDescription,
   println("Projects-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
-    case CompileProject => println("compiling not implemented yet")
+    case CompileProject => compiler.compileAsync(files) pipeTo sender
   }
 
   override def postStop(): Unit = {
