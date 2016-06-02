@@ -47,6 +47,8 @@ class ProjectsManagerActor
       actor ! PoisonPill
     }
   }
+
+  override def postStop(): Unit = log.info("stopping")
 }
 
 object ProjectsManagerActor {

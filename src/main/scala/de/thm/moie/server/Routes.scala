@@ -1,7 +1,7 @@
 package de.thm.moie.server
 
 import akka.pattern.ask
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import de.thm.moie.project.ProjectDescription
@@ -35,6 +35,11 @@ trait Routes extends JsonSupport {
             projectsManager ! Disconnect(id)
             complete(StatusCodes.Accepted)
         }
+      } ~
+      path("stop-server") {
+        projectsManager ! PoisonPill
+        actorSystem.terminate()
+        complete(StatusCodes.Accepted)
       }
     }
 }
