@@ -40,7 +40,7 @@ class ProjectsManagerActor
             ProjectId(size)
         }
       } pipeTo sender
-    case ProjectId(id) => Future(projects(id)) pipeTo sender
+    case ProjectId(id) => Future(projects(id)._2) pipeTo sender
     case Disconnect(id) => Future {
       val (_, actor) = projects(id)
       projects.remove(id)
