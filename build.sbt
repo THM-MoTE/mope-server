@@ -32,6 +32,8 @@ test in assembly := {} //skip test's during packaging
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-core" % "2.4.6",
   "com.typesafe.akka" %% "akka-http-experimental" % "2.4.6",
-  "com.typesafe.akka" %% "akka-http-spray-json-experimental" % "2.4.6"
-  //"org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+  "com.typesafe.akka" %% "akka-http-spray-json-experimental" % "2.4.6",
+  "org.scalactic" %% "scalactic" % "2.2.6",
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
   )
