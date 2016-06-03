@@ -11,5 +11,5 @@ trait ServerSetup {
   implicit val actorSystem = ActorSystem("moie-system")
   implicit val execContext = actorSystem.dispatcher
   implicit val materializer = ActorMaterializer()
-  implicit val defaultTimeout = Timeout(3 seconds)
+  implicit val defaultTimeout = Timeout(20 seconds)
 }
