@@ -5,14 +5,15 @@
 package de.thm.moie.utils.actors
 
 import akka.actor.Actor
+import de.thm.moie.server.LogMessages
 
 trait UnhandledReceiver {
-  this: Actor =>
+  this: Actor with LogMessages =>
 
   private val actorName = this.self.path.name
 
   def catchUnhandledMsgs: Actor.Receive = {
-    case a:Any => println(s"WARNING: $actorName can't handle $a")
+    case a:Any => log.warning(s"can't handle $a")
   }
 
   def handleMsg: Receive
