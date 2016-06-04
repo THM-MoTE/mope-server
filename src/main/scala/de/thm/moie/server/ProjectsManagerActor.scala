@@ -57,8 +57,9 @@ class ProjectsManagerActor
       withIdxExists(id) { (_, actor) =>
         projects.remove(id)
         actor ! PoisonPill
+        RemainingClients(projects.size)
       }
-    }
+    } pipeTo sender
   }
 
   override def postStop(): Unit = log.info("stopping")
@@ -68,4 +69,5 @@ object ProjectsManagerActor {
   sealed trait ProjectsManagerMsg
   case class ProjectId(id:Int) extends ProjectsManagerMsg
   case class Disconnect(id:Int) extends ProjectsManagerMsg
+  case class RemainingClients(count:Int) extends ProjectsManagerMsg
 }

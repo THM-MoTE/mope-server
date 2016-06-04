@@ -8,13 +8,15 @@ import akka.pattern.ask
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.project.ProjectDescription._
 import de.thm.moie.server.ProjectManagerActor.CompileProject
-import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId}
+import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.util.Success
 
 trait Routes extends JsonSupport {
@@ -23,6 +25,18 @@ trait Routes extends JsonSupport {
   def projectsManager: ActorRef
 
   private val withId = parameters("project-id".as[Int])
+  private val exitOnLastDisconnect =
+    Global.config.getBoolean("exitOnLastDisconnect").getOrElse(false)
+
+  private def disconnectWithExit(id:Int):Unit =
+    (projectsManager ? Disconnect(id)).
+      mapTo[Option[RemainingClients]].flatMap {
+        case Some(RemainingClients(0)) if exitOnLastDisconnect =>
+          Future.successful(())
+        case _ => Future.failed(new Exception())
+      }.foreach { _ =>
+        actorSystem.terminate()
+      }
 
   def routes =
     pathPrefix("moie") {
@@ -41,7 +55,8 @@ trait Routes extends JsonSupport {
       } ~
       path("disconnect") {
          withId { id =>
-            projectsManager ! Disconnect(id)
+           disconnectWithExit(id)
+
             complete(StatusCodes.NoContent)
         }
       } ~
