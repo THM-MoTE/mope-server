@@ -7,7 +7,6 @@ package de.thm.moie.utils
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import java.util.Base64
-import javafx.scene.paint.Color
 
 import de.thm.moie.Global
 
@@ -42,4 +41,3 @@ object ResourceUtils {
     Files.copy(srcPath, targetPath.resolve(filename))
   }
 }
-
