@@ -33,9 +33,9 @@ class Server(port:Int) extends Routes with ServerSetup {
   val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
   println(s"Server running at localhost:$port")
   println("Press Enter to interrupt")
-//  var char = StdIn.readLine()
-//
-//  bindingFuture.
-//    flatMap(_.unbind()).
-//    onComplete(_ => actorSystem.terminate())
+  StdIn.readLine()
+
+  bindingFuture.
+    flatMap(_.unbind()).
+    onComplete(_ => actorSystem.terminate())
 }
