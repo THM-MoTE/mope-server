@@ -7,7 +7,6 @@ package de.thm.moie
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
-import java.util.ResourceBundle
 
 import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.config.{Config, ConfigLoader}

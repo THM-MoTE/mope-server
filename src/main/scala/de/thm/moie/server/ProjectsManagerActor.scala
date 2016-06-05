@@ -5,13 +5,11 @@
 package de.thm.moie.server
 
 import akka.pattern.pipe
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
-import akka.http.scaladsl.model.{StatusCode, StatusCodes}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.actors.UnhandledReceiver
 import de.thm.moie.server.ProjectRegister._
-import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
 class ProjectsManagerActor
