@@ -67,6 +67,7 @@ trait Routes extends JsonSupport {
       } ~
       path("compile") {
         withId { id =>
+          //TODO refactor uising Future.collect
           val fut = for {
               projectManagerOpt <- (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
               if projectManagerOpt.isDefined
