@@ -20,7 +20,6 @@ class ProjectRegister() {
     idCounter += 1
     res
   }
-  private def findByDescription(descr:ProjectDescription) = ???
 
   def add(e:ProjectEntry):ID = {
     descriptionToId.get(e.description) match {
