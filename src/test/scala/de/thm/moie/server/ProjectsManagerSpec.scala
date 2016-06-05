@@ -41,7 +41,7 @@ class ProjectsManagerSpec()
       (act, descr)
   }
 
-  override def afterAll {
+  override def afterAll = {
     TestKit.shutdownActorSystem(system)
   }
 
