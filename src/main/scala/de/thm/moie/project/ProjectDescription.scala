@@ -6,5 +6,5 @@ package de.thm.moie.project
 
 case class ProjectDescription(
            path:String,
-           ouputDirectory:String,
+           outputDirectory:String,
            compilerFlags: List[String])
