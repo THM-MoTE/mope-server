@@ -31,8 +31,8 @@ class Server(port:Int) extends Routes with ServerSetup {
   override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
 
   val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
-  println(s"Server running at localhost:$port")
-  println("Press Enter to interrupt")
+  serverlog.info(s"Server running at localhost:$port")
+//  serverlog.info("Press Enter to interrupt")
 //  var char = StdIn.readLine()
 //
 //  bindingFuture.
