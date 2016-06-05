@@ -28,6 +28,11 @@ trait Routes extends JsonSupport {
   private val exitOnLastDisconnect =
     Global.config.getBoolean("exitOnLastDisconnect").getOrElse(false)
 
+  private def shutdown(cause:String="unkown cause"): Unit = {
+    actorSystem.terminate()
+    serverlog.info(s"Shutdown because $cause")
+  }
+
   private def disconnectWithExit(id:Int):Unit =
     (projectsManager ? Disconnect(id)).
       mapTo[Option[RemainingClients]].flatMap {
@@ -35,7 +40,7 @@ trait Routes extends JsonSupport {
           Future.successful(())
         case _ => Future.failed(new Exception())
       }.foreach { _ =>
-        actorSystem.terminate()
+        shutdown("no active clients left")
       }
 
   def routes =
@@ -54,15 +59,14 @@ trait Routes extends JsonSupport {
         }
       } ~
       path("disconnect") {
-         withId { id =>
-           disconnectWithExit(id)
-
-            complete(StatusCodes.NoContent)
+        withId { id =>
+          disconnectWithExit(id)
+          complete(StatusCodes.NoContent)
         }
       } ~
       path("stop-server") {
         projectsManager ! PoisonPill
-        actorSystem.terminate()
+        shutdown("received `stop-server`")
         complete(StatusCodes.Accepted)
       } ~
       path("compile") {
