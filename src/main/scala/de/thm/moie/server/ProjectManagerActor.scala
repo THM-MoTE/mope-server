@@ -26,7 +26,8 @@ class ProjectManagerActor(description:ProjectDescription,
   //initialize all files
   val rootDir = Paths.get(description.path)
   val files = getModelicaFiles(rootDir, "mo")
-  println("Projects-Files: \n" + files.mkString("\n"))
+  if(files.nonEmpty)
+    log.debug("Found project-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
     case CompileProject => compiler.compileAsync(files) pipeTo sender
