@@ -10,7 +10,7 @@ import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.actors.UnhandledReceiver
-
+import de.thm.moie.server.ProjectRegister._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
@@ -22,42 +22,35 @@ class ProjectsManagerActor
   import ProjectsManagerActor._
   import context.dispatcher
 
-  private var projects = ArrayBuffer[(ProjectDescription, ActorRef)]()
 
-  private def withIdxExists[T](idx:Int)(f: (ProjectDescription, ActorRef) => T):Option[T] =
-    if(idx>=0 && idx<projects.length) {
-      val (descr, actor) = projects(idx)
-      Some(f(descr, actor))
+  private val register = new ProjectRegister()
+
+  private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
+    register.get(id) map {
+      case ProjectEntry(descr, actor) => f(descr, actor)
     }
-    else None
+
+  private def newManager(description:ProjectDescription, id:ID): ActorRef = {
+    val executableString = Global.getCompilerExecutable
+    val compilerClazz = Global.getCompilerClass
+    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[String])
+    val compiler = constructor.newInstance(description.compilerFlags, executableString, description.outputDirectory)
+    context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$id")
+  }
 
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
       Future {
-        val existingEntry = projects.find {
-          case (descr, _) => descr.path == description.path
-        }
-        existingEntry match {
-          case Some(descr) => ProjectId(projects.indexOf(descr))
-          case None =>
-            val size = projects.size
-            val executableString = Global.getCompilerExecutable
-            val compilerClazz = Global.getCompilerClass
-            val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[String])
-            val compiler = constructor.newInstance(description.compilerFlags, executableString, description.ouputDirectory)
-
-            val manager = context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$size")
-            projects += ((description, manager))
-            ProjectId(size)
-        }
+        val id = register.add(description)(newManager)
+        ProjectId(id)
       } pipeTo sender
     case ProjectId(id) =>
-      Future(withIdxExists(id) { (_, actor) => actor }) pipeTo sender
+      Future(withIdExists(id) { (_, actor) => actor }) pipeTo sender
     case Disconnect(id) => Future {
-      withIdxExists(id) { (_, actor) =>
-        projects.remove(id)
-        actor ! PoisonPill
-        RemainingClients(projects.size)
+      register.remove(id).map {
+        case ProjectEntry(_, actor) =>
+          actor ! PoisonPill
+          RemainingClients(register.projectCount)
       }
     } pipeTo sender
   }
