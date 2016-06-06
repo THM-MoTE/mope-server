@@ -20,8 +20,6 @@ class ProjectsManagerActor
   import ProjectsManagerActor._
   import context.dispatcher
 
-
-  //TODO make register thread-safe (use an actor?)
   private val register = new ProjectRegister()
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
@@ -39,19 +37,16 @@ class ProjectsManagerActor
 
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
-      Future {
         val id = register.add(description)(newManager)
-        ProjectId(id)
-      } pipeTo sender
+        sender ! ProjectId(id)
     case ProjectId(id) =>
-      Future(withIdExists(id) { (_, actor) => actor }) pipeTo sender
-    case Disconnect(id) => Future {
-      register.remove(id).map {
+      sender ! withIdExists(id) { (_, actor) => actor }
+    case Disconnect(id) =>
+      sender ! register.remove(id).map {
         case ProjectEntry(_, actor) =>
           actor ! PoisonPill
           RemainingClients(register.projectCount)
       }
-    } pipeTo sender
   }
 
   override def postStop(): Unit = log.info("stopping")
