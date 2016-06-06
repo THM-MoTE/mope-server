@@ -5,8 +5,8 @@
 package de.thm.moie.server
 
 import akka.actor.ActorRef
-import java.nio.file.{ FileSystems, Files, WatchEvent }
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Files, WatchEvent }
+import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds._
 import java.util.concurrent.TimeUnit
 import de.thm.moie.Global
@@ -30,13 +30,10 @@ class FileWatcher(rootDir:Path, observer:ActorRef)(fileFilter: Path => Boolean) 
           case ev:WatchEvent[_] if(ev.kind != OVERFLOW) => (ev.context.asInstanceOf[Path], ev.kind)
         }.foreach { case (path, kind) =>
             val absolutePath = rootDir.resolve(path).toAbsolutePath()
-            println(absolutePath)
             if(kind == ENTRY_CREATE && fileFilter(absolutePath)) {
-              if(Files.isDirectory(absolutePath)) {
-                //start observer for new directory
-                println(s"directory $path")
+              if(Files.isDirectory(absolutePath))
                 observer ! NewDir(absolutePath)
-              } else
+              else
                 observer ! NewFile(absolutePath)
             } else if(kind == ENTRY_DELETE && fileFilter(absolutePath)) {
               if(Files.isRegularFile(absolutePath)) {

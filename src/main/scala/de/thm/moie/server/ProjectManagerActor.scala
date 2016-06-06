@@ -34,7 +34,6 @@ class ProjectManagerActor(description:ProjectDescription,
 
   def fileFilter(p:Path):Boolean = {
     val filename = ResourceUtils.getFilename(p)
-    println(filename)
     filename != description.outputDirectory &&
     !Files.isHidden(p) &&
     Files.isDirectory(p) ||
@@ -46,12 +45,10 @@ class ProjectManagerActor(description:ProjectDescription,
       ResourceUtils.getFilename(p) != description.outputDirectory
     })
     files ++= getModelicaFiles(path, "mo")
-    println("dirs: "+dirs.mkString(" "))
-    println("files: "+files.mkString(" "))
     dirs.map { p =>
       val watcher = new FileWatcher(p, self)(fileFilter)
       val future = blockingExecutor.submit(watcher)
-      println("new watcher for "+p)
+      log.debug(s"start watcher for ${rootDir.relativize(p)}")
       startedWatchers += watcher -> future
       watcher
     }
