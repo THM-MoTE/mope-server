@@ -6,7 +6,10 @@ package de.thm.moie.server
 
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
+import java.util.concurrent.Executors
+import scala.collection._
 
+import scala.concurrent.Future
 import akka.pattern.pipe
 import akka.actor.Actor
 import de.thm.moie.compiler.ModelicaCompiler
@@ -41,6 +44,9 @@ class ProjectManagerActor(description:ProjectDescription,
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
   case object CompileProject extends ProjectManagerMsg
+  case class NewFile(path:Path) extends ProjectManagerMsg
+  case class NewDir(path:Path) extends ProjectManagerMsg
+  case class DeleteFile(path:Path) extends ProjectManagerMsg
 
   def getModelicaFiles(root:Path, filters:String*): List[Path] = {
     val visitor = new AccumulateFiles(filters)
