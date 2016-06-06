@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit
 import de.thm.moie.Global
 import de.thm.moie.utils.ThreadUtils
 
-
 import scala.collection.JavaConversions._
 
 class FileWatcher(rootDir:Path, observer:ActorRef)(fileFilter: Path => Boolean) extends Runnable {

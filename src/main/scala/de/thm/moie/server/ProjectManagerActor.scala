@@ -29,8 +29,9 @@ class ProjectManagerActor(description:ProjectDescription,
 
   //initialize all files
   val rootDir = Paths.get(description.path)
-  val files = mutable.ArrayBuffer.concat(getModelicaFiles(rootDir, "mo"))
+  val files = mutable.ArrayBuffer[Path]()
   val startedWatchers = mutable.ArrayBuffer[(FileWatcher,java.util.concurrent.Future[_])]()
+  newWatcher(rootDir)
 
   def fileFilter(p:Path):Boolean = {
     val filename = ResourceUtils.getFilename(p)
@@ -54,17 +55,15 @@ class ProjectManagerActor(description:ProjectDescription,
     }
   }
 
-  newWatcher(rootDir)
   if(files.nonEmpty)
-    log.debug("Found project-Files: \n" + files.mkString("\n"))
+    log.debug("Project-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
     case CompileProject => compiler.compileAsync(files.toList) pipeTo sender
-    case NewFile(path) => log.info(s"add new $path")
-    case NewDir(path) =>
-      log.info(s"new dir $path")
-      newWatcher(path)
-    case DeleteFile(path) => log.info(s"remove $path from files")
+    case NewFile(path) =>
+      files += path
+    case NewDir(path) => newWatcher(path)
+    case DeleteFile(path) => files -= path
   }
 
   override def postStop(): Unit = {
