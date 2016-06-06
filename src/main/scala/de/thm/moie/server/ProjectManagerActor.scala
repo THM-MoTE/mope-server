@@ -7,10 +7,13 @@ package de.thm.moie.server
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
 import java.util.concurrent.Executors
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.collection._
 
-import akka.pattern.pipe
+import akka.pattern.{pipe, ask}
 import akka.actor.{Actor, Props}
+import akka.util.Timeout
 import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.ResourceUtils
@@ -25,13 +28,18 @@ class ProjectManagerActor(description:ProjectDescription,
   import ProjectManagerActor._
   import context.dispatcher
 
+  implicit val timeout = Timeout(5 seconds)
+
   //initialize all files
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(rootDir, description.outputDirectory)))
 
   override def handleMsg: Receive = {
     case CompileProject =>
-      //compiler.compileAsync(files.toList) pipeTo sender
+      (for {
+        files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
+        errors <- compiler.compileAsync(files)
+      } yield errors) pipeTo sender
   }
 
   override def postStop(): Unit = {

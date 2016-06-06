@@ -58,6 +58,7 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
     case NewDir(path) =>
       newWatcher(path)
     case DeleteFile(path) => files -= path
+    case GetFiles => sender ! files.toList
   }
 
   override def postStop(): Unit = {
@@ -69,6 +70,7 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
 
 object FileWatchingActor {
   sealed trait FileWatchingMsg
+  case object GetFiles extends FileWatchingMsg
   case class NewFile(path:Path) extends FileWatchingMsg
   case class NewDir(path:Path) extends FileWatchingMsg
   case class DeleteFile(path:Path) extends FileWatchingMsg
