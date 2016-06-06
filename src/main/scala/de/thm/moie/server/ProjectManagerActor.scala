@@ -46,12 +46,11 @@ class ProjectManagerActor(description:ProjectDescription,
       ResourceUtils.getFilename(p) != description.outputDirectory
     })
     files ++= getModelicaFiles(path, "mo")
-    dirs.map { p =>
+    dirs.foreach { p =>
       val watcher = new FileWatcher(p, self)(fileFilter)
       val future = blockingExecutor.submit(watcher)
       log.debug(s"start watcher for ${rootDir.relativize(p)}")
       startedWatchers += watcher -> future
-      watcher
     }
   }
 
