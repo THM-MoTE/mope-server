@@ -21,6 +21,7 @@ class ProjectsManagerActor
   import context.dispatcher
 
 
+  //TODO make register thread-safe (use an actor?)
   private val register = new ProjectRegister()
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
