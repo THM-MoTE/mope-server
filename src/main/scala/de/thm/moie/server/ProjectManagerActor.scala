@@ -33,8 +33,17 @@ class ProjectManagerActor(description:ProjectDescription,
   val files = getModelicaFiles(rootDir, "mo")
   val startedWatchers = mutable.ArrayBuffer[(FileWatcher,java.util.concurrent.Future[_])]()
 
+  def fileFilter(p:Path):Boolean = {
+    val filename = ResourceUtils.getFilename(p)
+    println(filename)
+    filename != description.outputDirectory &&
+    !Files.isHidden(p) &&
+    Files.isDirectory(p) ||
+    (!Files.isDirectory(p) && filename.endsWith(".mo"))
+  }
+
   def newWatcher(path:Path):FileWatcher = {
-    val watcher = new FileWatcher(path, self)
+    val watcher = new FileWatcher(path, self)(fileFilter)
     val future = blockingExecutor.submit(watcher)
     println("new watcher for "+path)
     startedWatchers += watcher -> future

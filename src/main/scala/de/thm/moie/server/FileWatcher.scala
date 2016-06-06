@@ -10,15 +10,17 @@ import java.nio.file.{Path, Paths}
 import java.nio.file.StandardWatchEventKinds._
 import java.util.concurrent.TimeUnit
 import de.thm.moie.Global
+import de.thm.moie.utils.ThreadUtils
+
 
 import scala.collection.JavaConversions._
 
-class FileWatcher(rootDir:Path, observer:ActorRef) extends Runnable {
+class FileWatcher(rootDir:Path, observer:ActorRef)(fileFilter: Path => Boolean) extends Runnable {
   val pollingTimeout =  Global.config.getInt("filewatcher-polling-timeout").getOrElse(10)
 
   import de.thm.moie.server.ProjectManagerActor._
 
-  def run(): Unit = {
+  def run(): Unit = ThreadUtils.faileSafeRun {
     val watcher = rootDir.getFileSystem.newWatchService()
     rootDir.register(watcher, ENTRY_CREATE, ENTRY_DELETE)
     while(!Thread.currentThread.isInterrupted() && Files.exists(rootDir)) {
@@ -29,16 +31,14 @@ class FileWatcher(rootDir:Path, observer:ActorRef) extends Runnable {
         }.foreach { case (path, kind) =>
             val absolutePath = rootDir.resolve(path).toAbsolutePath()
             println(absolutePath)
-            println(Paths.get(".").toAbsolutePath())
-            if(kind == ENTRY_CREATE) {
-              println(Files.isDirectory(absolutePath))
+            if(kind == ENTRY_CREATE && fileFilter(absolutePath)) {
               if(Files.isDirectory(absolutePath)) {
                 //start observer for new directory
                 println(s"directory $path")
                 observer ! NewDir(absolutePath)
               } else
                 observer ! NewFile(absolutePath)
-            } else if(kind == ENTRY_DELETE) {
+            } else if(kind == ENTRY_DELETE && fileFilter(absolutePath)) {
               if(Files.isRegularFile(absolutePath)) {
                 observer ! DeleteFile(absolutePath)
               }
