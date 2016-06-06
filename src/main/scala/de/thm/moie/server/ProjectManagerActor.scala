@@ -9,7 +9,6 @@ import java.nio.file._
 import java.util.concurrent.Executors
 import scala.collection._
 
-import scala.concurrent.Future
 import akka.pattern.pipe
 import akka.actor.Actor
 import de.thm.moie.compiler.ModelicaCompiler
@@ -30,7 +29,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   //initialize all files
   val rootDir = Paths.get(description.path)
-  val files = getModelicaFiles(rootDir, "mo")
+  val files = mutable.ArrayBuffer.concat(getModelicaFiles(rootDir, "mo"))
   val startedWatchers = mutable.ArrayBuffer[(FileWatcher,java.util.concurrent.Future[_])]()
 
   def fileFilter(p:Path):Boolean = {
@@ -42,21 +41,28 @@ class ProjectManagerActor(description:ProjectDescription,
     (!Files.isDirectory(p) && filename.endsWith(".mo"))
   }
 
-  def newWatcher(path:Path):FileWatcher = {
-    val watcher = new FileWatcher(path, self)(fileFilter)
-    val future = blockingExecutor.submit(watcher)
-    println("new watcher for "+path)
-    startedWatchers += watcher -> future
-    watcher
+  def newWatcher(path:Path):Unit = {
+    val dirs = getDirs(path, { p =>
+      ResourceUtils.getFilename(p) != description.outputDirectory
+    })
+    files ++= getModelicaFiles(path, "mo")
+    println("dirs: "+dirs.mkString(" "))
+    println("files: "+files.mkString(" "))
+    dirs.map { p =>
+      val watcher = new FileWatcher(p, self)(fileFilter)
+      val future = blockingExecutor.submit(watcher)
+      println("new watcher for "+p)
+      startedWatchers += watcher -> future
+      watcher
+    }
   }
 
-  val rootFileWatcher = newWatcher(rootDir)
-
+  newWatcher(rootDir)
   if(files.nonEmpty)
     log.debug("Found project-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
-    case CompileProject => compiler.compileAsync(files) pipeTo sender
+    case CompileProject => compiler.compileAsync(files.toList) pipeTo sender
     case NewFile(path) => log.info(s"add new $path")
     case NewDir(path) =>
       log.info(s"new dir $path")
@@ -84,6 +90,12 @@ object ProjectManagerActor {
     visitor.getFiles
   }
 
+  def getDirs(path:Path, filter: Path => Boolean): List[Path] = {
+    val visitor = new AccumulateDirs(filter)
+    Files.walkFileTree(path, visitor)
+    visitor.getDirs
+  }
+
   private class AccumulateFiles(filters:Seq[String]) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
     override def visitFile(file:Path,
@@ -98,5 +110,19 @@ object ProjectManagerActor {
     }
 
     def getFiles = buffer
+  }
+
+  private class AccumulateDirs(filter: Path => Boolean) extends SimpleFileVisitor[Path] {
+    private var buffer = List[Path]()
+
+    override def preVisitDirectory(dir:Path,
+                                  attrs:BasicFileAttributes): FileVisitResult = {
+      if(!Files.isHidden(dir) && filter(dir)) {
+        buffer = dir :: buffer
+        FileVisitResult.CONTINUE
+      } else FileVisitResult.SKIP_SUBTREE
+    }
+
+    def getDirs = buffer
   }
 }
