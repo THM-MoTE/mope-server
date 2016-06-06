@@ -7,7 +7,9 @@ object Dependencies {
     akkaGroup %% "akka-http-core" % akkaVersion,
     akkaGroup %% "akka-http-experimental" % akkaVersion,
     akkaGroup %% "akka-http-spray-json-experimental" % akkaVersion,
-    akkaGroup %% "akka-testkit" % akkaVersion
+    akkaGroup %% "akka-testkit" % akkaVersion,
+    akkaGroup %% "akka-slf4j" % akkaVersion,
+    "ch.qos.logback" % "logback-classic" % "1.1.3"
   )
 
   private val scalaUtilsVersion = "1.0.4"
