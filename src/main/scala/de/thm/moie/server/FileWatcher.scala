@@ -17,7 +17,7 @@ import scala.collection.JavaConversions._
 class FileWatcher(rootDir:Path, observer:ActorRef)(fileFilter: Path => Boolean) extends Runnable {
   val pollingTimeout =  Global.config.getInt("filewatcher-polling-timeout").getOrElse(10)
 
-  import de.thm.moie.server.ProjectManagerActor._
+  import FileWatchingActor._
 
   def run(): Unit = ThreadUtils.faileSafeRun {
     val watcher = rootDir.getFileSystem.newWatchService()
