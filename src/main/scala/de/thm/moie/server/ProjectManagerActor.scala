@@ -26,18 +26,39 @@ class ProjectManagerActor(description:ProjectDescription,
   import ProjectManagerActor._
   import context.dispatcher
 
+  val blockingExecutor = Executors.newCachedThreadPool()
+
   //initialize all files
   val rootDir = Paths.get(description.path)
   val files = getModelicaFiles(rootDir, "mo")
+  val startedWatchers = mutable.ArrayBuffer[(FileWatcher,java.util.concurrent.Future[_])]()
+
+  def newWatcher(path:Path):FileWatcher = {
+    val watcher = new FileWatcher(path, self)
+    val future = blockingExecutor.submit(watcher)
+    println("new watcher for "+path)
+    startedWatchers += watcher -> future
+    watcher
+  }
+
+  val rootFileWatcher = newWatcher(rootDir)
+
   if(files.nonEmpty)
     log.debug("Found project-Files: \n" + files.mkString("\n"))
 
   override def handleMsg: Receive = {
     case CompileProject => compiler.compileAsync(files) pipeTo sender
+    case NewFile(path) => log.info(s"add new $path")
+    case NewDir(path) =>
+      log.info(s"new dir $path")
+      newWatcher(path)
+    case DeleteFile(path) => log.info(s"remove $path from files")
   }
 
   override def postStop(): Unit = {
     log.info("stopping")
+    startedWatchers.map(_._2).foreach(_.cancel(true))
+    blockingExecutor.shutdown()
   }
 }
 
