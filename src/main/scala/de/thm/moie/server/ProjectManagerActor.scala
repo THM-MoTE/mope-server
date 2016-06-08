@@ -14,7 +14,7 @@ import scala.collection._
 import akka.pattern.{pipe, ask}
 import akka.actor.{Actor, Props}
 import akka.util.Timeout
-import de.thm.moie.compiler.ModelicaCompiler
+import de.thm.moie.compiler.{ModelicaCompiler, CompilerError}
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
@@ -39,7 +39,14 @@ class ProjectManagerActor(description:ProjectDescription,
       (for {
         files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
         errors <- compiler.compileAsync(files)
+        _ = printDebug(errors)
       } yield errors) pipeTo sender
+  }
+
+  private def printDebug(errors:Seq[CompilerError]): Unit = {
+    log.debug(s"Compiled project ${description.path} with" +
+      (if(errors.isEmpty) " no errors" else errors.mkString("\n"))
+    )
   }
 
   override def postStop(): Unit = {

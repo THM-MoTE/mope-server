@@ -53,8 +53,7 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
   override def handleMsg: Receive = {
     case NewFile(path) =>
       files += path
-      log.debug(s"file added: $path")
-      log.debug(s"files: $files")
+      log.debug(s"new file $path added")
     case NewDir(path) =>
       newWatcher(path)
     case DeleteFile(path) => files -= path
