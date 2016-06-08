@@ -35,6 +35,9 @@ class FileWatcher(rootDir:Path, observer:ActorRef)(fileFilter: Path => Boolean) 
               else
                 observer ! NewFile(absolutePath)
             } else if(kind == ENTRY_DELETE && fileFilter(absolutePath)) {
+              //TODO check for isDirectory doesn't work because directory behind hte
+              //path doesn't existt anymore..
+              //check for regularFile shouldn't return true but does???
               if(Files.isRegularFile(absolutePath)) {
                 observer ! DeleteFile(absolutePath)
               }
