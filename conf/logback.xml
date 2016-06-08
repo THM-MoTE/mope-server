@@ -12,7 +12,7 @@
     </encoder>
   </appender>
 
-  <logger name="akka" level="INFO">
+  <logger name="akka.actor" level="INFO">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
    </logger>
