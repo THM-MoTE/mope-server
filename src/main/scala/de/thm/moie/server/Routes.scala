@@ -17,7 +17,7 @@ import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, Remaining
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.util.Success
+import scala.util.{Success, Failure}
 
 trait Routes extends JsonSupport {
   this: ServerSetup =>
@@ -79,7 +79,9 @@ trait Routes extends JsonSupport {
             } yield errors.toList
           onComplete(fut) {
           case Success(lst) => complete(lst)
-          case _ => complete(StatusCodes.NotFound)
+          case Failure(t) =>
+            serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
+            complete(StatusCodes.NotFound)
           }
         }
       }
