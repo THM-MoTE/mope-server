@@ -22,7 +22,7 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
   import context.dispatcher
 
   val blockingExecutor = Executors.newCachedThreadPool()
-  val files = mutable.ArrayBuffer.concat(getFiles(rootPath, "mo"))
+  val files = mutable.Set[Path]()
   val startedWatchers = mutable.ArrayBuffer[java.util.concurrent.Future[_]]()
   newWatcher(rootPath)
 
