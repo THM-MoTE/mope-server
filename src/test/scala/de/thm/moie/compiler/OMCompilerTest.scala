@@ -133,5 +133,22 @@ Error: Error occurred while flattening model ResistorTest
         "/home/mint/Downloads/share/mo/ResistorTest.mo",
         7,3, """Incompatible components in connect statement: connect(resistor1.R, resistor2.p) - resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - resistor2.p has components {i, v}""".stripMargin
       )))
+
+    val msg8 = """
+Error processing file: bouncing_ball.mo
+Failed to parse file: bouncing_ball.mo!
+
+[/home/mint/Downloads/bouncing_ball.mo:14:5-14:5:writable] Error: Missing token: THEN
+
+# Error encountered! Exiting...
+# Please check the error message and the flags.
+Failed to parse file: bouncing_ball.mo!
+
+Execution failed!
+    """.stripMargin
+    compiler.parseErrorMsg(msg8) should be (List(
+      CompilerError(
+        "/home/mint/Downloads/bouncing_ball.mo",
+        14,5, "Missing token: THEN")))
   }
 }
