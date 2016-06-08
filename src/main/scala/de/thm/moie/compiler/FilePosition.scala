@@ -4,4 +4,4 @@
 
 package de.thm.moie.compiler
 
-case class FilePosition(line:Int, col:Int)
+case class FilePosition(line:Int, column:Int)
