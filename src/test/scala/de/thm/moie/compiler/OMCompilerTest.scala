@@ -23,21 +23,7 @@ Error: Error occurred while flattening model circuit
 
     compiler.parseErrorMsg(msg) should be (List(
       CompilerError("/home/mint/Downloads/share/mo/circuit.mo",
-        2,7, "Class Resistor not found in scope circuit."
-      )))
-
-    val msg2 = """
-Error processing file: ../circuit.mo
-[../share/mo/circuit.mo:2:7-2:25:writable] Error: Class Resistor not found in scope circuit.
-Error: Error occurred while flattening model circuit
-
-# Error encountered! Exiting...
-# Please check the error message and the flags.
-""".stripMargin
-
-    compiler.parseErrorMsg(msg2) should be (List(
-      CompilerError("../share/mo/circuit.mo",
-        2,7, "Class Resistor not found in scope circuit."
+        FilePosition(2,7), FilePosition(2,25), "Class Resistor not found in scope circuit."
       )))
 
     val msg3 = """
@@ -54,7 +40,7 @@ Failed to parse file: ../resistor.mo!
     compiler.parseErrorMsg(msg3) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/resistor.mo",
-        1,6, "Parse error: The identifier at start and end are different"
+        FilePosition(1,6), FilePosition(12,11), "Parse error: The identifier at start and end are different"
       )))
 
     val msg4 = """
@@ -73,7 +59,7 @@ Execution failed!
     compiler.parseErrorMsg(msg4) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/resistor.mo",
-        3,173, "Missing token: ')'"
+        FilePosition(3,173), FilePosition(3,173), "Missing token: ')'"
       )))
 
     val msg5 = """
@@ -93,7 +79,7 @@ Execution failed!
     compiler.parseErrorMsg(msg5) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/resistor.mo",
-        6,3, "Variable resistor1.p not found in scope resistor."
+        FilePosition(6,3), FilePosition(6,127), "Variable resistor1.p not found in scope resistor."
       )))
 
     val msg6 = """
@@ -111,7 +97,7 @@ Execution failed!
     compiler.parseErrorMsg(msg6) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/resistor.mo",
-        2,3, "Class Modelica.Electrical.Analog.Basic.Resistor not found in scope resistor."
+        FilePosition(2,3), FilePosition(2,174), "Class Modelica.Electrical.Analog.Basic.Resistor not found in scope resistor."
       )))
 
     val msg7 = """
@@ -131,7 +117,7 @@ Error: Error occurred while flattening model ResistorTest
     compiler.parseErrorMsg(msg7) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/ResistorTest.mo",
-        7,3, """Incompatible components in connect statement: connect(resistor1.R, resistor2.p) - resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - resistor2.p has components {i, v}""".stripMargin
+        FilePosition(7,3), FilePosition(7,115), """Incompatible components in connect statement: connect(resistor1.R, resistor2.p) - resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - resistor2.p has components {i, v}""".stripMargin
       )))
 
     val msg8 = """
@@ -149,6 +135,6 @@ Execution failed!
     compiler.parseErrorMsg(msg8) should be (List(
       CompilerError(
         "/home/mint/Downloads/bouncing_ball.mo",
-        14,5, "Missing token: THEN")))
+        FilePosition(14,5), FilePosition(14,5), "Missing token: THEN")))
   }
 }

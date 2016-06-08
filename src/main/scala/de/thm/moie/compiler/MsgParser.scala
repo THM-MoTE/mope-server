@@ -8,9 +8,6 @@ import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 import scala.language.postfixOps
 
 class MsgParser extends RegexParsers with ImplicitConversions {
-
-  case class FilePosition(line:Int, col:Int)
-
   // regex from: http://stackoverflow.com/a/5954831
   override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
 
@@ -29,10 +26,10 @@ class MsgParser extends RegexParsers with ImplicitConversions {
     ((not("[") ~> ident ~> """([^\n]+)""".r) *)
 
   def errorLine: Parser[CompilerError] =
-    ("["~> path <~ ":") ~ (filePosition <~ "-" <~ filePosition <~ ":" <~ ident <~ "]") ~
+    ("["~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
     errorMsg ^^ {
-      case path ~ FilePosition(line, col) ~ msg =>
-        CompilerError(path, line, col, msg)
+      case path ~ start ~ end ~ msg =>
+        CompilerError(path, start, end, msg)
     }
 
 
