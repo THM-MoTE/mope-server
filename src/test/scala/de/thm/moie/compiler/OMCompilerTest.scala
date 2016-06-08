@@ -114,5 +114,24 @@ Execution failed!
         2,3, "Class Modelica.Electrical.Analog.Basic.Resistor not found in scope resistor."
       )))
 
+    val msg7 = """
+    Error processing file: ResistorTest.mo
+Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
+Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.
+Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.
+[/home/mint/Downloads/share/mo/ResistorTest.mo:7:3-7:115:writable] Error: Incompatible components in connect statement: connect(resistor1.R, resistor2.p)
+- resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
+- resistor2.p has components {i, v}
+Error: Error occurred while flattening model ResistorTest
+
+# Error encountered! Exiting...
+# Please check the error message and the flags.
+    """.stripMargin
+
+    compiler.parseErrorMsg(msg7) should be (List(
+      CompilerError(
+        "/home/mint/Downloads/share/mo/ResistorTest.mo",
+        7,3, """Incompatible components in connect statement: connect(resistor1.R, resistor2.p) - resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - resistor2.p has components {i, v}""".stripMargin
+      )))
   }
 }

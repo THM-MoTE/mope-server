@@ -17,7 +17,7 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def pathIdent = """[a-z-A-Z-.+<>0-9?=]+""".r
   def number = """[0-9]+""".r
   def ident =  """[a-zA-Z0-9]+""".r
-  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;]+""".r
+  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=]+""".r
   def character = """[a-zA-Z]""".r
 
   def pathDelimiter:Parser[String] = ("/" | "\\")
