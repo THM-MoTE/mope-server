@@ -15,8 +15,8 @@ import scala.language.postfixOps
 import de.thm.moie.Global
 
 trait ServerSetup {
-
   val serverName = "moie-server"
+  val applicationMode = Global.ApplicationMode.parseString(Global.config.getString("app.mode").getOrElse("prod"))
 
   implicit val serverLogSource:LogSource[ServerSetup] = new LogSource[ServerSetup] {
     override def genString(setup:ServerSetup): String =

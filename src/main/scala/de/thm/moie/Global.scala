@@ -13,6 +13,16 @@ import de.thm.moie.config.{Config, ConfigLoader}
 
 object Global {
 
+  object ApplicationMode extends Enumeration {
+    val Development, Production = Value
+
+    def parseString(str:String): Value = str.toLowerCase match {
+      case "dev" | "development" => Development
+      case "prod" | "production" => Production
+      case _ => throw new IllegalArgumentException(s"Can't decide which mode $str represents")
+    }
+  }
+
   private val configDirectoryName = ".moie"
   private val homeDirPath = Paths.get(System.getProperty("user.home"))
   private val configDirPath = homeDirPath.resolve(configDirectoryName)

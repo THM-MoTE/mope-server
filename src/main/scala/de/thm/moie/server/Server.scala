@@ -20,8 +20,10 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import scala.sys.process._
 import scala.concurrent.Future
+import scala.concurrent.blocking
 import java.io._
 
+import de.thm.moie.Global.ApplicationMode
 import de.thm.moie.project.ProjectDescription
 
 class Server(port:Int) extends Routes with ServerSetup {
@@ -32,10 +34,15 @@ class Server(port:Int) extends Routes with ServerSetup {
 
   val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
   serverlog.info(s"Server running at localhost:$port")
-//  serverlog.info("Press Enter to interrupt")
-//  var char = StdIn.readLine()
-//
-//  bindingFuture.
-//    flatMap(_.unbind()).
-//    onComplete(_ => actorSystem.terminate())
+  if(applicationMode == ApplicationMode.Development) {
+    Future {
+      blocking {
+        serverlog.info("Press Enter to interrupt")
+        var char = StdIn.readLine()
+        bindingFuture.
+          flatMap(_.unbind()).
+          onComplete(_ => actorSystem.terminate())
+      }
+    }
+  }
 }
