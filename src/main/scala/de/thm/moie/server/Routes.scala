@@ -8,6 +8,8 @@ import akka.pattern.ask
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.marshallers._
+import akka.http.scaladsl.marshalling._
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.ProjectDescription
@@ -43,6 +45,22 @@ trait Routes extends JsonSupport {
         shutdown("no active clients left")
       }
 
+  private def withIdExists[T : ToEntityMarshaller](fn: ActorRef => Future[T]) =
+    withId { id =>
+      val projectsManagerOpt =  (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
+      val future = projectsManagerOpt.collect {
+        case Some(ref) => ref
+      }.flatMap(fn)
+      onComplete(future) {
+          case Success(x) => complete(x)
+          case Failure(_:NoSuchElementException) =>
+            complete(StatusCodes.NotFound, s"unknown project-id $id")
+          case Failure(t) =>
+            serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
+            complete(StatusCodes.InternalServerError)
+          }
+    }
+
   def routes =
     pathPrefix("moie") {
       path("connect") {
@@ -70,21 +88,10 @@ trait Routes extends JsonSupport {
         complete(StatusCodes.Accepted)
       } ~
       path("compile") {
-        withId { id =>
-          //TODO refactor uising Future.collect
-          val fut = for {
-              projectManagerOpt <- (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
-              if projectManagerOpt.isDefined
-              errors <- (projectManagerOpt.get ? CompileProject).mapTo[Seq[CompilerError]]
-            } yield errors.toList
-          onComplete(fut) {
-          case Success(lst) => complete(lst)
-          case Failure(_:NoSuchElementException) =>
-            complete(StatusCodes.NotFound, s"unknown project-id $id")
-          case Failure(t) =>
-            serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
-            complete(StatusCodes.InternalServerError)
-          }
+        withIdExists { projectManager =>
+          (for {
+              errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
+            } yield errors.toList)
         }
       }
     }
