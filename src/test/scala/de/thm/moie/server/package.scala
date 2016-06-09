@@ -13,6 +13,8 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 package object server {
+  object timeouts {
     val defaultTime = 5 seconds
     implicit val defaultTimeout = Timeout(defaultTime)
+  }
 }

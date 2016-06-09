@@ -11,6 +11,7 @@ import de.thm.moie.utils.ResourceUtils
 import java.nio.file._
 
 class FileWatchingActorSpec() extends ActorSpec {
+  import timeouts._
   val path = Files.createTempDirectory("moie")
   val projectPath = path.resolve("mo-project")
   val emptyPath = path.resolve("empty")
