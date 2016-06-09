@@ -79,9 +79,11 @@ trait Routes extends JsonSupport {
             } yield errors.toList
           onComplete(fut) {
           case Success(lst) => complete(lst)
+          case Failure(_:NoSuchElementException) =>
+            complete(StatusCodes.NotFound, s"unknown project-id $id")
           case Failure(t) =>
             serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
-            complete(StatusCodes.NotFound)
+            complete(StatusCodes.InternalServerError)
           }
         }
       }
