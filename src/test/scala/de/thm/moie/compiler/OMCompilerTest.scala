@@ -8,6 +8,11 @@ import org.scalatest._
 
 class OMCompilerTest extends FlatSpec with Matchers {
 
+  "Compiler" should "return no errors if filelist is empty" in {
+    val compiler = new OMCompiler(List[String](), "omc", "target")
+    compiler.compile(Nil) shouldEqual Nil
+  }
+
   "Compiler errors" should "get parsed" in {
 
     val compiler = new OMCompiler(List[String](), "omc", "target")
