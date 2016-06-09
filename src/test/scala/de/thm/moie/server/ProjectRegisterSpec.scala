@@ -13,8 +13,7 @@ import akka.testkit.{ TestActors, TestKit, ImplicitSender, TestProbe }
 import de.thm.moie.project.ProjectDescription
 
 class ProjectRegisterSpec
-  extends TestKit(ActorSystem("specSystem")) with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll {
+  extends ActorSpec {
 import ProjectRegister._
 
   private val projectPath = System.getProperty("user.home") + "/Downloads"

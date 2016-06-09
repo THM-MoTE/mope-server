@@ -20,8 +20,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ProjectsManagerSpec()
-  extends TestKit(ActorSystem("specSystem")) with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll {
+  extends ActorSpec {
 
   val timeout = 5 seconds
   implicit val time = Timeout(timeout)
