@@ -4,13 +4,11 @@
 
 package de.thm.moie.server
 
-import akka.pattern.pipe
 import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
-import de.thm.moie.utils.actors.UnhandledReceiver
 import de.thm.moie.server.ProjectRegister._
-import scala.concurrent.Future
+import de.thm.moie.utils.actors.UnhandledReceiver
 
 class ProjectsManagerActor
   extends Actor
@@ -18,7 +16,6 @@ class ProjectsManagerActor
   with LogMessages {
 
   import ProjectsManagerActor._
-  import context.dispatcher
 
   private val register = new ProjectRegister()
 

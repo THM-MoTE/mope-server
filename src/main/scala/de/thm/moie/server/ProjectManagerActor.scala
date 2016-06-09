@@ -4,20 +4,18 @@
 
 package de.thm.moie.server
 
-import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
-import java.util.concurrent.Executors
+
+import akka.actor.{Actor, Props}
+import akka.pattern.{ask, pipe}
+import akka.util.Timeout
+import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
+import de.thm.moie.project.ProjectDescription
+import de.thm.moie.utils.actors.UnhandledReceiver
+
+import scala.collection._
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.collection._
-
-import akka.pattern.{pipe, ask}
-import akka.actor.{Actor, Props}
-import akka.util.Timeout
-import de.thm.moie.compiler.{ModelicaCompiler, CompilerError}
-import de.thm.moie.project.ProjectDescription
-import de.thm.moie.utils.ResourceUtils
-import de.thm.moie.utils.actors.UnhandledReceiver
 
 class ProjectManagerActor(description:ProjectDescription,
                           compiler:ModelicaCompiler)

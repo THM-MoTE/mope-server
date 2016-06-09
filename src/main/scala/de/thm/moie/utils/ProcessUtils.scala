@@ -4,11 +4,10 @@
 
 package de.thm.moie.utils
 
+import java.io.{ByteArrayOutputStream, PrintWriter}
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.sys.process._
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
-import java.io.ByteArrayOutputStream
-import java.io.PrintWriter
 
 
 object ProcessUtils {

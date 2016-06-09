@@ -4,14 +4,14 @@
 
 package de.thm.moie.server
 
-import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
-import scala.collection._
+import java.nio.file.attribute.BasicFileAttributes
 
-import akka.pattern.pipe
 import akka.actor.Actor
+import akka.pattern.pipe
 import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
+
 import scala.concurrent.Future
 
 class FileWatchingActor(rootPath:Path, outputDirName:String)

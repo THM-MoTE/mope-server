@@ -4,11 +4,11 @@
 
 package de.thm.moie.server
 
-import akka.actor.ActorRef
-import java.nio.file.{ Files, WatchEvent }
-import java.nio.file.Path
-import java.nio.file.StandardWatchEventKinds._
+import java.nio.file.StandardWatchEventKinds.{ENTRY_CREATE, ENTRY_DELETE, OVERFLOW}
+import java.nio.file.{Files, WatchEvent, _}
 import java.util.concurrent.TimeUnit
+
+import akka.actor.ActorRef
 import de.thm.moie.Global
 import de.thm.moie.utils.ThreadUtils
 

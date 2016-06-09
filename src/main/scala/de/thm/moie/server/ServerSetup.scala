@@ -4,15 +4,15 @@
 
 package de.thm.moie.server
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.ActorSystem
+import akka.event.{LogSource, Logging}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import akka.event.{Logging, LogSource}
 import com.typesafe.config.ConfigFactory
+import de.thm.moie.Global._
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
-
-import de.thm.moie.Global._
 
 trait ServerSetup {
   val serverName = "moie-server"

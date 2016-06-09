@@ -4,22 +4,19 @@
 
 package de.thm.moie.server
 
-import akka.pattern.ask
 import akka.actor.{ActorRef, PoisonPill}
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.marshallers._
 import akka.http.scaladsl.marshalling._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.ProjectDescription
-import de.thm.moie.project.ProjectDescription._
 import de.thm.moie.server.ProjectManagerActor.CompileProject
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 
 trait Routes extends JsonSupport {
   this: ServerSetup =>

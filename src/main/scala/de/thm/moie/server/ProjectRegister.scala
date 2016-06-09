@@ -5,8 +5,9 @@
 package de.thm.moie.server
 
 import akka.actor.ActorRef
-import scala.collection.mutable
 import de.thm.moie.project.ProjectDescription
+
+import scala.collection.mutable
 
 class ProjectRegister() {
   import ProjectRegister._

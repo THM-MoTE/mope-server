@@ -4,8 +4,8 @@
 
 package de.thm.moie.compiler
 
-import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 import scala.language.postfixOps
+import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 
 class MsgParser extends RegexParsers with ImplicitConversions {
   // regex from: http://stackoverflow.com/a/5954831

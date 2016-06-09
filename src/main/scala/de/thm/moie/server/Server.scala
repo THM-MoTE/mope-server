@@ -4,27 +4,12 @@
 
 package de.thm.moie.server
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
-
-import scala.io.StdIn
-import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.model.ContentTypes
-
-import scala.concurrent.Await
-import akka.pattern.ask
-import akka.util.Timeout
-
-import scala.concurrent.duration._
-import scala.sys.process._
-import scala.concurrent.Future
-import scala.concurrent.blocking
-import java.io._
-
 import de.thm.moie.Global.ApplicationMode
-import de.thm.moie.project.ProjectDescription
+
+import scala.concurrent.{Future, blocking}
+import scala.io.StdIn
 
 class Server(port:Int) extends Routes with ServerSetup {
 
