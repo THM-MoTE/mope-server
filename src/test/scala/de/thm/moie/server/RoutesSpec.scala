@@ -63,18 +63,18 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         responseAs[String] shouldEqual "0"
       }
 
-      Post("/moie/disconnect?project-id=0") ~> service.routes ~> check {
+      Post("/moie/project/0/disconnect") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NoContent
       }
     }
     "return NoContent for /disconnect with non-valid project-id" in {
-      Post("/moie/disconnect?project-id=200") ~> service.routes ~> check {
+      Post("/moie/project/200/disconnect") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NoContent
       }
     }
 
     "return NotFound for /compile with non-valid project-id" in {
-      Post("/moie/compile?project-id=200") ~> service.routes ~> check {
+      Post("/moie/project/200/compile") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[String] shouldEqual "unknown project-id 200"
       }

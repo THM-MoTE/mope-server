@@ -23,7 +23,6 @@ trait Routes extends JsonSupport {
 
   def projectsManager: ActorRef
 
-  private val withId = parameters("project-id".as[Int])
   private val exitOnLastDisconnect =
     Global.config.getBoolean("exitOnLastDisconnect").getOrElse(false)
 
@@ -42,20 +41,19 @@ trait Routes extends JsonSupport {
         shutdown("no active clients left")
       }
 
-  private def withIdExists[T : ToEntityMarshaller](fn: ActorRef => Future[T]) =
-    withId { id =>
+  private def withIdExists[T : ToEntityMarshaller](id:Int)(fn: ActorRef => Future[T]) = {
       val projectsManagerOpt =  (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
       val future = projectsManagerOpt.collect {
         case Some(ref) => ref
       }.flatMap(fn)
       onComplete(future) {
-          case Success(x) => complete(x)
-          case Failure(_:NoSuchElementException) =>
-            complete(StatusCodes.NotFound, s"unknown project-id $id")
-          case Failure(t) =>
-            serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
-            complete(StatusCodes.InternalServerError)
-          }
+        case Success(x) => complete(x)
+        case Failure(_:NoSuchElementException) =>
+          complete(StatusCodes.NotFound, s"unknown project-id $id")
+        case Failure(t) =>
+          serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
+          complete(StatusCodes.InternalServerError)
+        }
     }
 
   def routes =
@@ -73,22 +71,22 @@ trait Routes extends JsonSupport {
           complete(ProjectDescription("Dummy-URL", "target", List()))
         }
       } ~
-      path("disconnect") {
-        withId { id =>
-          disconnectWithExit(id)
-          complete(StatusCodes.NoContent)
-        }
-      } ~
       path("stop-server") {
         projectsManager ! PoisonPill
         shutdown("received `stop-server`")
         complete(StatusCodes.Accepted)
       } ~
-      path("compile") {
-        withIdExists { projectManager =>
-          (for {
+      pathPrefix("project" / IntNumber) { id =>
+        path("disconnect") {
+          disconnectWithExit(id)
+          complete(StatusCodes.NoContent)
+        } ~
+        path("compile") {
+          withIdExists(id) { projectManager =>
+            for {
               errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
-            } yield errors.toList)
+            } yield errors.toList
+          }
         }
       }
     }
