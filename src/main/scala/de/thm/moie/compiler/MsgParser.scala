@@ -37,7 +37,11 @@ class MsgParser extends RegexParsers with ImplicitConversions {
     (errorSub +) ^^ { _.mkString }
 
   def errorSub: Parser[String] =
-    "Error" ~> ":" ~> rep1sep((not("Error") ~> word), "") ^^ { words => words.mkString(" ") }
+    "Error" ~> ":" ~> rep1sep((not("Error") ~> word), "") ^^ { words =>
+      words.foldLeft("") {
+        case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
+      }
+    }
 
   def path:Parser[String] =
     (root ?) ~ rep1sep(pathIdent, pathDelimiter) ^^ {
