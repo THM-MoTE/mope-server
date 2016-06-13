@@ -34,7 +34,7 @@ class MsgParser extends RegexParsers with ImplicitConversions {
 
 
   def errorMsg: Parser[String] =
-    (errorSub +) ^^ { _.mkString }
+    (errorSub +) ^^ { _.mkString("\n") }
 
   def errorSub: Parser[String] =
     "Error" ~> ":" ~> rep1sep((not("Error" | "[") ~> word), "") ^^ { words =>
