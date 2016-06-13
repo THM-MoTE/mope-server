@@ -40,7 +40,7 @@ class MsgParser extends RegexParsers with ImplicitConversions {
     "Error" ~> ":" ~> rep1sep((not("Error") ~> word), "") ^^ { words =>
       words.foldLeft("") {
         case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
-      }
+      }.trim()
     }
 
   def path:Parser[String] =
