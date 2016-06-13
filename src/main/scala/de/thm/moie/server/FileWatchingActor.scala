@@ -22,7 +22,7 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
   import FileWatchingActor._
   import context.dispatcher
 
-  private def files = getFiles(rootPath, moFileFilter)
+  private def files = getFiles(rootPath, moFileFilter).sorted
 
   private def moFileFilter(path:Path):Boolean = {
     val filename = ResourceUtils.getFilename(path)
