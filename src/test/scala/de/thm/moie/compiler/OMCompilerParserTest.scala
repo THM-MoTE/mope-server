@@ -122,7 +122,10 @@ Error: Error occurred while flattening model ResistorTest
     compiler.parseErrorMsg(msg7) should be (List(
       CompilerError(
         "/home/mint/Downloads/share/mo/ResistorTest.mo",
-        FilePosition(7,3), FilePosition(7,115), """Incompatible components in connect statement: connect(resistor1.R, resistor2.p) - resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - resistor2.p has components {i, v}""".stripMargin
+        FilePosition(7,3), FilePosition(7,115),
+"""Incompatible components in connect statement: connect(resistor1.R, resistor2.p)
+- resistor1.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
+- resistor2.p has components {i, v}""".stripMargin
       )))
 
     val msg8 = """
@@ -159,6 +162,12 @@ Execution failed!""".stripMargin
     compiler.parseErrorMsg(msg9) should be (List(
       CompilerError(
         "/home/mint/Downloads/resistor.mo",
+        FilePosition(6,3), FilePosition(6,104),
+"""Incompatible components in connect statement: connect(resistor2.R, ground1.p)
+- resistor2.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
+- ground1.p has components {i, v}""")))
+  }
+
   "Multiple Compiler errors" must "get parsed as list" in {
     val compiler = new OMCompiler(List[String](), "omc", "target")
     val msg10 = """
