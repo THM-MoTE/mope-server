@@ -33,5 +33,5 @@ trait ServerSetup {
 
   val serverlog = Logging(actorSystem, this)
   val interface = config.getString("http.interface").getOrElse("127.0.0.1")
-  val port = config.getString("http.port").getOrElse("9001")
+  val port = config.getInt("http.port").getOrElse(9001)
 }

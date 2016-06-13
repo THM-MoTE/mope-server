@@ -11,7 +11,7 @@ import de.thm.moie.Global.ApplicationMode
 import scala.concurrent.{Future, blocking}
 import scala.io.StdIn
 
-class Server(port:Int) extends Routes with ServerSetup {
+class Server() extends Routes with ServerSetup {
 
   private val escCode = 0x1b
 
