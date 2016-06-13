@@ -87,7 +87,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         }
         service.actorSystem.awaitTermination(5 seconds)
       }
-
     }
   }
 }
