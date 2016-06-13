@@ -32,11 +32,17 @@ class ProjectManagerActor(description:ProjectDescription,
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(rootDir, description.outputDirectory)))
 
+  def errorInProjectFile(error:CompilerError): Boolean = {
+    val p = Paths.get(error.file)
+    println(p)
+    p.startsWith(rootDir)
+  }
+
   override def handleMsg: Receive = {
     case CompileProject =>
       (for {
         files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
-        errors <- compiler.compileAsync(files)
+        errors <- compiler.compileAsync(files).map(_.filter(errorInProjectFile))
         _ = printDebug(errors)
       } yield errors) pipeTo sender
   }
