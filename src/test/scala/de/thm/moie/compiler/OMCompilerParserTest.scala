@@ -159,6 +159,46 @@ Execution failed!""".stripMargin
     compiler.parseErrorMsg(msg9) should be (List(
       CompilerError(
         "/home/mint/Downloads/resistor.mo",
-        FilePosition(6,3), FilePosition(6,104), """Incompatible components in connect statement: connect(resistor2.R, ground1.p) - resistor2.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm") - ground1.p has components {i, v}""")))
+  "Multiple Compiler errors" must "get parsed as list" in {
+    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val msg10 = """
+    Error processing file: ../ResistorTest.mo
+    Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
+    Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.
+    Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.
+    [/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo:2:1-46:15:readonly] Error: Klasse Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica.Electrical gefunden werden.
+    [/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/package.mo:2:1-7980:13:readonly] Error: Klasse Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica gefunden werden.
+    [/Users/nico/Documents/mo-tests/ResistorTest.mo:2:3-2:170:writable] Error: Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden.
+    Error: Error occurred while flattening model ResistorTest
+
+    # Error encountered! Exiting...
+    # Please check the error message and the flags.
+
+    Execution failed!""".stripMargin
+
+      val errors = compiler.parseErrorMsg(msg10)
+      errors.size should be (3)
+      errors(0) should be (CompilerError(
+        "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo",
+        FilePosition(2,1), FilePosition(46,15), "Klasse Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica.Electrical gefunden werden."))
+      errors(1) should be (CompilerError(
+        "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/package.mo",
+        FilePosition(2,1), FilePosition(7980,13), "Klasse Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica gefunden werden."))
+      errors(2) should be (CompilerError(
+        "/Users/nico/Documents/mo-tests/ResistorTest.mo",
+        FilePosition(2,3), FilePosition(2,170), "Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden."))
+
+      errors should be (List(
+        CompilerError(
+          "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo",
+          FilePosition(2,1), FilePosition(46,15), "Klasse Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica.Electrical gefunden werden."),
+        CompilerError(
+          "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/package.mo",
+          FilePosition(2,1), FilePosition(7980,13), "Klasse Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica gefunden werden."),
+        CompilerError(
+          "/Users/nico/Documents/mo-tests/ResistorTest.mo",
+          FilePosition(2,3), FilePosition(2,170), "Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden.")
+        )
+      )
   }
 }
