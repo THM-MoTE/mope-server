@@ -51,7 +51,7 @@ trait Routes extends JsonSupport {
         case Failure(_:NoSuchElementException) =>
           complete(StatusCodes.NotFound, s"unknown project-id $id")
         case Failure(t) =>
-          serverlog.error(s"While compiling project $id msg: ${t.getMessage}")
+          serverlog.error(s"While using project $id msg: ${t.getMessage}")
           complete(StatusCodes.InternalServerError)
         }
     }
