@@ -11,7 +11,7 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   // regex from: http://stackoverflow.com/a/5954831
   override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
 
-  def pathIdent = """[a-z-A-Z-.+<>0-9?=_]+""".r
+  def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r
   def number = """[0-9]+""".r
   def ident =  """[a-zA-Z0-9]+""".r
   def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=]+""".r
