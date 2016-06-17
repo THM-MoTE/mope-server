@@ -1,6 +1,9 @@
 import sbt._
 
 object Dependencies {
+
+  private def fromGithub(url:String) = RootProject(uri(url))
+
   private val akkaVersion = "2.4.6"
   private val akkaGroup = "com.typesafe.akka"
   val akka = Seq(
@@ -23,6 +26,8 @@ object Dependencies {
       "org.scalactic" %% "scalactic" % "2.2.6",
       "org.scalatest" %% "scalatest" % "2.2.6" % "test"
   )
+
+  val ewsProject = fromGithub("git://github.com/njustus/EnhancedWatchService.git")
 
   val usedDependencies = akka ++ scalaUtils ++ testLib
 }
