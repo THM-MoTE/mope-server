@@ -42,6 +42,12 @@ class ProjectManagerActor(description:ProjectDescription,
         errors <- compiler.compileAsync(files).map(_.filter(errorInProjectFile))
         _ = printDebug(errors)
       } yield errors) pipeTo sender
+    case CompileScript(path) =>
+      (for {
+        // files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
+        errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
+        _ = printDebug(errors)
+      } yield errors) pipeTo sender
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
@@ -58,4 +64,5 @@ class ProjectManagerActor(description:ProjectDescription,
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
   case object CompileProject extends ProjectManagerMsg
+  case class CompileScript(path:Path) extends ProjectManagerMsg
 }
