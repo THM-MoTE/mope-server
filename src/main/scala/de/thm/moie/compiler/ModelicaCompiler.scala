@@ -13,4 +13,9 @@ trait ModelicaCompiler {
   def compileAsync(files:List[Path])(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =
     Future(compile(files))
+
+  def compileScript(path:Path): Seq[CompilerError]
+  def compileScriptAsync(path:Path)(
+    implicit context:ExecutionContext): Future[Seq[CompilerError]] =
+    Future(compileScript(path))
 }

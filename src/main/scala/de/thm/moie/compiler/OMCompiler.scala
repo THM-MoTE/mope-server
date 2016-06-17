@@ -27,6 +27,15 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:St
     }
   }
 
+  override def compileScript(path:Path): Seq[CompilerError] = {
+    val startDir = path.getParent
+    val compilerExec = List(executableName, path.toAbsolutePath.toString)
+    val cmd = Process(compilerExec, startDir.toFile)
+    val (status, stdout, _) = runCommand(cmd)
+    if(status != ProcessExitCodes.SUCCESSFULL) parseErrorMsg(stdout)
+    else Seq[CompilerError]()
+  }
+
   def parseErrorMsg(msg:String): Seq[CompilerError] =
     msgParser.parse(msg).get
 
