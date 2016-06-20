@@ -14,7 +14,7 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r
   def number = """[0-9]+""".r
   def ident =  """[a-zA-Z0-9]+""".r
-  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=]+""".r
+  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=<>]+""".r
   def character = """[a-zA-Z]""".r
 
   def pathDelimiter:Parser[String] = ("/" | "\\")
@@ -23,21 +23,28 @@ class MsgParser extends RegexParsers with ImplicitConversions {
     skipUninterestingStuff ~> (errorLine +)
 
   def skipUninterestingStuff =
-    ((not("[") ~> ident ~> """([^\n]+)""".r) *)
+    ((not("\\[|\\{".r) ~> ident ~> """([^\n]+)""".r) *)
 
-  def errorLine: Parser[CompilerError] =
+  def errorLine: Parser[CompilerError] = (
     ("["~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
-    errorMsg ^^ {
+    errorMsg("\\[") ^^ {
       case path ~ start ~ end ~ msg =>
         CompilerError(path, start, end, msg)
     }
+    | ("{" ~> "\"" ~> "[" ~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
+    errorMsg("\\[|\\{") ^^ {
+      case path ~ start ~ end ~ msg =>
+      val delimiter = "\""
+      if(msg.contains(delimiter))
+        CompilerError(path, start, end, msg.substring(0, msg.indexOf(delimiter)))
+      else CompilerError(path, start, end, msg)
+    })
 
+  def errorMsg(additionalDelimiter:String): Parser[String] =
+    (errorSub(additionalDelimiter) +) ^^ { _.mkString("\n") }
 
-  def errorMsg: Parser[String] =
-    (errorSub +) ^^ { _.mkString("\n") }
-
-  def errorSub: Parser[String] =
-    "Error" ~> ":" ~> rep1sep((not("Error" | "[") ~> word), "") ^^ { words =>
+  def errorSub(additionalDelimiter:String): Parser[String] =
+    "Error" ~> ":" ~> rep1sep((not("Error" | additionalDelimiter.r) ~> word), "") ^^ { words =>
       words.foldLeft("") {
         case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
       }.trim()

@@ -3,6 +3,7 @@ package de.thm.moie.compiler
 import org.scalatest._
 import java.nio.file._
 
+import de.thm.moie._
 class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   val path = Files.createTempDirectory("moie")
   val projectPath = path.resolve("mo-compiler-project")
@@ -25,6 +26,10 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val bw = Files.newBufferedWriter(filepath)
     bw.write(content)
     bw.close()
+  }
+
+  override def afterAll() = {
+    removeDirectoryTree(path)
   }
 
   "Compiler" should "return no errors for valid modelica files" in {

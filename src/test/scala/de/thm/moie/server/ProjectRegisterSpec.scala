@@ -20,10 +20,6 @@ import ProjectRegister._
   private def stubDescription =
     ProjectDescription(projectPath, "target", Nil)
 
-  override def afterAll() = {
-    TestKit.shutdownActorSystem(system)
-  }
-
   "ProjectRegister" must {
     "add ProjectEntrys" in {
       val register = new ProjectRegister()

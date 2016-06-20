@@ -58,11 +58,16 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive = {
     case CompileProject =>
-
       compileErrors.toSeq
     case ModifiedPath(p) => log.debug("path modified {}", p)
     case NewPath(p) => log.debug("path new {}", p)
     case DeletedPath(p) => log.debug("path delete {}", p)
+    case CompileScript(path) =>
+      (for {
+//         files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
+        errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
+        _ = printDebug(errors)
+      } yield errors) pipeTo sender
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
@@ -79,6 +84,7 @@ class ProjectManagerActor(description:ProjectDescription,
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
   case object CompileProject extends ProjectManagerMsg
+  case class CompileScript(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
 
   //all hold infos about a modelica file

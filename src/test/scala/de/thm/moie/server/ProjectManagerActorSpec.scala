@@ -7,6 +7,7 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.testkit.{ TestActors, TestActorRef, TestKit, ImplicitSender, TestProbe }
 import de.thm.moie.project.ProjectDescription
+import de.thm.moie._
 import de.thm.moie.compiler._
 import java.nio.file._
 
@@ -16,6 +17,11 @@ class ProjectManagerActorSpec
   val path = Files.createTempDirectory("moie")
   val projectPath = path.resolve("mo-project")
 
+
+  override def afterAll = {
+    super.afterAll()
+    removeDirectoryTree(path)
+  }
   private def stubDescription =
     ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil)
 

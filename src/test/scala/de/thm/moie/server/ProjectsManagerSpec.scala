@@ -40,10 +40,6 @@ class ProjectsManagerSpec()
       (act, descr)
   }
 
-  override def afterAll = {
-    TestKit.shutdownActorSystem(system)
-  }
-
   "A ProjectsManager" must {
     "return a project id, when sending a ProjectDescription" in {
       val (actor, descr) = projectActorWithStubDescription

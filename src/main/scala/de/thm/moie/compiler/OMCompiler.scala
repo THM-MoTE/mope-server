@@ -8,10 +8,16 @@ import java.nio.file.{Files, Path}
 import de.thm.moie.utils.ProcessExitCodes
 import de.thm.moie.utils.ProcessUtils._
 
+import scala.util._
 import scala.sys.process.Process
 
+import org.slf4j.LoggerFactory
+
 class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:String) extends ModelicaCompiler {
+  private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
+
+  private val moScriptSwitch = "--showErrorMessages"
 
   override def compile(files: List[Path]): Seq[CompilerError] = {
     val pathes = files.map(_.toAbsolutePath.toString)
@@ -27,8 +33,21 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:St
     }
   }
 
+  override def compileScript(path:Path): Seq[CompilerError] = {
+    val startDir = path.getParent
+    val compilerExec = List(executableName, moScriptSwitch, path.toAbsolutePath.toString)
+    val cmd = Process(compilerExec, startDir.toFile)
+    val (_, _, stderr) = runCommand(cmd)
+    parseErrorMsg(stderr)
+  }
+
   def parseErrorMsg(msg:String): Seq[CompilerError] =
-    msgParser.parse(msg).get
+    msgParser.parse(msg) match {
+      case Success(v) => v
+      case Failure(ex) =>
+        log.warn("Error while parsing compiler-output: {}", ex.getMessage)
+        Seq[CompilerError]()
+    }
 
   private def createOutputDir(path:Path): Path = {
     val outputPath = path.resolve(outputDir)

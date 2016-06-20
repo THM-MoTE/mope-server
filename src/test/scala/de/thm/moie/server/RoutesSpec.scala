@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.language.postfixOps
 import java.nio.file._
-
+import de.thm.moie._
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
     override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
@@ -28,6 +28,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       service.actorSystem.terminate()
       fail("ActorSystem didn't terminate as expected through /stop-server!")
     }
+    removeDirectoryTree(tmpPath)
   }
 
   "moie" should {

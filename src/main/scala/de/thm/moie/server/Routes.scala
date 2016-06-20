@@ -11,10 +11,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
-import de.thm.moie.project.ProjectDescription
-import de.thm.moie.server.ProjectManagerActor.CompileProject
+import de.thm.moie.project.{ProjectDescription, FilePath}
+import de.thm.moie.server.ProjectManagerActor.{CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
+import java.nio.file.Paths
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -86,6 +87,17 @@ trait Routes extends JsonSupport {
             for {
               errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
             } yield errors.toList
+          }
+        } ~
+        path("compileScript") {
+          post {
+            entity(as[FilePath]) { filepath =>
+              withIdExists(id) { projectManager =>
+                for {
+                  errors <- (projectManager ? CompileScript(Paths.get(filepath.path))).mapTo[Seq[CompilerError]]
+                } yield errors.toList
+              }
+            }
           }
         }
       }
