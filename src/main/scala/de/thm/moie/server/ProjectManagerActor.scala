@@ -64,7 +64,6 @@ class ProjectManagerActor(description:ProjectDescription,
     case DeletedPath(p) => log.debug("path delete {}", p)
     case CompileScript(path) =>
       (for {
-//         files <- (fileWatchingActor ? FileWatchingActor.GetFiles).mapTo[List[Path]]
         errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
         _ = printDebug(errors)
       } yield errors) pipeTo sender
