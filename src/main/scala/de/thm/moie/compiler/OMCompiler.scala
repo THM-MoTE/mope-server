@@ -13,6 +13,8 @@ import scala.sys.process.Process
 class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:String) extends ModelicaCompiler {
   private val msgParser = new MsgParser()
 
+  private val moScriptSwitch = "--showErrorMessages"
+
   override def compile(files: List[Path]): Seq[CompilerError] = {
     val pathes = files.map(_.toAbsolutePath.toString)
     files.headOption match {
@@ -29,11 +31,10 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:St
 
   override def compileScript(path:Path): Seq[CompilerError] = {
     val startDir = path.getParent
-    val compilerExec = List(executableName, path.toAbsolutePath.toString)
+    val compilerExec = List(executableName, moScriptSwitch, path.toAbsolutePath.toString)
     val cmd = Process(compilerExec, startDir.toFile)
-    val (status, stdout, _) = runCommand(cmd)
-    if(status != ProcessExitCodes.SUCCESSFULL) parseErrorMsg(stdout)
-    else Seq[CompilerError]()
+    val (_, _, stderr) = runCommand(cmd)
+    parseErrorMsg(stderr)
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
