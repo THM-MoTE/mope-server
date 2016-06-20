@@ -4,17 +4,23 @@
 
 package de.thm.moie.server
 
+import java.nio.file.WatchEvent.Kind
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.{Executors, TimeUnit}
+import java.util.function.{BiConsumer, Predicate}
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
 import akka.pattern.pipe
 import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
+import ews.EnhancedWatchService
 
-class FileWatchingActor(rootPath:Path, outputDirName:String)
+import scala.collection.mutable
+
+class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)
     extends Actor
     with UnhandledReceiver
     with LogMessages {
@@ -22,7 +28,41 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
   import FileWatchingActor._
   import context.dispatcher
 
-  private def files = getFiles(rootPath, moFileFilter).sorted
+  private val eventKinds = Seq(
+    StandardWatchEventKinds.ENTRY_CREATE,
+    StandardWatchEventKinds.ENTRY_DELETE,
+    StandardWatchEventKinds.ENTRY_MODIFY
+  )
+
+  private val executor = Executors.newSingleThreadExecutor()
+
+  private val callback = new BiConsumer[Path, WatchEvent.Kind[_]] {
+    override def accept(path: Path, kind: Kind[_]): Unit = kind match {
+      case StandardWatchEventKinds.ENTRY_CREATE =>
+        interestee ! NewPath(path)
+      case StandardWatchEventKinds.ENTRY_DELETE =>
+        interestee ! DeletedPath(path)
+      case StandardWatchEventKinds.ENTRY_MODIFY =>
+        interestee ! ModifiedPath(path)
+    }
+  }
+
+  private val dirFilter = new Predicate[Path] {
+    override def test(dir: Path): Boolean =
+      !Files.isHidden(dir) &&
+      dir.getFileName.toString != outputDirName
+  }
+
+  private val modelicaFileFilter = new Predicate[Path] {
+    override def test(file: Path): Boolean =
+      moFileFilter(file)
+  }
+
+  private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
+  private val runningFuture = watchService.start(executor,callback, dirFilter, modelicaFileFilter)
+
+  private def files =
+    getFiles(rootPath, moFileFilter).sorted
 
   private def moFileFilter(path:Path):Boolean = {
     val filename = ResourceUtils.getFilename(path)
@@ -37,6 +77,9 @@ class FileWatchingActor(rootPath:Path, outputDirName:String)
   }
 
   override def postStop(): Unit = {
+    runningFuture.cancel(true)
+    executor.shutdown()
+    executor.awaitTermination(2, TimeUnit.SECONDS)
     log.info("stopping")
   }
 }
@@ -48,6 +91,9 @@ object FileWatchingActor {
   case class NewDir(path:Path) extends FileWatchingMsg
   case class DeleteFile(path:Path) extends FileWatchingMsg
 
+  case class NewPath(path:Path)
+  case class DeletedPath(path:Path)
+  case class ModifiedPath(path:Path)
 
   type PathFilter = Path => Boolean
 
