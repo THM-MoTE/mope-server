@@ -10,6 +10,7 @@ import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.FileWatchingActor._
 import de.thm.moie.utils.ResourceUtils
 import java.nio.file._
+import de.thm.moie._
 
 class FileWatchingActorSpec() extends ActorSpec {
   import timeouts._
@@ -47,6 +48,11 @@ class FileWatchingActorSpec() extends ActorSpec {
     //create tmp Files
     dirs.foreach(Files.createDirectories(_))
     files.foreach(Files.createFile(_))
+  }
+
+  override def afterAll = {
+    super.afterAll()
+    removeDirectoryTree(path)
   }
 
   "A FileWatcher" should {
