@@ -262,5 +262,16 @@ Execution failed!""".stripMargin
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+
+    val msg3 = """
+    |test;true,false
+    |
+    |{"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    |{"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    |{"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    """.stripMargin
+    val errors3 = compiler.parseErrorMsg(msg3)
+    errors3.size should be (0)
   }
 }
