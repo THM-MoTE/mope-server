@@ -10,4 +10,8 @@ abstract class ActorSpec extends TestKit(ActorSystem("specSystem"))
   with ImplicitSender
   with WordSpecLike
   with Matchers
-  with BeforeAndAfterAll
+  with BeforeAndAfterAll {
+    override def afterAll = {
+      TestKit.shutdownActorSystem(system)
+    }
+  }

@@ -5,6 +5,7 @@
 package de.thm.moie.server
 
 import akka.actor.Props
+import akka.testkit.{ TestActors, TestKit }
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.FileWatchingActor._
 import de.thm.moie.utils.ResourceUtils
