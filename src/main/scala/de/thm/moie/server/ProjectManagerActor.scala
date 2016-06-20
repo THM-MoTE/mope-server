@@ -33,7 +33,7 @@ class ProjectManagerActor(description:ProjectDescription,
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
 
   private val projectFiles = mutable.ArrayBuffer[Path]()
-  private val compileErrors = mutable.ArrayBuffer[CompilerError]()
+  private var compileErrors = Seq[CompilerError]()
 
   override def preStart() =
     for {
@@ -49,9 +49,8 @@ class ProjectManagerActor(description:ProjectDescription,
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
       projectFiles.clear()
-      compileErrors.clear()
       projectFiles ++= files
-      compileErrors ++= errors
+      compileErrors = errors
       log.debug("new init infos: files {} errors {}", projectFiles, compileErrors)
       context become initialized
   }
@@ -59,9 +58,15 @@ class ProjectManagerActor(description:ProjectDescription,
   private def initialized: Receive = {
     case CompileProject =>
       sender ! compileErrors.toSeq
-    case ModifiedPath(p) => log.debug("path modified {}", p)
+    case ModifiedPath(p) =>
+      for {
+        errors <- compiler.compileAsync(projectFiles.toList).map(_.filter(errorInProjectFile))
+        _ = printDebug(errors)
+      } yield self ! UpdatedCompilerErrors(errors)
     case NewPath(p) => log.debug("path new {}", p)
     case DeletedPath(p) => log.debug("path delete {}", p)
+    case UpdatedCompilerErrors(xs) =>
+      compileErrors = xs
     case CompileScript(path) =>
       (for {
         errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
@@ -85,6 +90,7 @@ object ProjectManagerActor {
   case object CompileProject extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
+  private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
 
   //all hold infos about a modelica file
   case class ModelicaInfo(errors:Seq[CompilerError])
