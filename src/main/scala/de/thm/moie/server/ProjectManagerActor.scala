@@ -58,7 +58,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive = {
     case CompileProject =>
-      compileErrors.toSeq
+      sender ! compileErrors.toSeq
     case ModifiedPath(p) => log.debug("path modified {}", p)
     case NewPath(p) => log.debug("path new {}", p)
     case DeletedPath(p) => log.debug("path delete {}", p)
