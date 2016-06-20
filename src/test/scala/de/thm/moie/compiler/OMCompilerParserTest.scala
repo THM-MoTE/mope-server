@@ -210,4 +210,57 @@ Execution failed!""".stripMargin
         )
       )
   }
+
+  "Script errors" should "get parsed" in {
+    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val msg = """
+      |false
+      |false
+      |true
+      |true
+      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
+      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
+      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
+      """.stripMargin
+
+    val errors = compiler.parseErrorMsg(msg)
+    errors(0) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
+    )
+
+    errors(1) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+    errors(2) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+    val msg2 = msg + """
+    |{"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    |{"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    |{"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
+    """.stripMargin
+
+    val errors2 = compiler.parseErrorMsg(msg2)
+    errors2(0) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
+    )
+
+    errors2(1) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+    errors2(2) should be (CompilerError(
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+  }
 }
