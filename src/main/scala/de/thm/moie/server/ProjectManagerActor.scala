@@ -35,6 +35,8 @@ class ProjectManagerActor(description:ProjectDescription,
   private val projectFiles = mutable.ArrayBuffer[Path]()
   private var compileErrors = Seq[CompilerError]()
 
+  private def getProjectFiles = projectFiles.sorted.toList
+
   override def preStart() =
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
@@ -60,7 +62,7 @@ class ProjectManagerActor(description:ProjectDescription,
       sender ! compileErrors.toSeq
     case ModifiedPath(p) =>
       for {
-        errors <- compiler.compileAsync(projectFiles.toList).map(_.filter(errorInProjectFile))
+        errors <- compiler.compileAsync(getProjectFiles).map(_.filter(errorInProjectFile))
         _ = printDebug(errors)
       } yield self ! UpdatedCompilerErrors(errors)
     case NewPath(p) => log.debug("path new {}", p)

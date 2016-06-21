@@ -61,8 +61,8 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
   private val runningFuture = watchService.start(executor,callback, dirFilter, modelicaFileFilter)
 
-  private def files =
-    getFiles(rootPath, moFileFilter).sorted
+  private def files(path:Path) =
+    getFiles(path, moFileFilter).sorted
 
   private def moFileFilter(path:Path):Boolean = {
     val filename = ResourceUtils.getFilename(path)
@@ -73,7 +73,9 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   override def handleMsg: Receive = {
     case GetFiles =>
-      Future(files) pipeTo sender
+      Future(files(rootPath)) pipeTo sender
+    case GetFiles(root) =>
+      Future(files(root)) pipeTo sender
   }
 
   override def postStop(): Unit = {
@@ -87,6 +89,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 object FileWatchingActor {
   sealed trait FileWatchingMsg
   case object GetFiles extends FileWatchingMsg
+  case class GetFiles(root:Path) extends FileWatchingMsg
   case class NewFile(path:Path) extends FileWatchingMsg
   case class NewDir(path:Path) extends FileWatchingMsg
   case class DeleteFile(path:Path) extends FileWatchingMsg
