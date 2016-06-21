@@ -53,7 +53,6 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles.clear()
       projectFiles ++= files
       compileErrors = errors
-      log.debug("new init infos: files {} errors {}", projectFiles, compileErrors)
       context become initialized
   }
 
@@ -68,7 +67,6 @@ class ProjectManagerActor(description:ProjectDescription,
     case NewFiles(files) =>
       projectFiles ++= files
     case NewPath(p) if Files.isDirectory(p) =>
-      log.debug("path new dir {}", p)
       for {
         files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
       } yield self ! NewFiles(files)
