@@ -74,6 +74,9 @@ class ProjectManagerActor(description:ProjectDescription,
       } yield self ! NewFiles(files)
     case NewPath(p) =>
       projectFiles += p
+    case DeletedPath(p) =>
+      val filesToRemove = projectFiles.filter { path => path.startsWith(p) }
+      projectFiles --= filesToRemove
     case UpdatedCompilerErrors(xs) =>
       compileErrors = xs
     case CompileScript(path) =>
