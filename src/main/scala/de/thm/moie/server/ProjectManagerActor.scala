@@ -59,11 +59,6 @@ class ProjectManagerActor(description:ProjectDescription,
   private def initialized: Receive = {
     case CompileProject =>
       sender ! compileErrors.toSeq
-    case ModifiedPath(p) =>
-      for {
-        errors <- compiler.compileAsync(getProjectFiles).map(_.filter(errorInProjectFile))
-        _ = printDebug(errors)
-      } yield self ! UpdatedCompilerErrors(errors)
     case NewFiles(files) =>
       projectFiles ++= files
     case NewPath(p) if Files.isDirectory(p) =>
