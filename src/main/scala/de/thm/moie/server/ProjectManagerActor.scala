@@ -58,7 +58,10 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive = {
     case CompileProject =>
-      sender ! compileErrors.toSeq
+      compiler.
+        compileAsync(getProjectFiles).
+        map(_.filter(errorInProjectFile)).
+        pipeTo(sender)
     case NewFiles(files) =>
       projectFiles ++= files
     case NewPath(p) if Files.isDirectory(p) =>
@@ -70,8 +73,6 @@ class ProjectManagerActor(description:ProjectDescription,
     case DeletedPath(p) =>
       val filesToRemove = projectFiles.filter { path => path.startsWith(p) }
       projectFiles --= filesToRemove
-    case UpdatedCompilerErrors(xs) =>
-      compileErrors = xs
     case CompileScript(path) =>
       (for {
         errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
