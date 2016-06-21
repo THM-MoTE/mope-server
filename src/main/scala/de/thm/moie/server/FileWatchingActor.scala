@@ -55,7 +55,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   private val modelicaFileFilter = new Predicate[Path] {
     override def test(file: Path): Boolean =
-      moFileFilter(file)
+      dirFilter.test(file) || moFileFilter(file)
   }
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
@@ -65,10 +65,8 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
     getFiles(path, moFileFilter).sorted
 
   private def moFileFilter(path:Path):Boolean = {
-    val filename = ResourceUtils.getFilename(path)
-    Files.isRegularFile(path) &&
     !Files.isHidden(path) &&
-    filename.endsWith(".mo")
+    path.toString.endsWith(".mo")
   }
 
   override def handleMsg: Receive = {
