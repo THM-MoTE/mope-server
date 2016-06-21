@@ -65,8 +65,15 @@ class ProjectManagerActor(description:ProjectDescription,
         errors <- compiler.compileAsync(getProjectFiles).map(_.filter(errorInProjectFile))
         _ = printDebug(errors)
       } yield self ! UpdatedCompilerErrors(errors)
-    case NewPath(p) => log.debug("path new {}", p)
-    case DeletedPath(p) => log.debug("path delete {}", p)
+    case NewFiles(files) =>
+      projectFiles ++= files
+    case NewPath(p) if Files.isDirectory(p) =>
+      log.debug("path new dir {}", p)
+      for {
+        files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
+      } yield self ! NewFiles(files)
+    case NewPath(p) =>
+      projectFiles += p
     case UpdatedCompilerErrors(xs) =>
       compileErrors = xs
     case CompileScript(path) =>
@@ -93,6 +100,7 @@ object ProjectManagerActor {
   case class CompileScript(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
+  private[ProjectManagerActor] case class NewFiles(files:Seq[Path])
 
   //all hold infos about a modelica file
   case class ModelicaInfo(errors:Seq[CompilerError])
