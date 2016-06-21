@@ -7,8 +7,8 @@ object Dependencies {
     akkaGroup %% "akka-http-core" % akkaVersion,
     akkaGroup %% "akka-http-experimental" % akkaVersion,
     akkaGroup %% "akka-http-spray-json-experimental" % akkaVersion,
-    akkaGroup %% "akka-http-testkit" % akkaVersion,
-    akkaGroup %% "akka-testkit" % akkaVersion,
+    akkaGroup %% "akka-http-testkit" % akkaVersion % Test,
+    akkaGroup %% "akka-testkit" % akkaVersion % Test,
     akkaGroup %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % "1.1.3"
   )
@@ -20,7 +20,7 @@ object Dependencies {
   )
 
   val testLib = Seq(
-      "org.scalactic" %% "scalactic" % "2.2.6",
+      "org.scalactic" %% "scalactic" % "2.2.6" % Test,
       "org.scalatest" %% "scalatest" % "2.2.6" % "test"
   )
 
