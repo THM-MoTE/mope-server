@@ -12,13 +12,10 @@ import java.util.function.{BiConsumer, Predicate}
 
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.pipe
-import de.thm.moie.utils.ResourceUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
 import ews.EnhancedWatchService
-
-import scala.collection.mutable
 
 class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)
     extends Actor
