@@ -75,7 +75,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     }
 
     "return NotFound for /compile with non-valid project-id" in {
-      Post("/moie/project/200/compile") ~> service.routes ~> check {
+      Get("/moie/project/200/compile") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[String] shouldEqual "unknown project-id 200"
       }
