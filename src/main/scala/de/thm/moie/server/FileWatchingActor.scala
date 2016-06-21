@@ -30,8 +30,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   private val eventKinds = Seq(
     StandardWatchEventKinds.ENTRY_CREATE,
-    StandardWatchEventKinds.ENTRY_DELETE,
-    StandardWatchEventKinds.ENTRY_MODIFY
+    StandardWatchEventKinds.ENTRY_DELETE
   )
 
   private val executor = Executors.newSingleThreadExecutor()
@@ -42,8 +41,6 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
         interestee ! NewPath(path)
       case StandardWatchEventKinds.ENTRY_DELETE =>
         interestee ! DeletedPath(path)
-      case StandardWatchEventKinds.ENTRY_MODIFY =>
-        interestee ! ModifiedPath(path)
     }
   }
 
