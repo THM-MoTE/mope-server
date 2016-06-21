@@ -25,7 +25,7 @@ class ProjectsManagerSpec()
   val timeout = 5 seconds
   implicit val time = Timeout(timeout)
 
-  val projectPath = System.getProperty("user.home") + "/Downloads"
+  val projectPath = System.getProperty("java.io.tmpdir") + "/Downloads"
 
   private def projectActor: ActorRef =
     system.actorOf(Props[ProjectsManagerActor])

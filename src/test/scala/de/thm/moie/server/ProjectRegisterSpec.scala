@@ -16,7 +16,7 @@ class ProjectRegisterSpec
   extends ActorSpec {
 import ProjectRegister._
 
-  private val projectPath = System.getProperty("user.home") + "/Downloads"
+  private val projectPath = System.getProperty("java.io.tmpdir") + "/Downloads"
   private def stubDescription =
     ProjectDescription(projectPath, "target", Nil)
 
