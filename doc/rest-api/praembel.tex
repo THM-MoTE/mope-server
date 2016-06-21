@@ -75,6 +75,7 @@
 }
 
 % cmds
+\renewcommand{\sfdefault}{lmss}
 \renewcommand{\familydefault}{\sfdefault}
 
 \newcommand{\imgref}[1]{Abbildung \ref{#1}}
@@ -82,8 +83,9 @@
 \newcommand{\chref}[1]{Kapitel \ref{#1}}
 
 \newcommand{\tbc}{\textcolor{red}{to be continued}}
-\newcommand{\code}[1]{\texttt{#1}}
-
+\newcommand{\code}[1]{\colorbox{gray!20}{\texttt{#1}}}
+\newcommand{\decodedAs}[1]
+           {Gets decoded as \code{#1} inside the server.}
 % setup hyperlinks
 \hypersetup{
     colorlinks=true, %set true if you want colored links

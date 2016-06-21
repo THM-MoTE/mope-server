@@ -1,0 +1,34 @@
+\subsection{Connecting to the server}
+Connects a client to the server and starts a manager for the given project.
+
+
+% template taken from: https://gist.github.com/iros/3426278
+
+\begin{itemize}
+\item \textbf{URL} \code{/moie/connect}
+\item \textbf{Method} \code{POST}
+\item \textbf{URL Params} Empty
+\item \textbf{Data Params}
+  The content of the \code{moie-project.json} file. This file is located at the /-directory of the project.
+  This object defines several project-specific configurations and looks like this:
+  \begin{lstlisting}[basicstyle=\small,language=json]
+  {
+    "path": <String>, //absolute path to the project
+    "outputDirectory": <String>, //directory for compiler-generated files
+    "compilerFlags": [  //list of flags for the compiler
+      <String>,
+      <String>
+    ]
+  }
+  \end{lstlisting}
+  \decodedAs{de.thm.moie.project.ProjectDescription}
+\item \textbf{Success Response}
+  \newline\textbf{Code} 200 OK
+  \newline\textbf{Content} ID which identifies the project. For example: \code{1}
+\item \textbf{Error Response}
+  \newline\textbf{Cause} The data-field doesn't contain a valid object.
+  \newline\textbf{Code} 400 Bad Request
+  \newline\textbf{Content} Akka-generated error message which states that it couldn't decode the
+  object. Similar like this: \code{The request content was malformed..}
+  \item \textbf{Sample Call}
+\end{itemize}

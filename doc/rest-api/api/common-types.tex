@@ -1,0 +1,26 @@
+\subsection{Common type definitions}
+The following types are used to describe the requests and responses
+from the server.
+
+\subsubsection{Error-Object}
+Describes compiler-errors in Modelica files or Modelica Script-files.
+\newline\decodedAs{de.thm.moie.compiler.CompilerError}
+  \begin{lstlisting}[basicstyle=\small,language=json]
+  {
+    "file": <String>, //absolute path to the file which contains the error
+    "start": <File-Position>, //Start-point of error
+    "end": <File-Position>, //End-point of error
+    "message": <String> //Error-message from the compiler
+  }
+  \end{lstlisting}
+
+\subsection{File-Position}
+Describes a position inside of a file. Contains a
+line and a column.
+\newline\decodedAs{de.thm.moie.compiler.FilePosition}
+  \begin{lstlisting}[basicstyle=\small,language=json]
+  {
+    "line": <number>, //line of error
+    "column": <number> //column of error
+  }
+  \end{lstlisting}

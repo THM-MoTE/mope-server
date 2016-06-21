@@ -1,0 +1,30 @@
+\subsection{Compiling a project}
+Compiles all files from the project identified by the given \code{id}.
+
+\begin{itemize}
+\item \textbf{URL} \code{/moie/project/:id/compile}
+\item \textbf{Method} \code{GET}
+
+\item \textbf{URL Params}
+  \newline\textbf{Required} \code{id=[integer]}
+
+\item \textbf{Data Params} Empty
+
+\item \textbf{Success Response}
+  \newline\textbf{Code} 200 OK
+  \newline\textbf{Content} An array containing compiler-errors.
+  \begin{lstlisting}[basicstyle=\small,language=json]
+  [
+    <Error-Object>,
+    <Error-Object>,
+    ...
+  ]
+  \end{lstlisting}
+  
+\item \textbf{Error Response}
+  \newline\textbf{Cause} Given id is unknown.
+  \newline\textbf{Code} 404 Not Found
+  \newline\textbf{Content} \code{unknown project-id :id}
+
+\item \textbf{Sample Call}
+\end{itemize}
