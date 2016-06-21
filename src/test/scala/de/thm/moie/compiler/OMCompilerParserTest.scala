@@ -209,6 +209,23 @@ Execution failed!""".stripMargin
           FilePosition(2,3), FilePosition(2,170), "Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden.")
         )
       )
+
+val msg11 =
+"""
+Error processing file: test.mo
+[/private/var/folders/j2/h5b3j8vs6nx55h3h350pwt400000gn/T/moie5261460089392956577/mo-project/test.mo:3:4-3:13:writable] Error: Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.
+Error: Error occurred while flattening model myModel
+
+# Error encountered! Exiting...
+# Please check the error message and the flags.
+
+""".stripMargin
+    compiler.parseErrorMsg(msg11) should be (List(
+        CompilerError(
+        "/private/var/folders/j2/h5b3j8vs6nx55h3h350pwt400000gn/T/moie5261460089392956577/mo-project/test.mo",
+        FilePosition(3,4), FilePosition(3,13),
+        "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
+    ))
   }
 
   "Script errors" should "get parsed" in {
