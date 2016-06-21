@@ -68,25 +68,29 @@ trait Routes extends JsonSupport {
               } yield IntJsonFormat.write(id.id)
             }
           }
-        } ~ get {
-          complete(ProjectDescription("Dummy-URL", "target", List()))
         }
       } ~
       path("stop-server") {
-        projectsManager ! PoisonPill
-        shutdown("received `stop-server`")
-        complete(StatusCodes.Accepted)
+        post {
+          projectsManager ! PoisonPill
+          shutdown("received `stop-server`")
+          complete(StatusCodes.Accepted)
+        }
       } ~
       pathPrefix("project" / IntNumber) { id =>
         path("disconnect") {
-          disconnectWithExit(id)
-          complete(StatusCodes.NoContent)
+          post {
+            disconnectWithExit(id)
+            complete(StatusCodes.NoContent)
+          }
         } ~
         path("compile") {
-          withIdExists(id) { projectManager =>
-            for {
-              errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
-            } yield errors.toList
+          get {
+            withIdExists(id) { projectManager =>
+              for {
+                errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
+              } yield errors.toList
+            }
           }
         } ~
         path("compileScript") {
