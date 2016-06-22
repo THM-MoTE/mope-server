@@ -27,7 +27,7 @@ lazy val root = (project in file(".")).
 
 mainClass in Compile := Some("de.thm.moie.MoIE")
 mainClass in assembly := (mainClass in Compile).value
-assemblyJarName in assembly := s"${name.value}-${version.value}.jar"
+assemblyJarName in assembly := s"moie-server-${version.value}.jar"
 test in assembly := {} //skip test's during packaging
 
 libraryDependencies ++= Dependencies.usedDependencies
