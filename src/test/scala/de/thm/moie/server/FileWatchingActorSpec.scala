@@ -4,7 +4,7 @@
 
 package de.thm.moie.server
 
-import akka.actor.Props
+import akka.actor.{Props, Actor}
 import akka.testkit.{ TestActors, TestKit }
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.FileWatchingActor._
@@ -55,9 +55,15 @@ class FileWatchingActorSpec() extends ActorSpec {
     removeDirectoryTree(path)
   }
 
+  val dummyActor = system.actorOf(Props(new Actor {
+    override def receive:Receive = {
+      case _ =>
+    }
+  }))
+
   "A FileWatcher" should {
     "return only *.mo files" in {
-      val watchingActor = system.actorOf(Props(new FileWatchingActor(Paths.get(project.path), project.outputDirectory)))
+      val watchingActor = system.actorOf(Props(new FileWatchingActor(dummyActor, Paths.get(project.path), project.outputDirectory)))
       val expectedSet =
         files.zip(files.map(ResourceUtils.getFilename)).
         filter { case (_, name) => name.endsWith(".mo") }.map(_._1).toSet
@@ -67,7 +73,7 @@ class FileWatchingActorSpec() extends ActorSpec {
     }
 
     "return empty list if there aren't *.mo files" in {
-      val watchingActor = system.actorOf(Props(new FileWatchingActor(emptyPath, project.outputDirectory)))
+      val watchingActor = system.actorOf(Props(new FileWatchingActor(dummyActor, emptyPath, project.outputDirectory)))
       val exp = List.empty[Path]
       watchingActor ! GetFiles
       expectMsg(exp)

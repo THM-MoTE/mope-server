@@ -70,6 +70,7 @@ class ProjectManagerActorSpec
         StandardOpenOption.TRUNCATE_EXISTING)
       bw.write(contentWithErrors)
       bw.close()
+      Thread.sleep(20000) //give OS time to throw a CREATE event
 
         //test errors
       testRef ! CompileProject

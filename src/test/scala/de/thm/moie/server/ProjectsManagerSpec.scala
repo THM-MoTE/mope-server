@@ -4,6 +4,7 @@
 
 package de.thm.moie.server
 
+import java.nio.file.Files
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectsManagerActor._
 import akka.pattern.ask
@@ -25,7 +26,8 @@ class ProjectsManagerSpec()
   val timeout = 5 seconds
   implicit val time = Timeout(timeout)
 
-  val projectPath = System.getProperty("java.io.tmpdir") + "/Downloads"
+  val projPath = Files.createTempDirectory("moie")
+  val projectPath = projPath.toAbsolutePath().toString()
 
   private def projectActor: ActorRef =
     system.actorOf(Props[ProjectsManagerActor])
