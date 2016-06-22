@@ -1,5 +1,5 @@
 \subsection{Common type definitions}
-The following types are used to describe the requests and responses
+The following types are used to describe the request and response data
 from the server.
 
 \subsubsection{Error-Object}
@@ -20,7 +20,24 @@ line and a column.
 \newline\decodedAs{de.thm.moie.compiler.FilePosition}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
-    "line": <number>, //line of error
-    "column": <number> //column of error
+    "line": <number>, //linenumber
+    "column": <number> //columnnumber
   }
+  \end{lstlisting}
+
+  \subsubsection{Completion-Object}
+  \notimlpemented\newline
+  Describes possible code completions.
+  \begin{lstlisting}[basicstyle=\small,language=json]
+    {
+      //type of completion; 1 of the listed strings
+      "completionType": "type" | "variable" | "function" | "keyword"
+      "name": <String> //the completion for the given word
+      //OPTIONAL: list containing names of parameters if completionType=function
+      "parameters": [
+        <String>,
+        <String>,
+        ...
+      ]
+    }
   \end{lstlisting}

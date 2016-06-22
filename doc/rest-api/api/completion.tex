@@ -1,5 +1,6 @@
-\subsection{Retrieving code-completions}
-Returns possible code-completions for the given word/symbol.
+\subsection{Retrieving code completions}
+\notimlpemented\newline
+Returns possible code completions for the given word/symbol.
 
 \begin{itemize}
 \item \textbf{URL} \code{/moie/project/:id/completion}
@@ -11,16 +12,22 @@ Returns possible code-completions for the given word/symbol.
 \item \textbf{Data Params} An object which contains the position and the word that should get completed.
   \begin{lstlisting}[basicstyle=\small,language=json]
     {
-      "file": <String>,
-      "line": <Number>,
-      "column": <Number>,
-      "string": <String>
+      "file": <String>, //absolute path to the file which contains the word/symbol
+      "position": <File-Position>, //the position of the word in the file
+      "word": <String> //word/symbol
     }
   \end{lstlisting}
 
 \item \textbf{Success Response}
   \newline\textbf{Code} 200 OK
-  \newline\textbf{Content} JSON
+  \newline\textbf{Content} An array containing all possible completions for the word.
+  \begin{lstlisting}[basicstyle=\small,language=json]
+  [
+    <Completion-Object>,
+    <Completion-Object>,
+    ...
+  ]
+  \end{lstlisting}
 
 \item \textbf{Error Response}
   \newline\textbf{Cause} Given id is unknown.
