@@ -6,12 +6,13 @@ from the server.
 Describes compiler-errors in Modelica files or Modelica Script-files.
 \newline\decodedAs{de.thm.moie.compiler.CompilerError}
   \begin{lstlisting}[basicstyle=\small,language=json]
-  {
-    "file": <String>, //absolute path to the file which contains the error
-    "start": <File-Position>, //Start-point of error
-    "end": <File-Position>, //End-point of error
-    "message": <String> //Error-message from the compiler
-  }
+    {
+      "type": "Error" | "Warning", //type of the message from the compiler
+      "file": <String>, //absolute path to the file which contains the error
+      "start": <File-Position>, //Start-point of error
+      "end": <File-Position>, //End-point of error
+      "message": <String> //Error-message from the compiler
+    }
   \end{lstlisting}
 
 \subsection{File-Position}
@@ -31,8 +32,8 @@ line and a column.
   \begin{lstlisting}[basicstyle=\small,language=json]
     {
       //type of completion; 1 of the listed strings
-      "completionType": "type" | "variable" | "function" | "keyword"
-      "name": <String> //the completion for the given word
+      "completionType": "type" | "variable" | "function" | "keyword",
+      "name": <String>, //the completion for the given word
       //OPTIONAL: list containing names of parameters if completionType=function
       "parameters": [
         <String>,
