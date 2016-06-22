@@ -25,29 +25,33 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def skipUninterestingStuff =
     ((not("\\[|\\{".r) ~> ident ~> """([^\n]+)""".r) *)
 
+      //TODO pack common things of | together in one production
   def errorLine: Parser[CompilerError] = (
     ("["~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
+    (("Error" | "Warning") <~ ":") ~
     errorMsg("\\[") ^^ {
-      case path ~ start ~ end ~ msg =>
-        CompilerError(path, start, end, msg)
+      case path ~ start ~ end ~ tpe ~ msg =>
+        CompilerError(tpe, path, start, end, msg)
     }
     | ("{" ~> "\"" ~> "[" ~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
+    (("Error" | "Warning") <~ ":") ~
     errorMsg("\\[|\\{") ^^ {
-      case path ~ start ~ end ~ msg =>
+      case path ~ start ~ end ~ tpe ~ msg =>
       val delimiter = "\""
       if(msg.contains(delimiter))
-        CompilerError(path, start, end, msg.substring(0, msg.indexOf(delimiter)))
-      else CompilerError(path, start, end, msg)
+        CompilerError(tpe, path, start, end, msg.substring(0, msg.indexOf(delimiter)))
+      else CompilerError(tpe, path, start, end, msg)
     })
 
   def errorMsg(additionalDelimiter:String): Parser[String] =
     (errorSub(additionalDelimiter) +) ^^ { _.mkString("\n") }
 
   def errorSub(additionalDelimiter:String): Parser[String] =
-    "Error" ~> ":" ~> rep1sep((not("Error" | additionalDelimiter.r) ~> word), "") ^^ { words =>
-      words.foldLeft("") {
-        case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
-      }.trim()
+    rep1sep((not("Error" | "Warning" | additionalDelimiter.r) ~> word), "") ^^ {
+      case words =>
+         words.foldLeft("") {
+          case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
+        }.trim()
     }
 
   def path:Parser[String] =

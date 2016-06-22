@@ -4,7 +4,8 @@
 
 package de.thm.moie.compiler
 
-case class CompilerError(file:String,
+case class CompilerError(`type`:String,
+                        file:String,
                         start: FilePosition,
                         end:FilePosition,
                         message:String)
