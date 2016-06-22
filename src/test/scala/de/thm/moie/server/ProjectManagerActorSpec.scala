@@ -34,7 +34,7 @@ class ProjectManagerActorSpec
   private def stubDescription =
     ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil)
 
-  private def dummyError(x:Path) = CompilerError(x.toAbsolutePath().toString(), FilePosition(0,0), FilePosition(0,0), "")
+  private def dummyError(x:Path) = CompilerError("Error", x.toAbsolutePath().toString(), FilePosition(0,0), FilePosition(0,0), "")
 
   val testRef = TestActorRef[ProjectManagerActor](new ProjectManagerActor(stubDescription, new OMCompiler(List(), "omc", stubDescription.outputDirectory)))
   val manager = testRef.underlyingActor

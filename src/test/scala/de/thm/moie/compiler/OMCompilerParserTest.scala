@@ -27,7 +27,7 @@ Error: Error occurred while flattening model circuit
 """.stripMargin
 
     compiler.parseErrorMsg(msg) should be (List(
-      CompilerError("/home/mint/Downloads/share/mo/circuit.mo",
+      CompilerError("Error", "/home/mint/Downloads/share/mo/circuit.mo",
         FilePosition(2,7), FilePosition(2,25), "Class Resistor not found in scope circuit."
       )))
 
@@ -43,7 +43,7 @@ Failed to parse file: ../resistor.mo!
 """.stripMargin
 
     compiler.parseErrorMsg(msg3) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/share/mo/resistor.mo",
         FilePosition(1,6), FilePosition(12,11), "Parse error: The identifier at start and end are different"
       )))
@@ -62,7 +62,7 @@ Execution failed!
     """.stripMargin
 
     compiler.parseErrorMsg(msg4) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/share/mo/resistor.mo",
         FilePosition(3,173), FilePosition(3,173), "Missing token: ')'"
       )))
@@ -82,7 +82,7 @@ Execution failed!
     """.stripMargin
 
     compiler.parseErrorMsg(msg5) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/share/mo/resistor.mo",
         FilePosition(6,3), FilePosition(6,127), "Variable resistor1.p not found in scope resistor."
       )))
@@ -100,7 +100,7 @@ Execution failed!
     """.stripMargin
 
     compiler.parseErrorMsg(msg6) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/share/mo/resistor.mo",
         FilePosition(2,3), FilePosition(2,174), "Class Modelica.Electrical.Analog.Basic.Resistor not found in scope resistor."
       )))
@@ -120,7 +120,7 @@ Error: Error occurred while flattening model ResistorTest
     """.stripMargin
 
     compiler.parseErrorMsg(msg7) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/share/mo/ResistorTest.mo",
         FilePosition(7,3), FilePosition(7,115),
 """Incompatible components in connect statement: connect(resistor1.R, resistor2.p)
@@ -141,7 +141,7 @@ Failed to parse file: bouncing_ball.mo!
 Execution failed!
     """.stripMargin
     compiler.parseErrorMsg(msg8) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/bouncing_ball.mo",
         FilePosition(14,5), FilePosition(14,5), "Missing token: THEN")))
 
@@ -160,7 +160,7 @@ Error: Error occurred while flattening model ResistorTest
 
 Execution failed!""".stripMargin
     compiler.parseErrorMsg(msg9) should be (List(
-      CompilerError(
+      CompilerError("Error",
         "/home/mint/Downloads/resistor.mo",
         FilePosition(6,3), FilePosition(6,104),
 """Incompatible components in connect statement: connect(resistor2.R, ground1.p)
@@ -187,24 +187,24 @@ Execution failed!""".stripMargin
 
       val errors = compiler.parseErrorMsg(msg10)
       errors.size should be (3)
-      errors(0) should be (CompilerError(
+      errors(0) should be (CompilerError("Error",
         "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo",
         FilePosition(2,1), FilePosition(46,15), "Klasse Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica.Electrical gefunden werden."))
-      errors(1) should be (CompilerError(
+      errors(1) should be (CompilerError("Error",
         "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/package.mo",
         FilePosition(2,1), FilePosition(7980,13), "Klasse Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica gefunden werden."))
-      errors(2) should be (CompilerError(
+      errors(2) should be (CompilerError("Error",
         "/Users/nico/Documents/mo-tests/ResistorTest.mo",
         FilePosition(2,3), FilePosition(2,170), "Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden."))
 
       errors should be (List(
-        CompilerError(
+        CompilerError("Error",
           "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo",
           FilePosition(2,1), FilePosition(46,15), "Klasse Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica.Electrical gefunden werden."),
-        CompilerError(
+        CompilerError("Error",
           "/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/package.mo",
           FilePosition(2,1), FilePosition(7980,13), "Klasse Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von Modelica gefunden werden."),
-        CompilerError(
+        CompilerError("Error",
           "/Users/nico/Documents/mo-tests/ResistorTest.mo",
           FilePosition(2,3), FilePosition(2,170), "Klasse Modelica.Electrical.Anlog.Basic.Ground konnte nicht im Geltungsbereich von ResistorTest gefunden werden.")
         )
@@ -221,7 +221,7 @@ Error: Error occurred while flattening model myModel
 
 """.stripMargin
     compiler.parseErrorMsg(msg11) should be (List(
-        CompilerError(
+        CompilerError("Error",
         "/private/var/folders/j2/h5b3j8vs6nx55h3h350pwt400000gn/T/moie5261460089392956577/mo-project/test.mo",
         FilePosition(3,4), FilePosition(3,13),
         "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
@@ -241,18 +241,18 @@ Error: Error occurred while flattening model myModel
       """.stripMargin
 
     val errors = compiler.parseErrorMsg(msg)
-    errors(0) should be (CompilerError(
+    errors(0) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
     )
 
-    errors(1) should be (CompilerError(
+    errors(1) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
 
-    errors(2) should be (CompilerError(
+    errors(2) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
@@ -264,18 +264,18 @@ Error: Error occurred while flattening model myModel
     """.stripMargin
 
     val errors2 = compiler.parseErrorMsg(msg2)
-    errors2(0) should be (CompilerError(
+    errors2(0) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
     )
 
-    errors2(1) should be (CompilerError(
+    errors2(1) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
 
-    errors2(2) should be (CompilerError(
+    errors2(2) should be (CompilerError("Error",
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
