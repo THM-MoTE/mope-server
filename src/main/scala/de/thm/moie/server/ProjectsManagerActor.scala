@@ -21,7 +21,7 @@ class ProjectsManagerActor
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
     register.get(id) map {
-      case ProjectEntry(descr, actor) => f(descr, actor)
+      case ProjectEntry(descr, actor, _) => f(descr, actor)
     }
 
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
@@ -40,9 +40,11 @@ class ProjectsManagerActor
       sender ! withIdExists(id) { (_, actor) => actor }
     case Disconnect(id) =>
       sender ! register.remove(id).map {
-        case ProjectEntry(_, actor) =>
+        case ProjectEntry(_, actor, 0) =>
           actor ! PoisonPill
-          RemainingClients(register.projectCount)
+          RemainingClients(register.clientCount)
+        case ProjectEntry(_,_,_) =>
+          RemainingClients(register.clientCount)
       }
   }
 

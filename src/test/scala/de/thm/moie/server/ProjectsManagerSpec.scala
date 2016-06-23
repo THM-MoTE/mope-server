@@ -88,7 +88,20 @@ class ProjectsManagerSpec()
       val target = expectMsgClass(timeout, classOf[Some[ActorRef]]).get
       probe watch target
       actor ! Disconnect(0)
+      expectMsg(timeout, Some(RemainingClients(0)))
       probe.expectTerminated(target)
+    }
+
+    "not kill ProjectManager if there are multiple clients for same project" in {
+      val (actor, descr) = projectActorWithStubDescription
+      //wait until processing of first msg is done
+      expectMsgClass(timeout, classOf[ProjectId])
+      actor ! descr
+      expectMsgClass(timeout, classOf[ProjectId])
+      actor ! Disconnect(0)
+      expectMsg(timeout, Some(RemainingClients(1)))
+      actor ! Disconnect(0)
+      expectMsg(timeout, Some(RemainingClients(0)))
     }
   }
 }
