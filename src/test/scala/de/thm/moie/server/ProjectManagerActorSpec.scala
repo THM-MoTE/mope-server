@@ -22,23 +22,11 @@ class ProjectManagerActorSpec
   val projectPath = path.resolve("mo-project")
 
   val testFile = projectPath.resolve("test.mo")
+  val scriptFile = projectPath.resolve("script.mos")
 
   Files.createDirectory(projectPath)
   Files.createFile(testFile)
-
-          //write file content
-      val contentWithErrors = """
-      |model myModel
-      |   Rl number;
-      |end myModel;
-      """.stripMargin
-
-      val bw = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)
-      bw.write(contentWithErrors)
-      bw.write("\n")
-      bw.close()
+  Files.createFile(scriptFile)
 
   override def afterAll = {
     super.afterAll()
@@ -114,6 +102,46 @@ class ProjectManagerActorSpec
 
         //test errors
       testRef ! CompileProject
+      val xs = expectMsgType[List[CompilerError]](10 seconds)
+      xs.size should be (0)
+    }
+
+    "return compile errors for invalid scripts" in {
+      val scriptContent = """
+lodFile("bouncing_ball.mo");
+""".stripMargin
+
+            val bw = Files.newBufferedWriter(scriptFile, StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING)
+      bw.write(scriptContent)
+      bw.write("\n")
+      bw.close()
+
+      Thread.sleep(1000) //wait till buffers are written
+
+        //test errors
+      testRef ! CompileScript(scriptFile)
+      val xs = expectMsgType[List[CompilerError]](10 seconds)
+      xs.size should be > 1
+    }
+
+    "return 0 compile errors for valid scripts" in {
+      val scriptContent = """
+loadFile("bouncing_ball.mo");
+""".stripMargin
+
+      val bw = Files.newBufferedWriter(scriptFile, StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING)
+      bw.write(scriptContent)
+      bw.write("\n")
+      bw.close()
+
+      Thread.sleep(1000) //wait till buffers are written
+
+      //test errors
+      testRef ! CompileScript(scriptFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
       xs.size should be (0)
     }
