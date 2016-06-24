@@ -23,9 +23,22 @@ class ProjectManagerActorSpec
 
   val testFile = projectPath.resolve("test.mo")
 
-  override def beforeAll = {
-    Files.createDirectory(projectPath)
-  }
+  Files.createDirectory(projectPath)
+  Files.createFile(testFile)
+
+          //write file content
+      val contentWithErrors = """
+      |model myModel
+      |   Rl number;
+      |end myModel;
+      """.stripMargin
+
+      val bw = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING)
+      bw.write(contentWithErrors)
+      bw.write("\n")
+      bw.close()
 
   override def afterAll = {
     super.afterAll()
@@ -38,7 +51,9 @@ class ProjectManagerActorSpec
 
   val testRef = TestActorRef[ProjectManagerActor](new ProjectManagerActor(stubDescription, new OMCompiler(List(), "omc", stubDescription.outputDirectory)))
   val manager = testRef.underlyingActor
+
   "ProjectManager's `errorInProjectFile`" should {
+    /*
     "filter pathes that aren't childpathes from `mo-project`" in {
       val xs = List(
         Paths.get("/home/nico/Downloads"),
@@ -53,28 +68,31 @@ class ProjectManagerActorSpec
         projectPath.resolve("test/util3.mo"),
         projectPath.resolve("project.mo")).map(dummyError)
     }
+    */
   }
 
   "ProjectManager" must {
-    "return compile errors for existing files" in {
+    "return no compile errors for valid files" in {
         //write file content
       val contentWithErrors = """
       |model myModel
-      |   Rl number;
+      |   Rel number;
       |end myModel;
       """.stripMargin
 
-      Files.createFile(testFile)
       val bw = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
         StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING)
       bw.write(contentWithErrors)
+      bw.write("\n")
       bw.close()
-      Thread.sleep(20000) //give OS time to throw a CREATE event
+
+      Thread.sleep(1000) //give OS time to throw a CREATE event
 
         //test errors
       testRef ! CompileProject
-      val xs = expectMsgType[List[CompilerError]](5 seconds)
+      val xs = expectMsgType[List[CompilerError]](10 seconds)
+      println("final xs "+xs)
       xs.size should be (1)
     }
   }

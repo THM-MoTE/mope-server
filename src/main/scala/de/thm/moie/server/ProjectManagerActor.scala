@@ -40,13 +40,13 @@ class ProjectManagerActor(description:ProjectDescription,
   override def preStart() =
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
-      errors <- compiler.compileAsync(files).map(_.filter(errorInProjectFile))
+      errors <- compiler.compileAsync(files)
     } {
       self ! InitialInfos(files, errors)
     }
 
-  def errorInProjectFile(error:CompilerError): Boolean =
-    Paths.get(error.file).startsWith(rootDir)
+//  def errorInProjectFile(error:CompilerError): Boolean =
+//    Paths.get(error.file).startsWith(rootDir)
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
@@ -60,7 +60,6 @@ class ProjectManagerActor(description:ProjectDescription,
     case CompileProject =>
       compiler.
         compileAsync(getProjectFiles).
-        map(_.filter(errorInProjectFile)).
         pipeTo(sender)
     case NewFiles(files) =>
       projectFiles ++= files
@@ -75,7 +74,7 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles --= filesToRemove
     case CompileScript(path) =>
       (for {
-        errors <- compiler.compileScriptAsync(path).map(_.filter(errorInProjectFile))
+        errors <- compiler.compileScriptAsync(path)
         _ = printDebug(errors)
       } yield errors) pipeTo sender
   }
