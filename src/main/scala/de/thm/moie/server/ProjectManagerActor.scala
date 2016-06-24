@@ -5,12 +5,13 @@
 package de.thm.moie.server
 
 import java.nio.file._
+import java.util.concurrent.{Executors, TimeUnit}
 
 import akka.actor.{Actor, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
-import de.thm.moie.project.ProjectDescription
+import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
@@ -29,6 +30,8 @@ class ProjectManagerActor(description:ProjectDescription,
 
   implicit val timeout = Timeout(5 seconds)
 
+  val executor = Executors.newCachedThreadPool()
+  implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
 
@@ -86,6 +89,8 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   override def postStop(): Unit = {
+    executor.shutdown()
+    executor.awaitTermination(2, TimeUnit.SECONDS)
     log.info("stopping")
   }
 }

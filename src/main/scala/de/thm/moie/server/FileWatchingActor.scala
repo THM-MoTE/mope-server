@@ -12,12 +12,14 @@ import java.util.function.{BiConsumer, Predicate}
 
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.pipe
+import de.thm.moie.project.InternalProjectConfig
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
+
 import ews.EnhancedWatchService
 
-class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)
+class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)(implicit projConfig:InternalProjectConfig)
     extends Actor
     with UnhandledReceiver
     with LogMessages {
@@ -29,8 +31,6 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
     StandardWatchEventKinds.ENTRY_CREATE,
     StandardWatchEventKinds.ENTRY_DELETE
   )
-
-  private val executor = Executors.newSingleThreadExecutor()
 
   private val callback = new BiConsumer[Path, WatchEvent.Kind[_]] {
     override def accept(path: Path, kind: Kind[_]): Unit = kind match {
@@ -53,7 +53,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
   }
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
-  private val runningFuture = watchService.start(executor,callback, dirFilter, modelicaFileFilter)
+  private val runningFuture = watchService.start(projConfig.blockingExecutor,callback, dirFilter, modelicaFileFilter)
 
   private def files(path:Path) =
     getFiles(path, moFileFilter).sorted
@@ -72,8 +72,6 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   override def postStop(): Unit = {
     runningFuture.cancel(true)
-    executor.shutdown()
-    executor.awaitTermination(2, TimeUnit.SECONDS)
     log.info("stopping")
   }
 }

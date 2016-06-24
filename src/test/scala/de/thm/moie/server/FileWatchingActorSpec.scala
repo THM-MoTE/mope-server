@@ -4,13 +4,18 @@
 
 package de.thm.moie.server
 
-import akka.actor.{Props, Actor}
-import akka.testkit.{ TestActors, TestKit }
-import de.thm.moie.project.ProjectDescription
+import akka.util.Timeout
+import akka.actor.{Actor, Props}
+import akka.testkit.{TestActors, TestKit}
+import de.thm.moie.project.{ProjectDescription, InternalProjectConfig}
 import de.thm.moie.server.FileWatchingActor._
 import de.thm.moie.utils.ResourceUtils
 import java.nio.file._
+import java.util.concurrent.Executors
+
 import de.thm.moie._
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class FileWatchingActorSpec() extends ActorSpec {
   import timeouts._
@@ -60,6 +65,8 @@ class FileWatchingActorSpec() extends ActorSpec {
       case _ =>
     }
   }))
+
+  implicit val projConfig = InternalProjectConfig(Executors.newSingleThreadExecutor(), Timeout(5 seconds))
 
   "A FileWatcher" should {
     "return only *.mo files" in {
