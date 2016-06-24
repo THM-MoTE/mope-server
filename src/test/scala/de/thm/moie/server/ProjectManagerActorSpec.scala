@@ -72,7 +72,7 @@ class ProjectManagerActorSpec
   }
 
   "ProjectManager" must {
-    "return no compile errors for valid files" in {
+    "return 1 compile error for invalid file" in {
         //write file content
       val contentWithErrors = """
       |model myModel
@@ -92,8 +92,30 @@ class ProjectManagerActorSpec
         //test errors
       testRef ! CompileProject
       val xs = expectMsgType[List[CompilerError]](10 seconds)
-      println("final xs "+xs)
       xs.size should be (1)
+    }
+
+    "return 0 compile errors for valid file" in {
+        //write file content
+      val contentWithErrors = """
+      |model myModel
+      |   Real number;
+      |end myModel;
+      """.stripMargin
+
+      val bw = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING)
+      bw.write(contentWithErrors)
+      bw.write("\n")
+      bw.close()
+
+      Thread.sleep(1000) //wait till buffers are written
+
+        //test errors
+      testRef ! CompileProject
+      val xs = expectMsgType[List[CompilerError]](10 seconds)
+      xs.size should be (0)
     }
   }
 }
