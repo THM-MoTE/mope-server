@@ -97,7 +97,4 @@ object ProjectManagerActor {
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
   private[ProjectManagerActor] case class NewFiles(files:Seq[Path])
-
-  //all hold infos about a modelica file
-  case class ModelicaInfo(errors:Seq[CompilerError])
 }
