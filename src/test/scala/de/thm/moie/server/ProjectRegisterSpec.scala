@@ -110,7 +110,7 @@ import ProjectRegister._
       register.projectCount shouldEqual 0
       register.getProjects.size shouldEqual 0
       register.getDescriptionToId.size shouldEqual 0
-      entryOpt shouldEqual Some(entry)
+      entryOpt shouldEqual Some(entry.copy(clientCnt=0))
     }
 
     "not remove entries by invalid ids" in {
