@@ -12,7 +12,7 @@ import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.{ProjectDescription, FilePath}
-import de.thm.moie.server.ProjectManagerActor.{CompileProject, CompileScript}
+import de.thm.moie.server.ProjectManagerActor.{CompileProject, CompileScript, CompileDefaultScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
 import java.nio.file.Paths
@@ -51,6 +51,8 @@ trait Routes extends JsonSupport {
         case Success(x) => complete(x)
         case Failure(_:NoSuchElementException) =>
           complete(StatusCodes.NotFound, s"unknown project-id $id")
+        case Failure(NotFoundException(msg)) =>
+          complete(StatusCodes.NotFound, msg)
         case Failure(t) =>
           serverlog.error(s"While using project $id msg: ${t.getMessage}")
           complete(StatusCodes.InternalServerError)
@@ -101,6 +103,11 @@ trait Routes extends JsonSupport {
                   errors <- (projectManager ? CompileScript(Paths.get(filepath.path))).mapTo[Seq[CompilerError]]
                 } yield errors.toList
               }
+            } ~
+            withIdExists(id) { projectManager =>
+              for {
+                errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
+              } yield errors.toList
             }
           }
         }

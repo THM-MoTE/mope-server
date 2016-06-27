@@ -16,6 +16,7 @@ import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.collection._
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -39,6 +40,15 @@ class ProjectManagerActor(description:ProjectDescription,
   private var compileErrors = Seq[CompilerError]()
 
   private def getProjectFiles = projectFiles.sorted.toList
+
+  private def getDefaultScriptPath:Future[Path] = Future {
+    val defaultScript = "build.mos"
+    val path = rootDir.resolve(defaultScript)
+    if(Files.exists(path) && Files.isRegularFile(path))
+      path
+    else
+      throw new NotFoundException(s"Can't find script called $defaultScript!")
+  }
 
   override def preStart() =
     for {
@@ -80,6 +90,12 @@ class ProjectManagerActor(description:ProjectDescription,
         errors <- compiler.compileScriptAsync(path)
         _ = printDebug(errors)
       } yield errors) pipeTo sender
+    case CompileDefaultScript =>
+      (for {
+        path <- getDefaultScriptPath
+        errors <- compiler.compileScriptAsync(path)
+        _ = printDebug(errors)
+      } yield errors) pipeTo sender
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
@@ -98,6 +114,7 @@ class ProjectManagerActor(description:ProjectDescription,
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
   case object CompileProject extends ProjectManagerMsg
+  case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
