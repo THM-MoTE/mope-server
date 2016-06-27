@@ -226,6 +226,28 @@ Error: Error occurred while flattening model myModel
         FilePosition(3,4), FilePosition(3,13),
         "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
     ))
+
+    val msg12 =
+"""
+Error processing file: /Users/testi/ResistorTest.mo
+Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
+Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.
+Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.
+Error: Zu viele Gleichungen - überbestimmtes System. Das Modell hat 24 Gleichung(en) und 23 Variable(n).
+Error: pre-optimization module clockPartitioning (simulation) failed.
+
+# Error encountered! Exiting...
+# Please check the error message and the flags.
+
+Execution failed!
+""".stripMargin
+    compiler.parseErrorMsg(msg12) should be (List(
+      CompilerError("Error",
+        "/Users/testi/ResistorTest.mo",
+        FilePosition(0,0), FilePosition(0,0),
+        """Zu viele Gleichungen
+        |- überbestimmtes System. Das Modell hat 24 Gleichung(en) und 23 Variable(n).""".stripMargin
+    )))
   }
 
   "Script errors" should "get parsed" in {

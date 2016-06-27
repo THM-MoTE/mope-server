@@ -11,19 +11,37 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   // regex from: http://stackoverflow.com/a/5954831
   override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
 
+  def unknownPosition:FilePosition = FilePosition(0,0)
+  def unknownError:String = "Compiler didn't provide any further message"
+
   def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r
   def number = """[0-9]+""".r
   def ident =  """[a-zA-Z0-9]+""".r
-  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=<>]+""".r
+  def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=<>äöü]+""".r
   def character = """[a-zA-Z]""".r
 
   def pathDelimiter:Parser[String] = ("/" | "\\")
 
-  def msgParser: Parser[List[CompilerError]] =
+  def msgParser: Parser[List[CompilerError]] = (
     skipUninterestingStuff ~> (errorLine +)
+    | (processingFile ~ (skipNotifications ~>
+    "Error" ~> ":" ~> errorMsg("\\[")) ^^ {
+      case path ~ msg =>
+        CompilerError("Error", path, unknownPosition, unknownPosition, msg)
+    } +)
+    | (processingFile ^^ { path =>
+      CompilerError("Error", path, unknownPosition, unknownPosition, unknownError)
+    } +)
+    )
 
   def skipUninterestingStuff =
     ((not("\\[|\\{".r) ~> ident ~> """([^\n]+)""".r) *)
+
+  def skipNotifications =
+    ((not("Error") ~> ident ~> """([^\n]+)""".r) *)
+
+  def processingFile:Parser[String] =
+    "Error" ~> "processing" ~> "file" ~> ":" ~> path
 
       //TODO pack common things of | together in one production
   def errorLine: Parser[CompilerError] = (
