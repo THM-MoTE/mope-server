@@ -43,23 +43,22 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def processingFile:Parser[String] =
     "Error" ~> "processing" ~> "file" ~> ":" ~> path
 
-      //TODO pack common things of | together in one production
   def errorLine: Parser[CompilerError] = (
-    ("["~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
+    errorPosition ~
     (("Error" | "Warning") <~ ":") ~
     errorMsg("\\[") ^^ {
-      case path ~ start ~ end ~ tpe ~ msg =>
+      case (path, start, end) ~ tpe ~ msg =>
         CompilerError(tpe, path, start, end, msg)
     }
-    | ("{" ~> "\"" ~> "[" ~> path <~ ":") ~ (filePosition <~ "-") ~ (filePosition <~ ":" <~ ident <~ "]") ~
+    | "{" ~> "\"" ~> errorPosition ~
     (("Error" | "Warning") <~ ":") ~
     errorMsg("\\[|\\{") ^^ {
-      case path ~ start ~ end ~ tpe ~ msg =>
+      case (path, start, end) ~ tpe ~ msg =>
       val delimiter = "\""
       if(msg.contains(delimiter))
         CompilerError(tpe, path, start, end, msg.substring(0, msg.indexOf(delimiter)))
       else CompilerError(tpe, path, start, end, msg)
-    })
+  })
 
   def errorMsg(additionalDelimiter:String): Parser[String] =
     (errorSub(additionalDelimiter) +) ^^ { _.mkString("\n") }
@@ -82,6 +81,11 @@ class MsgParser extends RegexParsers with ImplicitConversions {
     ("/" //unix style
     | character ~ ":" ~ "\\" ^^ { case ch ~ _ ~ _ => ch +":\\" } //windows style
     )
+
+  def errorPosition: Parser[(String, FilePosition, FilePosition)] =
+    ("["~> path <~ ":") ~ (filePosition <~ "-") ~ filePosition <~ ":" <~ ident <~ "]" ^^ {
+      case path ~ start ~ end => (path,start,end)
+    }
 
   def filePosition: Parser[FilePosition] =
     (number ~ (":" ~> number)) ^^ {
