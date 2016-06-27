@@ -12,6 +12,7 @@ bib: compile
 
 compile:
 	pdflatex $(TEXFILE)
+	pdflatex $(TEXFILE)
 
 display: compile
 	open -a Preview $(PDFFILE)
