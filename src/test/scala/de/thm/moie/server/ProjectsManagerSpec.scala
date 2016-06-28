@@ -33,7 +33,7 @@ class ProjectsManagerSpec()
     system.actorOf(Props[ProjectsManagerActor])
 
   private def stubDescription =
-    ProjectDescription(projectPath, "target", Nil)
+    ProjectDescription(projectPath, "target", Nil, None)
 
   private def projectActorWithStubDescription = {
       val act = projectActor

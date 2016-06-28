@@ -37,7 +37,7 @@ class ProjectManagerActorSpec
     removeDirectoryTree(path)
   }
   private def stubDescription =
-    ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil)
+    ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil, None)
 
   private def dummyError(x:Path) = CompilerError("Error", x.toAbsolutePath().toString(), FilePosition(0,0), FilePosition(0,0), "")
 
