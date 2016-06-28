@@ -5,11 +5,7 @@
 package de.thm.moie.server
 
 import org.scalatest._
-import akka.util.Timeout
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.testkit.{ TestActors, TestActorRef, TestKit, ImplicitSender, TestProbe }
+import akka.testkit.{ TestActorRef }
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie._
 import de.thm.moie.server.ProjectManagerActor._
@@ -34,7 +30,7 @@ class ProjectManagerActorSpec
 
   override def afterAll = {
     super.afterAll()
-    removeDirectoryTree(path)
+    // removeDirectoryTree(path)
   }
   private def stubDescription =
     ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil, None)
@@ -64,6 +60,18 @@ class ProjectManagerActorSpec
   }
 
   "ProjectManager" must {
+    val createdMoFiles = List(
+      projectPath.resolve("test2.mo"),
+      projectPath.resolve("nico.mo"),
+      projectPath.resolve("model.mo"),
+      projectPath.resolve("model2.mo")
+    )
+    createdMoFiles.foreach(Files.createFile(_))
+
+    val allMoFiles = testFile :: createdMoFiles
+    val deletedFiles = allMoFiles.take(2)
+    val remainingFiles = allMoFiles.drop(2)
+
     "return 1 compile error for invalid file" in {
         //write file content
       val contentWithErrors = """
@@ -148,6 +156,30 @@ loadFile("bouncing_ball.mo");
       testRef ! CompileScript(scriptFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
       xs.size should be (0)
+    }
+
+    "contain only existent files" in {
+      Thread.sleep(8000) //wait a bit; until all OS events are processed
+      val fileList = manager.getProjectFiles
+      fileList.toSet shouldEqual allMoFiles.toSet
+    }
+
+    "contain existent files which are sorted" in {
+      // Thread.sleep(10000) //wait a bit; until all OS events are processed
+      val fileList = manager.getProjectFiles
+      fileList shouldEqual allMoFiles.sorted
+    }
+
+    "remove files if they got deleted" in {
+      deletedFiles.foreach(Files.delete(_))
+      Thread.sleep(8000)
+      val fileList = manager.getProjectFiles
+      fileList.toSet shouldEqual remainingFiles.toSet
+    }
+
+    "contain sorted files even if some file got deleted" in {
+      val fileList = manager.getProjectFiles
+      fileList shouldEqual remainingFiles.sorted
     }
   }
 }

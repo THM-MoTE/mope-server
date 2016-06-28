@@ -36,10 +36,10 @@ class ProjectManagerActor(description:ProjectDescription,
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
 
-  private val projectFiles = mutable.ArrayBuffer[Path]()
+  private var projectFiles = List[Path]()
   private var compileErrors = Seq[CompilerError]()
 
-  private def getProjectFiles = projectFiles.sorted.toList
+  def getProjectFiles = projectFiles
 
   private def getDefaultScriptPath:Future[Path] = Future {
     val defaultScript = description.buildScript.getOrElse("build.mos")
@@ -64,8 +64,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
-      projectFiles.clear()
-      projectFiles ++= files
+      projectFiles = files.toList.sorted
       compileErrors = errors
       context become initialized
   }
@@ -77,16 +76,15 @@ class ProjectManagerActor(description:ProjectDescription,
         map(_.filter(errorInProjectFile)).
         pipeTo(sender)
     case NewFiles(files) =>
-      projectFiles ++= files
+      projectFiles = (files ++ projectFiles).toList.sorted
     case NewPath(p) if Files.isDirectory(p) =>
       for {
         files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
       } yield self ! NewFiles(files)
     case NewPath(p) =>
-      projectFiles += p
+      projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
-      val filesToRemove = projectFiles.filter { path => path.startsWith(p) }
-      projectFiles --= filesToRemove
+      projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
     case CompileScript(path) =>
       (for {
         errors <- compiler.compileScriptAsync(path)
