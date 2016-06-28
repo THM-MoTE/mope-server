@@ -7,4 +7,5 @@ package de.thm.moie.project
 case class ProjectDescription(
            path:String,
            outputDirectory:String,
-           compilerFlags: List[String])
+           compilerFlags: List[String],
+           buildScript:Option[String])

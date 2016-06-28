@@ -42,7 +42,7 @@ class ProjectManagerActor(description:ProjectDescription,
   private def getProjectFiles = projectFiles.sorted.toList
 
   private def getDefaultScriptPath:Future[Path] = Future {
-    val defaultScript = "build.mos"
+    val defaultScript = description.buildScript.getOrElse("build.mos")
     val path = rootDir.resolve(defaultScript)
     if(Files.exists(path) && Files.isRegularFile(path))
       path
