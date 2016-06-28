@@ -12,6 +12,9 @@
     </encoder>
   </appender>
 
+
+  <logger name="ews" level="OFF">
+  </logger>
   <logger name="akka" level="INFO">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
