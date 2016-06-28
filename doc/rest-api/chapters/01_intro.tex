@@ -1,2 +1,6 @@
 \section{Introduction}
-\tbc
+This document describes the REST-API for the Mo|E-Server process.
+Clients are going to communicate with the server process by sending HTTP calls to the server.
+The server does nothing without a initial ``connect'' request. After a ``connect'' request the server
+is ready to compile Modelica files and Modelica Script files. A ``disconnect'' request stops the server
+from working with the project.
