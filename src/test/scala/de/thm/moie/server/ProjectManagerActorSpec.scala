@@ -45,7 +45,7 @@ class ProjectManagerActorSpec
   val manager = testRef.underlyingActor
 
   "ProjectManager's `errorInProjectFile`" should {
-    /*
+
     "filter pathes that aren't childpathes from `mo-project`" in {
       val xs = List(
         Paths.get("/home/nico/Downloads"),
@@ -60,7 +60,7 @@ class ProjectManagerActorSpec
         projectPath.resolve("test/util3.mo"),
         projectPath.resolve("project.mo")).map(dummyError)
     }
-    */
+
   }
 
   "ProjectManager" must {

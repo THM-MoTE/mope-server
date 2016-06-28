@@ -59,7 +59,8 @@ class ProjectManagerActor(description:ProjectDescription,
     }
 
  def errorInProjectFile(error:CompilerError): Boolean =
-   Paths.get(error.file).startsWith(rootDir)
+   Paths.get(error.file).startsWith(rootDir) ||
+   Paths.get(error.file).startsWith(rootDir.toRealPath())
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
