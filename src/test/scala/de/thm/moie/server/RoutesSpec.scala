@@ -5,18 +5,21 @@
 package de.thm.moie.server
 
 import akka.stream.ActorMaterializer
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{Matchers, WordSpec}
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.model._
 import akka.util.ByteString
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.language.postfixOps
 import java.nio.file._
+
 import de.thm.moie._
 import de.thm.moie.compiler.CompilerError
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeoutException
 
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
@@ -33,9 +36,9 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
   }
 
   override def afterAll() = {
-    if(!service.actorSystem.isTerminated) {
+    if(!service.actorSystem.whenTerminated.isCompleted) {
       service.actorSystem.terminate()
-      fail("ActorSystem didn't terminate as expected through /stop-server!")
+      fail("ActorSystem didn't terminate as expected!")
     }
     removeDirectoryTree(tmpPath)
   }
@@ -194,7 +197,11 @@ loadFile("bouncing_ball.mo");
         Post("/moie/stop-server") ~> service.routes ~> check {
           status shouldEqual StatusCodes.Accepted
         }
-        service.actorSystem.awaitTermination(5 seconds)
+        try {
+          Await.ready(service.actorSystem.whenTerminated, 5 seconds)
+        } catch {
+          case _:TimeoutException => fail("ActorSystem didn't terminated as expected")
+        }
       }
     }
   }
