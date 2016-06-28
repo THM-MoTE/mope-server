@@ -58,8 +58,8 @@ class ProjectManagerActor(description:ProjectDescription,
       self ! InitialInfos(files, errors)
     }
 
-//  def errorInProjectFile(error:CompilerError): Boolean =
-//    Paths.get(error.file).startsWith(rootDir)
+ def errorInProjectFile(error:CompilerError): Boolean =
+   Paths.get(error.file).startsWith(rootDir)
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
@@ -73,6 +73,7 @@ class ProjectManagerActor(description:ProjectDescription,
     case CompileProject =>
       compiler.
         compileAsync(getProjectFiles).
+        map(_.filter(errorInProjectFile)).
         pipeTo(sender)
     case NewFiles(files) =>
       projectFiles ++= files
@@ -88,14 +89,16 @@ class ProjectManagerActor(description:ProjectDescription,
     case CompileScript(path) =>
       (for {
         errors <- compiler.compileScriptAsync(path)
-        _ = printDebug(errors)
-      } yield errors) pipeTo sender
+        filteredErrors = errors.filter(errorInProjectFile)
+        _ = printDebug(filteredErrors)
+      } yield filteredErrors) pipeTo sender
     case CompileDefaultScript =>
       (for {
         path <- getDefaultScriptPath
         errors <- compiler.compileScriptAsync(path)
-        _ = printDebug(errors)
-      } yield errors) pipeTo sender
+        filteredErrors = errors.filter(errorInProjectFile)
+        _ = printDebug(filteredErrors)
+      } yield filteredErrors) pipeTo sender
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
