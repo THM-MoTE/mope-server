@@ -7,6 +7,7 @@ package de.thm.moie.server
 import akka.stream.ActorMaterializer
 import org.scalatest.{Matchers, WordSpec}
 import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.stream.ActorMaterializer
 import akka.http.scaladsl.model._
 import akka.util.ByteString
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeoutException
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
     override def actorSystem = system
+    override implicit lazy val materializer:ActorMaterializer = ActorMaterializer()
     override lazy val projectsManager: ActorRef = system.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
   }
 
