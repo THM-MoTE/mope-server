@@ -10,11 +10,13 @@ import java.util.concurrent.{Executors, TimeUnit}
 import akka.actor.{Actor, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
+import de.thm.moie.Global
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
+import scala.io.Source
 import scala.collection._
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -32,6 +34,15 @@ class ProjectManagerActor(description:ProjectDescription,
   implicit val timeout = Timeout(5 seconds)
 
   val executor = Executors.newCachedThreadPool()
+
+  def filterLines(line:String):Boolean = line.isEmpty
+
+  val keywords =
+    Global.readValuesFromResource(getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _)
+
+  val types =
+    Global.readValuesFromResource(getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _)
+
   implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))

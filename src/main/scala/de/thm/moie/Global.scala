@@ -8,6 +8,8 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 
+import scala.io.Source
+
 import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.config.{Config, ConfigLoader}
 
@@ -66,6 +68,14 @@ object Global {
     config.getString("compiler-executable").
       orElse(config.getString("compiler")).
       getOrElse(throw new IllegalStateException("Can't run without a defined compiler-executable"))
+  }
+
+
+  def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {
+    Source.fromURL(path, encoding.displayName).getLines.flatMap {
+      case s:String if filter(s) => List(s)
+      case a:Any => Nil
+    }.toList
   }
 
   lazy val encoding = Charset.forName("UTF-8")
