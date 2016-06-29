@@ -26,9 +26,9 @@ trait ServerSetup {
   private val akkaConfig = ConfigFactory.parseFile(
     new java.io.File(configFileURL.toURI))
 
-  implicit val actorSystem = ActorSystem("moie-system", akkaConfig)
-  implicit val execContext = actorSystem.dispatcher
-  implicit val materializer = ActorMaterializer()
+  implicit def actorSystem = ActorSystem("moie-system", akkaConfig)
+  implicit def execContext = actorSystem.dispatcher
+  implicit def materializer = ActorMaterializer()
   implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout").getOrElse(20) seconds)
 
   val serverlog = Logging(actorSystem, this)

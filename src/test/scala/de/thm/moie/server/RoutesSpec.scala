@@ -23,7 +23,8 @@ import java.util.concurrent.TimeoutException
 
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
-    override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+    override def actorSystem = system
+    override lazy val projectsManager: ActorRef = system.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
   }
 
   val tmpPath = Files.createTempDirectory("moie")
@@ -36,10 +37,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
   }
 
   override def afterAll() = {
-    if(!service.actorSystem.whenTerminated.isCompleted) {
-      service.actorSystem.terminate()
-      fail("ActorSystem didn't terminate as expected!")
-    }
+    super.afterAll()
     removeDirectoryTree(tmpPath)
   }
 
