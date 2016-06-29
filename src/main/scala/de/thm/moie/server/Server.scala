@@ -14,7 +14,6 @@ import scala.io.StdIn
 
 class Server() extends Routes with ServerSetup {
 
-  private val escCode = 0x1b
   override implicit lazy val actorSystem = ActorSystem("moie-system", akkaConfig)
   override implicit lazy val materializer = ActorMaterializer()
   override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
@@ -25,7 +24,7 @@ class Server() extends Routes with ServerSetup {
     Future {
       blocking {
         serverlog.info("Press Enter to interrupt")
-        var char = StdIn.readLine()
+        StdIn.readLine()
         bindingFuture.
           flatMap(_.unbind()).
           onComplete(_ => actorSystem.terminate())
