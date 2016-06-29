@@ -14,7 +14,7 @@ import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
 import de.thm.moie.utils.actors.UnhandledReceiver
-
+import de.thm.moie.utils.ThreadUtils
 import scala.collection._
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -31,7 +31,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   implicit val timeout = Timeout(5 seconds)
 
-  val executor = Executors.newCachedThreadPool()
+  val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOIE-"+self.path.name))
   implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
