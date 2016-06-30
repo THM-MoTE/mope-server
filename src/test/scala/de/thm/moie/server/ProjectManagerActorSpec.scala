@@ -30,7 +30,7 @@ class ProjectManagerActorSpec
 
   override def afterAll = {
     super.afterAll()
-    // removeDirectoryTree(path)
+    removeDirectoryTree(path)
   }
   private def stubDescription =
     ProjectDescription(projectPath.toAbsolutePath().toString(), "target", Nil, None)
