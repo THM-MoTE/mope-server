@@ -26,8 +26,11 @@ trait ServerSetup {
   val akkaConfig = ConfigFactory.parseFile(
     new java.io.File(configFileURL.toURI))
 
+  /** Overwrite as lazy val! */
   implicit def actorSystem:ActorSystem
+  /** Overwrite as lazy val! */
   implicit def execContext = actorSystem.dispatcher
+  /** Overwrite as lazy val! */
   implicit def materializer:ActorMaterializer
   implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout").getOrElse(20) seconds)
 
