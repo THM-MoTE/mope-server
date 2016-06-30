@@ -312,5 +312,24 @@ Execution failed!
     """.stripMargin
     val errors3 = compiler.parseErrorMsg(msg3)
     errors3.size should be (0)
+
+
+
+    val msg4 =
+      """false
+        |"[/Users/nico/Documents/moTests2/test.mo:5:0-5:0:writable] Error: Parser error: Unexpected token near:  (<EOF>)
+        |Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/."
+        |""".stripMargin
+/*
+val msg4 =
+"""
+"[/Users/nico/Documents/moTests2/test.mo:5:0-5:0:writable] Error: Parser error: Unexpected token near:  (<EOF>)
+""".stripMargin
+*/
+    val errors4 = compiler.parseErrorMsg(msg4)
+    errors4.size should be (1)
+
+    errors4.head should be (CompilerError("Error", "/Users/nico/Documents/moTests2/test.mo",
+      FilePosition(5,0), FilePosition(5,0), "Parser error: Unexpected token near: (<EOF>)"))
   }
 }

@@ -20,22 +20,27 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def word = """[a-zA-Z0-9_\.,\+\-\*\/:\(\)'\"\}\{\[\]\;=<>äöü]+""".r
   def character = """[a-zA-Z]""".r
 
+  private def hyphenedWord: Parser[String] =
+    "\"" ~ word ~ "\"" ^^ {
+      case h1 ~ w ~ h2 => h1+w+h2
+    }
+
   def pathDelimiter:Parser[String] = ("/" | "\\")
 
   def msgParser: Parser[List[CompilerError]] = (
     skipUninterestingStuff ~> (errorLine +)
-    | (processingFile ~ (skipNotifications ~>
-    "Error" ~> ":" ~> errorMsg("\\[")) ^^ {
+    | ((processingFile ~ (skipNotifications ~>
+    "Error" ~> ":" ~> errorSub("\\[")) ^^ {
       case path ~ msg =>
         CompilerError("Error", path, unknownPosition, unknownPosition, msg)
-    } +)
-    | (processingFile ^^ { path =>
+    }) +)
+    | ((processingFile ^^ { path =>
       CompilerError("Error", path, unknownPosition, unknownPosition, unknownError)
-    } +)
+    }) +)
     )
 
   def skipUninterestingStuff =
-    ((not("\\[|\\{".r) ~> ident ~> """([^\n]+)""".r) *)
+    ((not("\\[|\\{|\"".r) ~> ident ~> """([^\n]+)""".r) *)
 
   def skipNotifications =
     ((not("Error") ~> ident ~> """([^\n]+)""".r) *)
@@ -43,29 +48,58 @@ class MsgParser extends RegexParsers with ImplicitConversions {
   def processingFile:Parser[String] =
     "Error" ~> "processing" ~> "file" ~> ":" ~> path
 
+  /*
   def errorLine: Parser[CompilerError] = (
-    errorPosition ~
-    (("Error" | "Warning") <~ ":") ~
-    errorMsg("\\[") ^^ {
+    errorPosition ~ (("Error" | "Warning") <~ ":") ~ errorSub("\\[") ^^ {
       case (path, start, end) ~ tpe ~ msg =>
         CompilerError(tpe, path, start, end, msg)
     }
-    | "{" ~> "\"" ~> errorPosition ~
-    (("Error" | "Warning") <~ ":") ~
-    errorMsg("\\[|\\{") ^^ {
+    | ("\"" |("{" ~> "\"")) ~> errorPosition ~ (("Error" | "Warning") <~ ":") ~ errorSub("\\[|\\{|\"") ^^ {
       case (path, start, end) ~ tpe ~ msg =>
       val delimiter = "\""
+        println("parsed MESSAGE "+msg)
       if(msg.contains(delimiter))
         CompilerError(tpe, path, start, end, msg.substring(0, msg.indexOf(delimiter)))
       else CompilerError(tpe, path, start, end, msg)
-  })
+    }
+    )
 
   def errorMsg(additionalDelimiter:String): Parser[String] =
     (errorSub(additionalDelimiter) +) ^^ { _.mkString("\n") }
+*/
+
+  def errorLine: Parser[CompilerError] = (
+    errorPosition ~ (("Error" | "Warning") <~ ":") ~ errorSub("\\[") ^^ {
+      /** Parses something similar to:
+        * [/nico/tests/ball.mo:1:6-19:16:writable] Error: Parse error: The identifier
+        */
+      case (path, start, end) ~ tpe ~ msg => CompilerError(tpe, path, start, end, msg)
+    }
+    | "\"" ~> errorPosition ~ (("Error" | "Warning") <~ ":") ~
+      errorSub("\\\"") ^^ {
+        case (path, start, end) ~ tpe ~ msg =>
+        CompilerError(tpe, path,start,end,msg)
+      }
+    | "{" ~> "\"" ~> errorPosition ~ (("Error" | "Warning") <~ ":") ~
+      errorSub("\\\"") <~ additionalScriptingInfos <~ "}" ^^ {
+      case (path, start, end) ~ tpe ~ msg =>
+      /** Parses something similar to:
+        * {"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica..
+        */
+        val delimiter = "\""
+        if(msg.contains(delimiter)) CompilerError(tpe, path, start, end, msg.substring(0, msg.indexOf(delimiter)))
+        else CompilerError(tpe, path, start, end, msg)
+    }
+  )
+
+  /* parses something similar to: "TRANSLATION", "Error", "3" */
+  def additionalScriptingInfos: Parser[List[String]] =
+    rep1sep("\"" ~> ident <~ "\"", ",")
 
   def errorSub(additionalDelimiter:String): Parser[String] =
-    rep1sep((not("Error" | "Warning" | additionalDelimiter.r) ~> word), "") ^^ {
+    rep1sep((not("Error" | "Warning" | additionalDelimiter.r) ~> (word)), "") ^^ {
       case words =>
+        println("found words: "+words)
          words.foldLeft("") {
           case (acc, elem) => acc + (if(elem == "-") "\n" + elem else " " + elem)
         }.trim()
