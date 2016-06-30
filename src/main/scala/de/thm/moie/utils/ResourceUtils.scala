@@ -4,6 +4,7 @@
 
 package de.thm.moie.utils
 
+import java.io.Closeable
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import java.util.Base64
@@ -39,5 +40,14 @@ object ResourceUtils {
     val srcPath = Paths.get(src)
     val filename = srcPath.getFileName
     Files.copy(srcPath, targetPath.resolve(filename))
+  }
+
+  /** Try-with-resources for Scala. ;-) */
+  def tryR[A <: Closeable, B](cl:A)(fn: A => B): B = {
+    try {
+      fn(cl)
+    } finally {
+      cl.close()
+    }
   }
 }
