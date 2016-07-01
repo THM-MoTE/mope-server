@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import scala.sys.process.Process
 import scala.util._
 
-class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:String) extends ModelicaCompiler {
+class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Path) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
 
@@ -29,23 +29,18 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:St
     val pathes = files.map(_.toAbsolutePath.toString)
     files.headOption match {
       case Some(path) if files.exists(isPackageMo) =>
-        //TODO: HACK: use length of path to find shortest; shortest file is in root directory
-        //FIX THIS BEFORE WITH BREADTH-FIRST ordering #18
-        val rootProjectFile =
-          files.map(_.toAbsolutePath).
-          filter(isPackageMo).
-          sortBy(p => p.toString.size).head
         //generate a script to compile
-        val outputDir = createOutputDir(rootProjectFile.getParent)
+        createOutputDir(outputDir)
+        //expect a package.mo in root-directory
+        val rootProjectFile = outputDir.getParent.resolve("package.mo")
         val scriptPath = generateTmpScript(outputDir, rootProjectFile)
         //exec omc & parse result
         val compilerExec = executableName :: compilerFlags ::: List(scriptPath.toAbsolutePath.toString)
         val cmd = Process(compilerExec, outputDir.toFile)
         val (status, stdout, _) = runCommand(cmd)
-//        log.debug(s"run tmpScript with\n$stdout")
         parseErrorMsg(stdout)
       case Some(path) =>
-        val outputDir = createOutputDir(path.getParent)
+        createOutputDir(outputDir)
         val compilerExec = executableName :: (compilerFlags ::: pathes)
         val cmd = Process(compilerExec, outputDir.toFile)
         val (status, stdout, _) = runCommand(cmd)
@@ -71,11 +66,9 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:St
         Seq[CompilerError]()
     }
 
-  private def createOutputDir(path:Path): Path = {
-    val outputPath = path.resolve(outputDir)
-    if(!Files.exists(outputPath))
-      Files.createDirectory(outputPath)
-    outputPath
+  private def createOutputDir(path:Path): Unit = {
+    if(!Files.exists(path))
+      Files.createDirectory(path)
   }
 
   private def generateTmpScript(outputPath:Path, rootProjectFile:Path): Path = {
