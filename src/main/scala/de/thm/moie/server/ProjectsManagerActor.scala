@@ -36,8 +36,9 @@ class ProjectsManagerActor
 
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
-        val id = register.add(description)(newManager)
-        sender ! ProjectId(id)
+      val id = register.add(description)(newManager)
+      log.debug("Client registered for project-id {}", id)
+      sender ! ProjectId(id)
     case ProjectId(id) =>
       sender ! withIdExists(id) { (_, actor) => actor }
     case Disconnect(id) =>
@@ -48,6 +49,7 @@ class ProjectsManagerActor
         case ProjectEntry(_,_,_) =>
           RemainingClients(register.clientCount)
       }
+      log.debug(s"Client $id disconnected; remaining clients $register.clientCount")
   }
 
   override def postStop(): Unit = log.info("stopping")

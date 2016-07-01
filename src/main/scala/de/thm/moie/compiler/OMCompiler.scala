@@ -83,7 +83,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
           s"""loadFile("${rootProjectFile}");
              |getErrorString();""".stripMargin
         bw.write(content)
-        log.debug(s"compile-script written to $scriptPath")
         scriptPath
     }
   }
