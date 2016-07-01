@@ -7,18 +7,7 @@ package de.thm.moie.compiler
 import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 
-class MsgParser extends RegexParsers with ImplicitConversions {
-  // regex from: http://stackoverflow.com/a/5954831
-  override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
-
-  def unknownPosition:FilePosition = FilePosition(0,0)
-  def unknownError:String = "Compiler didn't provide any further message"
-
-  def pathDelimiter = """/|\\""".r
-  def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r
-  def number = """[0-9]+""".r
-  def ident =  """[a-zA-Z0-9]+""".r
-  def character = "[a-zA-Z]".r
+class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions {
   def word = """[\w\.\+\-\*_,;:=<>?!\(\)\{\}\/"'äöü]+""".r
 
   def msgParser: Parser[List[CompilerError]] = (
@@ -50,17 +39,6 @@ class MsgParser extends RegexParsers with ImplicitConversions {
           case (acc,elem) => acc + " " + elem
         }.trim()
     }
-
-  def path:Parser[String] =
-    (root ?) ~ rep1sep(pathIdent, pathDelimiter) ^^ {
-      case None ~ lst => lst.mkString("/")
-      case Some(root) ~ lst => root + lst.mkString("/")
-    }
-
-  def root: Parser[String] =
-    ("/" //unix style
-    | character ~ ":" ~ "\\" ^^ { case ch ~ _ ~ _ => ch +":\\" } //windows style
-    )
 
   def errorPosition: Parser[(String, FilePosition, FilePosition)] =
     ("["~> path <~ ":") ~ (filePosition <~ "-") ~ filePosition <~ ":" <~ ident <~ "]" ^^ {
