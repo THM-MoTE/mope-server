@@ -324,12 +324,7 @@ Execution failed!
       "/Users/nico/Documents/mo-tests/build.mos",
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
-/*
-    val msg4 =
-      """false
-        |"[/Users/nico/Documents/moTests2/test.mo:5:0-5:0:writable] Error: Parser error: Unexpected token near:  (<EOF>)
-        |Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/."""".stripMargin
-*/
+
 val msg4 =
 """
 true

@@ -21,7 +21,6 @@ class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions
   def skipUnused = ((not("[") ~> word) *)
   def skipNotifications = ((not("Error") ~> word) *)
 
-//Error processing file: /Users/testi/ResistorTest.mo
   def processFile:Parser[String] = "Error" ~> "processing" ~> "file:" ~> path
 
   def error:Parser[CompilerError] = (
