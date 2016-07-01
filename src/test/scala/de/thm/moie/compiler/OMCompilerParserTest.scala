@@ -343,5 +343,18 @@ Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documen
 
     errors4.head should be (CompilerError("Error", "/Users/nico/Documents/moTests2/test.mo",
       FilePosition(5,0), FilePosition(5,0), "Parser error: Unexpected token near: (<EOF>)"))
+
+    val msg5 =
+    """
+    false
+    "[/Users/nico/Documents/moTests2/test.mo:2:7-4:8:writable] Error: Parse error: The identifier at start and end are different
+    Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+    """"
+
+      val errors5 = compiler.parseErrorMsg(msg5)
+      errors5.size should be (1)
+      errors5.head should be (CompilerError(
+        "Error", "/Users/nico/Documents/moTests2/test.mo", FilePosition(2,7), FilePosition(4,8),
+        "Parse error: The identifier at start and end are different"))
   }
 }
