@@ -34,11 +34,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         //expect a package.mo in root-directory
         val rootProjectFile = outputDir.getParent.resolve("package.mo")
         val scriptPath = generateTmpScript(outputDir, rootProjectFile)
-        //exec omc & parse result
-        val compilerExec = executableName :: compilerFlags ::: List(scriptPath.toAbsolutePath.toString)
-        val cmd = Process(compilerExec, outputDir.toFile)
-        val (status, stdout, _) = runCommand(cmd)
-        parseErrorMsg(stdout)
+        compileScript(scriptPath, Nil)
       case Some(path) =>
         createOutputDir(outputDir)
         val compilerExec = executableName :: (compilerFlags ::: pathes)
@@ -51,11 +47,18 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   }
 
   override def compileScript(path:Path): Seq[CompilerError] = {
+    compileScript(path, List(moScriptSwitch))
+  }
+
+  private def compileScript(path:Path, compilerFlags:List[String]): Seq[CompilerError] = {
     val startDir = path.getParent
-    val compilerExec = List(executableName, moScriptSwitch, path.toAbsolutePath.toString)
+    val compilerExec = (executableName :: compilerFlags) ::: List(path.toAbsolutePath.toString)
     val cmd = Process(compilerExec, startDir.toFile)
-    val (_, _, stderr) = runCommand(cmd)
-    parseErrorMsg(stderr)
+    val (_, stdout, stderr) = runCommand(cmd)
+    if(compilerFlags.nonEmpty)
+      parseErrorMsg(stderr)
+    else
+      parseErrorMsg(stdout)
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
