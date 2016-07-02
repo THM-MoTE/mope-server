@@ -37,7 +37,7 @@ class ProjectManagerActorSpec
 
   private def dummyError(x:Path) = CompilerError("Error", x.toAbsolutePath().toString(), FilePosition(0,0), FilePosition(0,0), "")
 
-  val testRef = TestActorRef[ProjectManagerActor](new ProjectManagerActor(stubDescription, new OMCompiler(List(), "omc", stubDescription.outputDirectory)))
+  val testRef = TestActorRef[ProjectManagerActor](new ProjectManagerActor(stubDescription, new OMCompiler(List(), "omc", projectPath.resolve(stubDescription.outputDirectory))))
   val manager = testRef.underlyingActor
 
   "ProjectManager's `errorInProjectFile`" should {

@@ -11,7 +11,7 @@ import de.thm.moie._
 class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   val path = Files.createTempDirectory("moie")
   val projectPath = path.resolve("mo-compiler-project")
-  val compiler = new OMCompiler(Nil, "omc", "target")
+  val compiler = new OMCompiler(Nil, "omc", projectPath.resolve("target"))
 
   val file =
     projectPath.resolve("simple.mo") ->

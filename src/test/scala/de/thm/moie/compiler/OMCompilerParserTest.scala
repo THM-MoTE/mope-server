@@ -4,18 +4,19 @@
 
 package de.thm.moie.compiler
 
+import java.nio.file.Paths
 import org.scalatest._
 
 class OMCompilerParserTest extends FlatSpec with Matchers {
 
   "Compiler" should "return no errors if filelist is empty" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     compiler.compile(Nil) shouldEqual Nil
   }
 
   "Compiler errors" should "get parsed" in {
 
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
 
     val msg = """
 Error processing file: ../circuit.mo
@@ -169,7 +170,7 @@ Execution failed!""".stripMargin
   }
 
   "Multiple Compiler errors" must "get parsed as list" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     val msg10 = """
     Error processing file: ../ResistorTest.mo
     Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
@@ -229,7 +230,7 @@ Error: Error occurred while flattening model myModel
   }
 
   "Errors without position" should "get parsed" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     val msg1 =
 """
 Error processing file: /Users/testi/ResistorTest.mo
@@ -254,7 +255,7 @@ Execution failed!
   }
 
   "Notifications inside errors" should "get ignored" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
 
     val msg = """
       |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
@@ -297,7 +298,7 @@ Execution failed!
   }
 
   "Script errors" should "get parsed" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     val msg = """
       |false
       |false
