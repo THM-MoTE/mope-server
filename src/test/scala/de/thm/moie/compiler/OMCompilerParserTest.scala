@@ -304,6 +304,8 @@ Execution failed!
       |false
       |true
       |true
+      |""
+      |"bla"
       |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
       |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
       |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
