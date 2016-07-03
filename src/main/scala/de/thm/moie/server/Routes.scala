@@ -64,10 +64,11 @@ trait Routes extends JsonSupport {
       path("connect") {
         post {
           entity(as[ProjectDescription]) { description =>
-            complete {
-              for {
-                id <- (projectsManager ? description).mapTo[ProjectId]
-              } yield IntJsonFormat.write(id.id)
+            onSuccess(for {
+              eitherId <- (projectsManager ? description).mapTo[Either[List[String], ProjectId]]
+            } yield eitherId) {
+              case Left(errors) => complete(StatusCodes.BadRequest, errors.mkString("\n"))
+              case Right(projId) => complete(IntJsonFormat.write(projId.id))
             }
           }
         }

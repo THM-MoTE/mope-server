@@ -71,6 +71,25 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
+    "return BadRequest with an error description if path in ProjectDescription is faulty" in {
+      val faultyJsonRequest = ByteString(
+          s"""
+             |{
+             |"path":"derb",
+             |"outputDirectory": "target",
+             |"compilerFlags": []
+             |}
+          """.stripMargin)
+        val faultyPostRequest = HttpRequest(
+          HttpMethods.POST,
+          uri = "/moie/connect",
+          entity = HttpEntity(MediaTypes.`application/json`, faultyJsonRequest))
+        faultyPostRequest ~> service.routes ~> check {
+          responseAs[String] shouldEqual "derb isn't a directory"
+          status shouldEqual StatusCodes.BadRequest
+        }
+    }
+
     "return NoContent for /disconnect with valid project-id" in {
       postRequest ~> service.routes ~> check {
         responseAs[String] shouldEqual "0"

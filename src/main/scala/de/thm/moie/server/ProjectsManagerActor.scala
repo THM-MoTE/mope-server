@@ -36,9 +36,12 @@ class ProjectsManagerActor
 
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
-      val id = register.add(description)(newManager)
-      log.debug("Client registered for project-id {}", id)
-      sender ! ProjectId(id)
+      val errors = ProjectDescription.validate(description)
+      if(errors.isEmpty) {
+        val id = register.add(description)(newManager)
+        log.debug("Client registered for projId {}", id)
+        sender ! Right(ProjectId(id))
+      } else sender ! Left(errors)
     case ProjectId(id) =>
       sender ! withIdExists(id) { (_, actor) => actor }
     case Disconnect(id) =>
