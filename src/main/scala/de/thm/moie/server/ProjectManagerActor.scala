@@ -53,9 +53,8 @@ class ProjectManagerActor(description:ProjectDescription,
   override def preStart() =
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
-      errors <- compiler.compileAsync(files)
     } {
-      self ! InitialInfos(files, errors)
+      self ! InitialInfos(files, Nil)
     }
 
  def errorInProjectFile(error:CompilerError): Boolean =
