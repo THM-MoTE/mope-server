@@ -7,7 +7,7 @@ package de.thm.moie.compiler
 import java.nio.file.Paths
 import org.scalatest._
 
-class OMCompilerParserTest extends FlatSpec with Matchers {
+class MsgParserSpec extends FlatSpec with Matchers {
 
   "Compiler" should "return no errors if filelist is empty" in {
     val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
