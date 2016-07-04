@@ -67,7 +67,7 @@ trait Routes extends JsonSupport {
             onSuccess(for {
               eitherId <- (projectsManager ? description).mapTo[Either[List[String], ProjectId]]
             } yield eitherId) {
-              case Left(errors) => complete(StatusCodes.BadRequest, errors.mkString("\n"))
+              case Left(errors) => complete(StatusCodes.BadRequest, errors)
               case Right(projId) => complete(IntJsonFormat.write(projId.id))
             }
           }
