@@ -76,7 +76,7 @@ class ProjectManagerActorSpec
         //write file content
       val contentWithErrors = """
       |model myModel
-      |   Rel number;
+      |   Rel number
       |end myModel;
       """.stripMargin
 

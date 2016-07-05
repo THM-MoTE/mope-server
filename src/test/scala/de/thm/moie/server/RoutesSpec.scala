@@ -115,7 +115,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     "return a json-array with compiler errors for /compile" in {
       val content = """
 model test
-Rel x;
+Rel x
 end test;
 """.stripMargin
 

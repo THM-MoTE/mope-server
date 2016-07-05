@@ -43,7 +43,7 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val newContent =
         """
         model simple
-          Ral cnt = 1;
+          Ral cnt = 1
         equation
           der(cnt) = cnt*(-1);
         end simple;
@@ -53,7 +53,7 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     bw.close()
     val errors = compiler.compile(files)
     errors.size shouldEqual 1
-    errors.head.message shouldEqual "Klasse Ral konnte nicht im Geltungsbereich von simple gefunden werden."
+    errors.head.message shouldEqual "Missing token: SEMICOLON"
 
     val newContent2 =
       """
