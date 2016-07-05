@@ -34,6 +34,7 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   override def afterAll() = {
     removeDirectoryTree(path)
+    compiler.stop()
   }
 
   "Compiler" should "return no errors for valid modelica files" in {
@@ -69,5 +70,20 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val errors2 = compiler.compile(files)
     errors2.size shouldEqual 1
     errors2.head.message shouldEqual "Parse error: The identifier at start and end are different"
+  }
+
+  it should "return an error for invalid modelica script files" in {
+    val scriptContent =
+      """
+      |lodFile("bam");
+      """.stripMargin
+      val bw = Files.newBufferedWriter(filepath, StandardOpenOption.TRUNCATE_EXISTING)
+      bw.write(scriptContent)
+      bw.close()
+
+      val errors = compiler.compileScript(filepath)
+      errors.size shouldEqual 1
+      errors.head.message shouldBe
+        ("Klasse lodFile konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
   }
 }
