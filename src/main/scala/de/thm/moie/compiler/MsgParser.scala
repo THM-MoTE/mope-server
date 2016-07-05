@@ -8,7 +8,7 @@ import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 
 class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions {
-  def word = """[\w\.\+\-\*_,;:=<>?!\(\)\{\}\/"'äöü]+""".r
+  def word = """[\w\.\+\-\*_,;:=<>?!\(\)\{\}\/\\"'äöü]+""".r
 
   def msgParser: Parser[List[CompilerError]] = (
     skipUnused ~> ("\"" ?) ~> (error +)
