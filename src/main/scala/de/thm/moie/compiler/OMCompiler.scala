@@ -8,7 +8,10 @@ import java.nio.file.{Files, Path, StandardOpenOption}
 import de.thm.moie.utils.ProcessExitCodes
 import de.thm.moie.utils.ProcessUtils._
 import de.thm.moie.utils.ResourceUtils._
+import de.thm.moie.utils.MonadImplicits._
 import org.slf4j.LoggerFactory
+
+import omc.corba._
 
 import scala.sys.process.Process
 import scala.util._
@@ -16,6 +19,13 @@ import scala.util._
 class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Path) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
+  private val omc: OMCInterface = new OMCClient()
+
+  try {
+    omc.connect()
+  } catch {
+    case e:Exception => log.error("Couldn't initialize omc connection", e)
+  }
 
   private val moScriptSwitch = "--showErrorMessages"
   private val tmpScriptName = "compile.mos"
@@ -37,13 +47,27 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         compileScript(scriptPath, Nil)
       case Some(path) =>
         createOutputDir(outputDir)
-        val compilerExec = executableName :: (compilerFlags ::: pathes)
-        val cmd = Process(compilerExec, outputDir.toFile)
-        val (status, stdout, _) = runCommand(cmd)
-        if(status != ProcessExitCodes.SUCCESSFULL) parseErrorMsg(stdout)
-        else Seq[CompilerError]()
+        log.debug("changing dir to {}", outputDir)
+        val res = omc.sendExpression(s"""cd("${outputDir.toAbsolutePath}")""")
+        log.debug("cd() returned {}", res)
+        if(res.result.contains(outputDir.toString)) {
+          loadAllFiles(files)
+        } else {
+          log.error("Couldn't change working directory for omc into {}", outputDir)
+          Seq[CompilerError]()
+        }
       case None => Seq[CompilerError]()
     }
+  }
+
+  private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
+    val fileList = "{" + files.map("\""+_+"\"").mkString(",") + "}"
+    log.debug("filelist {}", fileList)
+    val expr = s"""loadFiles($fileList)"""
+    val res = omc.sendExpression(expr)
+    log.debug("loadFiles() returned {}", res)
+    val errOpt:Option[String] = res.error
+    errOpt.map(parseErrorMsg).getOrElse(Seq[CompilerError]())
   }
 
   override def compileScript(path:Path): Seq[CompilerError] = {
@@ -87,4 +111,5 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
   }
 
+  override def stop(): Unit = omc.disconnect()
 }

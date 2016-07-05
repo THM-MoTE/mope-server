@@ -105,6 +105,7 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   override def postStop(): Unit = {
+    compiler.stop()
     executor.shutdown()
     if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
       log.warning("Force shutdown threadpool")
