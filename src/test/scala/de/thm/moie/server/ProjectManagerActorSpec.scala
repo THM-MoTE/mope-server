@@ -135,7 +135,7 @@ lodFile("bouncing_ball.mo");
         //test errors
       testRef ! CompileScript(scriptFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
-      xs.size should be > 1
+      xs.size should be (1)
     }
 
     "return 0 compile errors for valid scripts" in {
