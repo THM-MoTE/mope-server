@@ -23,7 +23,8 @@ lazy val root = (project in file(".")).
     scalaVersion := "2.11.8",
     javacOptions ++= Seq("-source", "1.8")
   ).
-  dependsOn(Dependencies.ewsProject)
+  dependsOn(Dependencies.ewsProject).
+  dependsOn(Dependencies.corbaProject)
 
 mainClass in Compile := Some("de.thm.moie.MoIE")
 mainClass in assembly := (mainClass in Compile).value
