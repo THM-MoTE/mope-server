@@ -100,9 +100,8 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
-    log.debug(s"Compiled project ${description.path} with" +
-      (if(errors.isEmpty) " no errors" else errors.mkString("\n"))
-    )
+    log.debug("Compiled project {} with {}", description.path,
+      if(errors.isEmpty) " no errors" else errors.mkString("\n"))
   }
 
   override def postStop(): Unit = {

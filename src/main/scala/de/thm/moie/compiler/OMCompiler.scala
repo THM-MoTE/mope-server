@@ -65,7 +65,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     msgParser.parse(msg) match {
       case Success(v) => v
       case Failure(ex) =>
-        log.warn(s"Error while parsing compiler-output: {} from\n$msg", ex.getMessage)
+        log.warn(s"Error while parsing compiler-output: ${ex.getMessage} from\n$msg")
         Seq[CompilerError]()
     }
 

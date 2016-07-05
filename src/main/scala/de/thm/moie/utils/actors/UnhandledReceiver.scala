@@ -13,7 +13,7 @@ trait UnhandledReceiver {
   private val actorName = this.self.path.name
 
   def catchUnhandledMsgs: Actor.Receive = {
-    case a:Any => log.warning(s"can't handle $a")
+    case a:Any => log.warning("can't handle {}", a)
   }
 
   def handleMsg: Receive

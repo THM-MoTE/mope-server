@@ -29,7 +29,7 @@ trait Routes extends JsonSupport {
 
   private def shutdown(cause:String="unkown cause"): Unit = {
     actorSystem.terminate()
-    serverlog.info(s"Shutdown because $cause")
+    serverlog.info("Shutdown because {}", cause)
   }
 
   private def disconnectWithExit(id:Int):Unit =

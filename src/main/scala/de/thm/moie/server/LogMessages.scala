@@ -12,7 +12,7 @@ trait LogMessages extends Actor {
 
   override abstract def receive: Receive = {
     case a:Any =>
-      log.debug(s"Msg: $a")
+      log.debug("Msg: {}", a)
       super.receive(a)
   }
 }

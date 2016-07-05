@@ -52,7 +52,7 @@ class ProjectsManagerActor
         case ProjectEntry(_,_,_) =>
           RemainingClients(register.clientCount)
       }
-      log.debug(s"Client $id disconnected; remaining clients $register.clientCount")
+      log.debug("Client {} disconnected; remaining clients {}", id, register.clientCount)
   }
 
   override def postStop(): Unit = log.info("stopping")
