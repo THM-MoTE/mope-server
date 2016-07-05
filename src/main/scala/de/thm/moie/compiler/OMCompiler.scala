@@ -47,9 +47,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         compileScript(scriptPath, Nil)
       case Some(path) =>
         createOutputDir(outputDir)
-        log.debug("changing dir to {}", outputDir)
-        val res = omc.sendExpression(s"""cd("${outputDir.toAbsolutePath}")""")
-        log.debug("cd() returned {}", res)
+        val res = omc.sendExpression(s"""cd("${outputDir}")""")
         if(res.result.contains(outputDir.toString)) {
           loadAllFiles(files)
         } else {
@@ -62,7 +60,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
   private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
     val fileList = "{" + files.map("\""+_+"\"").mkString(",") + "}"
-    log.debug("filelist {}", fileList)
     val expr = s"""loadFiles($fileList)"""
     val res = omc.sendExpression(expr)
     log.debug("loadFiles() returned {}", res)
@@ -76,13 +73,17 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
   private def compileScript(path:Path, compilerFlags:List[String]): Seq[CompilerError] = {
     val startDir = path.getParent
-    val compilerExec = (executableName :: compilerFlags) ::: List(path.toAbsolutePath.toString)
-    val cmd = Process(compilerExec, startDir.toFile)
-    val (_, stdout, stderr) = runCommand(cmd)
-    if(compilerFlags.nonEmpty)
-      parseErrorMsg(stderr)
-    else
-      parseErrorMsg(stdout)
+    val res = omc.sendExpression(s"""cd("${startDir}")""")
+    if(res.result.contains(startDir.toString)) {
+      omc.sendExpression("clear()")
+      val resScript = omc.sendExpression(s"""runScript("${path}")""")
+      log.debug("runScript returned {}", resScript.result)
+      val errOpt:Option[String] = resScript.error
+      errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(resScript.result))
+    } else {
+      log.error("Couldn't change working directory for omc into {}", outputDir)
+      Seq[CompilerError]()
+    }
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
