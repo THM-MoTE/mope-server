@@ -104,7 +104,8 @@ trait Routes extends JsonSupport {
                   errors <- (projectManager ? CompileScript(Paths.get(filepath.path))).mapTo[Seq[CompilerError]]
                 } yield errors.toList
               }
-            } ~
+            }
+          } ~ get {
             withIdExists(id) { projectManager =>
               for {
                 errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
