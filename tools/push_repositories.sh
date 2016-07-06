@@ -12,20 +12,20 @@ function current_branch() {
 
 cd $ATOM_PLUGIN
 echo
-echo "Updating " $ATOM_PLUGIN
+echo "Pushing " $ATOM_PLUGIN
 git push origin $(current_branch)
 
 cd $OMC_API
 echo
-echo "Updating " $OMC_API
+echo "Pushing " $OMC_API
 git push origin $(current_branch)
 
 cd $EWS
 echo
-echo "Updating " $EWS
+echo "Pushing " $EWS
 git push origin $(current_branch)
 
 cd $SERVER
 echo
-echo "Updating " $SERVER
+echo "Pushing " $SERVER
 git push origin $(current_branch)
