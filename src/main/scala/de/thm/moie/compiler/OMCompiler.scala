@@ -52,13 +52,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         }
       case Some(path) =>
         createOutputDir(outputDir)
-        val res = omc.sendExpression(s"""cd(${asString(outputDir)})""")
-        if(res.result.contains(outputDir.toString)) {
-          loadAllFiles(files)
-        } else {
-          log.error("Couldn't change working directory for omc into {}", outputDir)
-          Seq[CompilerError]()
-        }
+        withOutputDir(outputDir)(loadAllFiles(files))
       case None => Seq[CompilerError]()
     }
   }
