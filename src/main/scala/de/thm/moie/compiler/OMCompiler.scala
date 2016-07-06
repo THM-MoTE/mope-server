@@ -5,6 +5,7 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path, StandardOpenOption}
 
+import akka.stream.impl.StreamLayout.Combine
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
 import omc.corba._
@@ -32,13 +33,14 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   override def compile(files: List[Path]): Seq[CompilerError] = {
     files.headOption match {
       case Some(path) if files.exists(isPackageMo) =>
-        //generate a script to compile
         createOutputDir(outputDir)
         val rootProjectFile = outputDir.getParent.resolve("package.mo")
         withOutputDir(outputDir) {
           //expect a package.mo in root-directory
           if(Files.exists(rootProjectFile)) {
-            parseResult(omc.call("loadFile", asString(rootProjectFile)))
+            val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
+            if(xs.nonEmpty) xs
+            else typecheckModels()
           } else List(CompilerError("Error",
             rootProjectFile.toString,
             FilePosition(0,0),
@@ -47,7 +49,11 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         }
       case Some(path) =>
         createOutputDir(outputDir)
-        withOutputDir(outputDir)(loadAllFiles(files))
+        withOutputDir(outputDir) {
+          val xs = loadAllFiles(files)
+          if(xs.nonEmpty) xs
+          else typecheckModels()
+        }
       case None => Seq[CompilerError]()
     }
   }
@@ -72,6 +78,19 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
+  }
+
+  private def typecheckModels(): Seq[CompilerError] = {
+    val modelResult = omc.call("getClassNames")
+    log.debug("getClassNames returned {}", modelResult)
+    val models = fromArray(modelResult.result)
+    models.asScala.headOption.
+      map(omc.call("checkModel", _)).
+      map { x =>
+        log.debug("checkModel returned {}", x)
+        parseResult(x)
+      }.
+      getOrElse(Nil)
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
