@@ -5,16 +5,12 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path, StandardOpenOption}
 
-import de.thm.moie.utils.ProcessExitCodes
-import de.thm.moie.utils.ProcessUtils._
-import de.thm.moie.utils.ResourceUtils._
 import de.thm.moie.utils.MonadImplicits._
+import de.thm.moie.utils.ResourceUtils._
+import omc.corba.ScriptingHelper._
+import omc.corba._
 import org.slf4j.LoggerFactory
 
-import omc.corba._
-import omc.corba.ScriptingHelper._
-
-import scala.sys.process.Process
 import scala.collection.JavaConverters._
 import scala.util._
 
@@ -43,10 +39,17 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       case Some(path) if files.exists(isPackageMo) =>
         //generate a script to compile
         createOutputDir(outputDir)
-        //expect a package.mo in root-directory
         val rootProjectFile = outputDir.getParent.resolve("package.mo")
-        val scriptPath = generateTmpScript(outputDir, rootProjectFile)
-        compileScript(scriptPath, Nil)
+        withOutputDir(outputDir) {
+          //expect a package.mo in root-directory
+          if(Files.exists(rootProjectFile)) {
+            parseResult(omc.call("loadFile", asString(rootProjectFile)))
+          } else List(CompilerError("Error",
+            rootProjectFile.toString,
+            FilePosition(0,0),
+            FilePosition(0,0),
+            s"Expected a root `package.mo`-file in ${rootProjectFile.getParent}"))
+        }
       case Some(path) =>
         createOutputDir(outputDir)
         val res = omc.sendExpression(s"""cd(${asString(outputDir)})""")
@@ -75,17 +78,17 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
   private def compileScript(path:Path, compilerFlags:List[String]): Seq[CompilerError] = {
     val startDir = path.getParent
-    val res = omc.sendExpression(s"""cd(${asString(startDir)})""")
-    if(res.result.contains(startDir.toString)) {
+    withOutputDir(startDir) {
       omc.sendExpression("clear()")
       val resScript = omc.sendExpression(s"""runScript(${asString(path)})""")
       log.debug("runScript returned {}", resScript.result)
-      val errOpt:Option[String] = resScript.error
-      errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(resScript.result))
-    } else {
-      log.error("Couldn't change working directory for omc into {}", outputDir)
-      Seq[CompilerError]()
+      parseResult(resScript)
     }
+  }
+
+  private def parseResult(result:Result)  = {
+    val errOpt:Option[String] = result.error
+    errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
@@ -111,6 +114,16 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
              |getErrorString();""".stripMargin
         bw.write(content)
         scriptPath
+    }
+  }
+
+  private def withOutputDir(dir: Path)(f: => Seq[CompilerError]): Seq[CompilerError] = {
+    val res = omc.sendExpression(s"""cd(${asString(dir)})""")
+    if (res.result.contains(dir.toString)) {
+      f
+    } else {
+      log.error("Couldn't change working directory for omc into {}", dir)
+      Seq[CompilerError]()
     }
   }
 
