@@ -13,12 +13,18 @@
   </appender>
 
 
-  <logger name="ews" level="OFF">
+  <!-- corba logger -->
+  <logger name="com.sun.corba" level="OFF">
   </logger>
+  <!-- EnhancedWatchService -->
+  <logger name="ews" level="INFO">
+  </logger>
+  <!-- Akka framework -->
   <logger name="akka" level="INFO">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
    </logger>
+
    <root level="DEBUG">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
