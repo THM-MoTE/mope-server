@@ -12,8 +12,10 @@ import de.thm.moie.utils.MonadImplicits._
 import org.slf4j.LoggerFactory
 
 import omc.corba._
+import omc.corba.ScriptingHelper._
 
 import scala.sys.process.Process
+import scala.collection.JavaConverters._
 import scala.util._
 
 class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Path) extends ModelicaCompiler {
@@ -47,7 +49,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         compileScript(scriptPath, Nil)
       case Some(path) =>
         createOutputDir(outputDir)
-        val res = omc.sendExpression(s"""cd("${outputDir}")""")
+        val res = omc.sendExpression(s"""cd(${asString(outputDir)})""")
         if(res.result.contains(outputDir.toString)) {
           loadAllFiles(files)
         } else {
@@ -59,7 +61,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   }
 
   private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
-    val fileList = "{" + files.map("\""+_+"\"").mkString(",") + "}"
+    val fileList = asStringArray(files.asJava)
     val expr = s"""loadFiles($fileList)"""
     val res = omc.sendExpression(expr)
     log.debug("loadFiles() returned {}", res)
@@ -73,10 +75,10 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
   private def compileScript(path:Path, compilerFlags:List[String]): Seq[CompilerError] = {
     val startDir = path.getParent
-    val res = omc.sendExpression(s"""cd("${startDir}")""")
+    val res = omc.sendExpression(s"""cd(${asString(startDir)})""")
     if(res.result.contains(startDir.toString)) {
       omc.sendExpression("clear()")
-      val resScript = omc.sendExpression(s"""runScript("${path}")""")
+      val resScript = omc.sendExpression(s"""runScript(${asString(path)})""")
       log.debug("runScript returned {}", resScript.result)
       val errOpt:Option[String] = resScript.error
       errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(resScript.result))
@@ -105,7 +107,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       scriptPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
       bw =>
         val content =
-          s"""loadFile("${rootProjectFile}");
+          s"""loadFile(${asString(rootProjectFile)});
              |getErrorString();""".stripMargin
         bw.write(content)
         scriptPath
