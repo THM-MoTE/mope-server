@@ -21,7 +21,7 @@ import scala.util._
 class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Path) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
-  private val omc: OMCInterface = new OMCClient()
+  private val omc: OMCInterface = new OMCClient(executableName)
 
   try {
     omc.connect()
