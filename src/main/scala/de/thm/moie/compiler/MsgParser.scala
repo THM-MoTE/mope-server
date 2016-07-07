@@ -10,15 +10,22 @@ import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions {
   def word = """[\w\.\+\-\*_,;:=<>?!\(\)\{\}\/\\"'äöü]+""".r
 
+  def hyphenedError:Parser[String] =
+    """\"Error""".r | "Error"
+
   def msgParser: Parser[List[CompilerError]] = (
     skipUnused ~> ("\"" ?) ~> (error +)
     | processFile ~ (skipNotifications ~> "Error" ~> ":" ~> errorMsg) ^^ {
-      case path ~ msg =>
-        List(CompilerError("Error", path, unknownPosition, unknownPosition, msg))
-    }
+        case path ~ msg =>
+          List(CompilerError("Error", path, unknownPosition, unknownPosition, msg))
+      }
+    | ((skipHyphenedError ~> hyphenedError ~> ":" ~> errorMsg ^^ {
+      case msg => CompilerError("Error", unknownPath, unknownPosition, unknownPosition, killDanglingHyphens(msg))
+    }) +)
     )
 
   def skipUnused = ((not("[") ~> word) *)
+  def skipHyphenedError = ((not(hyphenedError) ~> word) *)
   def skipNotifications = ((not("Error") ~> word) *)
 
   def processFile:Parser[String] = "Error" ~> "processing" ~> "file:" ~> path
@@ -50,7 +57,9 @@ class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions
     }
 
   private def killDanglingHyphens(s:String):String =
-    if(s.endsWith("\"") || s.endsWith(" "))
+    if(s.endsWith("""\""""))
+      killDanglingHyphens(s.substring(0, s.length-2))
+    else if(s.endsWith(" ") || s.endsWith("\""))
       killDanglingHyphens(s.substring(0, s.length-1))
     else s
 

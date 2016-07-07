@@ -58,6 +58,7 @@ class ProjectManagerActor(description:ProjectDescription,
     }
 
  def errorInProjectFile(error:CompilerError): Boolean =
+   error.file.isEmpty ||
    Paths.get(error.file).startsWith(rootDir) ||
    Paths.get(error.file).startsWith(rootDir.toRealPath())
 
