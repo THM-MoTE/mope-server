@@ -19,6 +19,11 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = new OMCClient(executableName)
 
+  private val stdLibClasses = List(
+    "ModelicaServices",
+    "Complex",
+    "Modelica")
+
   try {
     omc.connect()
   } catch {
@@ -39,8 +44,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
           //expect a package.mo in root-directory
           if(Files.exists(rootProjectFile)) {
             val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
-            if(xs.nonEmpty) xs
-            else typecheckModels()
+            typecheckIfEmpty(xs)
           } else List(CompilerError("Error",
             rootProjectFile.toString,
             FilePosition(0,0),
@@ -50,9 +54,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       case Some(path) =>
         createOutputDir(outputDir)
         withOutputDir(outputDir) {
-          val xs = loadAllFiles(files)
-          if(xs.nonEmpty) xs
-          else typecheckModels()
+          typecheckIfEmpty(loadAllFiles(files))
         }
       case None => Seq[CompilerError]()
     }
@@ -80,17 +82,27 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
+  private def typecheckIfEmpty(xs:Seq[CompilerError]):Seq[CompilerError] =
+    if(xs.nonEmpty) xs
+    else typecheckModels()
+
   private def typecheckModels(): Seq[CompilerError] = {
-    val modelResult = omc.call("getClassNames")
+    @scala.annotation.tailrec
+    def typecheckTillError(xs:List[String]): Seq[CompilerError] = xs match {
+      case hd::tl =>
+        val erg = omc.checkAllModelsRecursive(hd)
+        log.debug("checkModel returned {}", erg)
+        val errors = parseErrorMsg(erg)
+        if(errors.nonEmpty) errors
+        else typecheckTillError(tl)
+      case Nil => Seq[CompilerError]()
+    }
+
+    val modelResult = omc.call("getClassNames", "qualified=true")
     log.debug("getClassNames returned {}", modelResult)
-    val models = fromArray(modelResult.result)
-    models.asScala.headOption.
-      map(omc.call("checkModel", _)).
-      map { x =>
-        log.debug("checkModel returned {}", x)
-        parseResult(x)
-      }.
-      getOrElse(Nil)
+      //get all classes & filter stdLib
+    val models = fromArray(modelResult.result).asScala.diff(stdLibClasses).toList
+    typecheckTillError(models)
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
