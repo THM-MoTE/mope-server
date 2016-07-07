@@ -4,6 +4,26 @@ Mo|E brings IDE-features for Modelica into your favourite Editor.
 
 This is the server-process for Mo|E.
 
+# Subprojects
+Mo|E uses the following subprojects:
+- [omc-java-api](https://git.thm.de/njss90/omc-java-api) -
+  Java-implementation of OMC's CORBA interface
+- [EnhancedWatchService](https://github.com/njustus/EnhancedWatchService) -
+  Wrapper for Java WatchServices
+
+# Using an IDE
+Because Mo|E uses several subprojects from different repositories it's not so easy to
+setup an IDE.
+
+## IntelliJ
+Compile the subprojects with ```gradle compileJava```.
+Add the subprojects as module dependencies. Depend on the class-files in
+```build/classes/main```.
+
+## Eclipse
+Import each subproject into the workspace and add these as project
+dependencies for this project.
+
 # REST-API
 A documentation for the REST-API can be found in
 ``` doc/rest-api/ ```.
