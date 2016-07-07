@@ -17,8 +17,8 @@ setup an IDE.
 
 ## IntelliJ
 Compile the subprojects with ```gradle compileJava```.
-Add the subprojects as module dependencies. Depend on the class-files in
-```build/classes/main```.
+Add the subprojects as module dependencies.
+Depend on the class-files in ```build/classes/main```.
 
 ## Eclipse
 Import each subproject into the workspace and add these as project
