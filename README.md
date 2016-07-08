@@ -11,13 +11,56 @@ Mo|E uses the following subprojects:
 - [EnhancedWatchService](https://github.com/njustus/EnhancedWatchService) -
   Wrapper for Java WatchServices
 
+# Setup
+Currently we are only supporting OpenModelica. Make sure that OpenModelica and OMC is
+working. Please check if it's possible to run OMC from the terminal (```which omc```).
+
+You can skip point 2 & 3 if you use our setup script located [here]().
+
+1. Install [sbt](http://www.scala-sbt.org/) in order to compile the projects.
+
+2. Because Mo|E uses subprojects you need to clone all subprojects and this project into
+one directory. This should look like this:
+  ```
+  parent/
+    - moie-server/
+    - omc-java-api/
+    - EnhancedWatchService/
+  ```
+  __Site node:__ This procedure is only needed because we can't publish all our projects
+  to github or maven central yet. Once we've checked the licensing issues the project's going
+  to be open-source and available on github.
+
+3. Get into the server-directory
+  - Start sbt by typing ```sbt```
+  - Compile moie-server by typing ```compile``` at the sbt prompt.
+    (sbt will compile the subprojects too.)
+
+4. Execute ```run``` to start the server. Mo|E will produce serveral logs during runtime.
+  Especially the starting log should look similar to this:
+```
+[info] Running de.thm.moie.MoIE
+2016-07-08 19:26:50,077 [INFO ] a.e.s.Slf4jLogger [] - Slf4jLogger started
+2016-07-08 19:26:50,077 [INFO ] a.e.s.Slf4jLogger [] - Slf4jLogger started
+2016-07-08 19:26:50,828 [INFO ] d.t.m.s.Server [moie-server] - Server running at localhost:9001
+2016-07-08 19:26:50,838 [INFO ] d.t.m.s.Server [moie-server] - Press Enter to interrupt
+```
+  The log tells you on which server (localhost) and port (9001) the server is listening.
+
+5. Set the interface and port in the Atom-plugin in order to connect to the server.
+
+After the first run Mo|E generates a configuration file located at ```~/.moie/moie.conf```. You can change it to suit your needs.
+
+__DO NOT CHANGE THE ```akka { .. }```-SECTION!__
+If you messed up your configuration just kill the whole ```~/.moie``` directory.
+
 # Using an IDE
 Because Mo|E uses several subprojects from different repositories it's not so easy to
 setup an IDE.
 
 ## IntelliJ
 Compile the subprojects with ```gradle compileJava```.
-Add the subprojects as module dependencies.
+Add the subprojects as library dependencies.
 Depend on the class-files in ```build/classes/main```.
 
 ## Eclipse
@@ -26,8 +69,18 @@ dependencies for this project.
 
 # REST-API
 A documentation for the REST-API can be found in
-``` doc/rest-api/ ```.
-The documentation is a latex-file called ``` rest-api.tex ``` which can be translated into a pdf with ```make```.
+```doc/rest-api/```.
+The documentation is a latex-file called ```rest-api.tex``` which
+can be translated into a pdf with ```make```.
+
+# Notes
+  - The idea of an server-process and several editors that are comunicating with
+  the server isn't new. This project is heavily inspired by the [ENSIME-project](http://ensime.github.io/)
+  which is a convenient way to develop scala projects.
+  If you are a Scala developer please give ENSIME a try.
+
+  Our main goal is to provide a similar development environment for Modelica
+  like ENSIME for Scala.
 
 # Developer Informations
 It's quite hard to find good, informative documentation for __OpenModelica__ and __OMC__'s behaviour in particular.
