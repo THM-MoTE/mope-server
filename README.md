@@ -59,9 +59,15 @@ Because Mo|E uses several subprojects from different repositories it's not so ea
 setup an IDE.
 
 ## IntelliJ
-Compile the subprojects with ```gradle compileJava```.
-Add the subprojects as library dependencies.
-Depend on the class-files in ```build/classes/main```.
+Temporary comment the lines
+```
+unmanagedJars in Runtime +=
+   file(System.getenv("JAVA_HOME")) / "jre" / "lib" / "resources.jar"
+```
+in ```omc-java-api/build.sbt``` in order to import ```moie-server``` into IntelliJ. These 2 lines are only needed inside sbt to add the runtime-dependency which doesn't get set. IntelliJ doesn't have a
+```$JAVA_HOME``` environment variable so that the import crashs with a
+typicall ```NullPointerException``` if these lines aren't commented.
+After importing the project uncomment these 2 lines or ```git reset``` the changes inside ```omc-java-api/build.sbt```.
 
 ## Eclipse
 Import each subproject into the workspace and add these as project
