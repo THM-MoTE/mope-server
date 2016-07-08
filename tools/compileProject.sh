@@ -6,7 +6,7 @@ OMC_API="../omc-java-api"
 EWS="../EnhancedWatchService"
 
 function compileSbt() {
-  if [ $force = "true" ]
+  if [ $force == "true" ]
   then
     sbt ";clean;compile"
   else
@@ -14,7 +14,7 @@ function compileSbt() {
   fi
 }
 function compileGradle() {
-  if [ $force = "true" ]
+  if [ $force == "true" ]
   then
     gradle clean compileJava
   else
