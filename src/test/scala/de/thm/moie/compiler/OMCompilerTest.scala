@@ -33,12 +33,12 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   override def afterAll() = {
-    removeDirectoryTree(path)
+    de.thm.moie.removeDirectoryTree(path)
     compiler.stop()
   }
 
   "Compiler" should "return no errors for valid modelica files" in {
-    compiler.compile(files) shouldEqual Nil
+    compiler.compile(files, files.head) shouldEqual Nil
   }
   it should "return 1 error for file with 1 error" in {
     val newContent =
@@ -52,7 +52,7 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val bw = Files.newBufferedWriter(filepath, StandardOpenOption.TRUNCATE_EXISTING)
     bw.write(newContent)
     bw.close()
-    val errors = compiler.compile(files)
+    val errors = compiler.compile(files, files.head)
     errors.size shouldEqual 1
     errors.head.message shouldEqual "Missing token: SEMICOLON"
 
@@ -67,9 +67,26 @@ class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val bw2 = Files.newBufferedWriter(filepath, StandardOpenOption.TRUNCATE_EXISTING)
     bw2.write(newContent2)
     bw2.close()
-    val errors2 = compiler.compile(files)
+    val errors2 = compiler.compile(files,files.head)
     errors2.size shouldEqual 1
     errors2.head.message shouldEqual "Parse error: The identifier at start and end are different"
+  }
+
+
+  it should "return type errors for invalid modelica files" in {
+    val newContent =
+      """
+        model simple
+          Integer cnt = 0.5;
+        equation
+        end simple;
+      """.stripMargin
+    val bw = Files.newBufferedWriter(filepath, StandardOpenOption.TRUNCATE_EXISTING)
+    bw.write(newContent)
+    bw.close()
+    val errors = compiler.compile(files, files.head)
+    errors.size shouldEqual 1
+    println("type error: "+errors)
   }
 
   it should "return an error for invalid modelica script files" in {

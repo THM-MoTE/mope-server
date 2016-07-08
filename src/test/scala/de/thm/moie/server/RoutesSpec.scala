@@ -9,7 +9,7 @@ import org.scalatest.{Matchers, WordSpec}
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.model._
-import akka.util.ByteString
+import akka.util.{ByteString, Timeout}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 
 import scala.concurrent.duration._
@@ -22,6 +22,8 @@ import de.thm.moie.compiler.CompilerError
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 
+import de.thm.moie.project.FilePath
+
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
     override def actorSystem = system
@@ -33,6 +35,8 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
   val projPath = tmpPath.resolve("routes-test")
   val testFile = projPath.resolve("test.mo")
   val testScript = projPath.resolve("test.mos")
+
+  val timeout:Duration = 3 seconds
 
   override def beforeAll() = {
     Files.createDirectory(projPath)
@@ -59,6 +63,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return a valid project-id for POST /moie/connect" in {
       postRequest ~> service.routes ~> check {
+        Thread.sleep(2000)
         responseAs[String] shouldEqual "0"
       }
     }
@@ -106,16 +111,25 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     }
 
     "return NotFound for /compile with non-valid project-id" in {
-      Get("/moie/project/200/compile") ~> service.routes ~> check {
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/200/compile",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
+      postRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[String] shouldEqual "unknown project-id 200"
       }
     }
 
     "return a json-array with compiler errors for /compile" in {
+      val compileRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/compile",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
       val content = """
 model test
-Rel x
+Rel x = 0.5
+x = 5*3
 end test;
 """.stripMargin
 
@@ -123,11 +137,12 @@ end test;
         StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING)
       bw.write(content)
+      bw.flush()
       bw.close()
 
-      Thread.sleep(10000) //wait till buffers are written
+      Thread.sleep(2000)
 
-      Get("/moie/project/0/compile") ~> service.routes ~> check {
+      compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         val errors = responseAs[List[CompilerError]]
         errors.size shouldBe (1)
@@ -143,11 +158,10 @@ end test;
         StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING)
       bw2.write(validContent)
+      bw2.flush()
       bw2.close()
 
-      Thread.sleep(10000) //wait till buffers are written
-
-      Get("/moie/project/0/compile") ~> service.routes ~> check {
+      compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         val errors = responseAs[List[CompilerError]]
         errors.size shouldBe (0)
@@ -164,8 +178,6 @@ lodFile("bouncing_ball.mo");
         StandardOpenOption.TRUNCATE_EXISTING)
       bw.write(content)
       bw.close()
-
-      Thread.sleep(10000) //wait till buffers are written
 
           val jsonRequest = ByteString(s"""
 { "path": "${testScript.toAbsolutePath}" }
@@ -191,8 +203,6 @@ loadFile("bouncing_ball.mo");
         StandardOpenOption.TRUNCATE_EXISTING)
       bw2.write(validContent)
       bw2.close()
-
-      Thread.sleep(10000) //wait till buffers are written
 
           val jsonRequest2 = ByteString(s"""
 { "path": "${testScript.toAbsolutePath}" }
