@@ -2,8 +2,8 @@ import sbt._
 
 object Dependencies {
 
-  private def fromGithub(url:String) = RootProject(uri(url))
-  private def fromFile(url:String) = RootProject(file(url))
+  def fromGithub(url:String) = RootProject(uri(url))
+  def fromFile(url:String) = RootProject(file(url))
 
   private val akkaVersion = "2.4.6"
   private val akkaGroup = "com.typesafe.akka"
@@ -33,7 +33,7 @@ object Dependencies {
       "org.scalatest" %% "scalatest" % "2.2.6" % "test"
   )
 
-  val ewsProject = fromGithub("git://github.com/njustus/EnhancedWatchService.git")
+  val ewsProject = fromFile("../EnhancedWatchService")
   val corbaProject = fromFile("../omc-java-api/")
 
   val usedDependencies = akka ++ logging ++ scalaUtils ++ testLib
