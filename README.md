@@ -15,7 +15,7 @@ Mo|E uses the following subprojects:
 Currently we are only supporting OpenModelica. Make sure that OpenModelica and OMC is
 working. Please check if it's possible to run OMC from the terminal (```which omc```).
 
-You can skip point 2 & 3 if you use our setup script located [here]().
+You can skip point 2 & 3 if you use our setup script located [here](https://git.thm.de/njss90/moie-server/blob/master/tools/setup.sh).
 
 1. Install [sbt](http://www.scala-sbt.org/) in order to compile the projects.
 
@@ -69,9 +69,9 @@ dependencies for this project.
 
 # REST-API
 A documentation for the REST-API can be found in
-```doc/rest-api/```.
-The documentation is a latex-file called ```rest-api.tex``` which
-can be translated into a pdf with ```make```.
+``` doc/rest-api/ ```.
+The documentation is a latex-file called ``` rest-api.tex ``` which
+can be translated into a pdf with ``` make ```.
 
 # Notes
   - The idea of an server-process and several editors that are comunicating with
