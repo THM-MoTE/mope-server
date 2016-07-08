@@ -70,9 +70,9 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   private def initialized: Receive = {
-    case CompileProject =>
+    case CompileProject(file) =>
       compiler.
-        compileAsync(getProjectFiles).
+        compileAsync(getProjectFiles, file).
         map(_.filter(errorInProjectFile)).
         pipeTo(sender)
     case NewFiles(files) =>
@@ -119,7 +119,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
-  case object CompileProject extends ProjectManagerMsg
+  case class CompileProject(file:Path) extends ProjectManagerMsg
   case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])

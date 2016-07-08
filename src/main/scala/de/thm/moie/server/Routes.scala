@@ -4,6 +4,8 @@
 
 package de.thm.moie.server
 
+import java.nio.file.Paths
+
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.StatusCodes
@@ -11,11 +13,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
-import de.thm.moie.project.{ProjectDescription, FilePath}
-import de.thm.moie.server.ProjectManagerActor.{CompileProject, CompileScript, CompileDefaultScript}
+import de.thm.moie.project.{FilePath, ProjectDescription}
+import de.thm.moie.project.FilePath
+import de.thm.moie.server.ProjectManagerActor.{CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
-import java.nio.file.Paths
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -88,11 +90,13 @@ trait Routes extends JsonSupport {
           }
         } ~
         path("compile") {
-          get {
-            withIdExists(id) { projectManager =>
-              for {
-                errors <- (projectManager ? CompileProject).mapTo[Seq[CompilerError]]
-              } yield errors.toList
+          post {
+            entity(as[FilePath]) { filepath =>
+              withIdExists(id) { projectManager =>
+                for {
+                  errors <- (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
+                } yield errors.toList
+              }
             }
           }
         } ~
