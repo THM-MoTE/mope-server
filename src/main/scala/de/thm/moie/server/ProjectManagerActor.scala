@@ -58,6 +58,7 @@ class ProjectManagerActor(description:ProjectDescription,
     }
 
  def errorInProjectFile(error:CompilerError): Boolean =
+   error.file.isEmpty ||
    Paths.get(error.file).startsWith(rootDir) ||
    Paths.get(error.file).startsWith(rootDir.toRealPath())
 
@@ -105,6 +106,7 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   override def postStop(): Unit = {
+    compiler.stop()
     executor.shutdown()
     if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
       log.warning("Force shutdown threadpool")

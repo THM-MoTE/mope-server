@@ -13,12 +13,20 @@
   </appender>
 
 
-  <logger name="ews" level="OFF">
+  <!-- java-corba logger
+    see also: https://docs.oracle.com/cd/E19747-01/819-0076/logging.html
+  -->
+  <logger name="javax.enterprise.resource.corba" level="OFF">
   </logger>
+  <!-- EnhancedWatchService -->
+  <logger name="ews" level="INFO">
+  </logger>
+  <!-- Akka framework -->
   <logger name="akka" level="INFO">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
    </logger>
+
    <root level="DEBUG">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>

@@ -15,6 +15,7 @@ trait CommonParsers extends RegexParsers with ImplicitConversions {
 
   def unknownPosition:FilePosition = FilePosition(0,0)
   def unknownError:String = "Compiler didn't provide any further message"
+  def unknownPath:String = ""
 
   def pathDelimiter = """/|\\""".r
   def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r

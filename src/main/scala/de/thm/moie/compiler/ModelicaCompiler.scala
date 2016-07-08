@@ -9,6 +9,7 @@ import java.nio.file.Path
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ModelicaCompiler {
+  def stop(): Unit
   def compile(files:List[Path]): Seq[CompilerError]
   def compileAsync(files:List[Path])(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =

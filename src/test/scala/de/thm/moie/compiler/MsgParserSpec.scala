@@ -252,6 +252,22 @@ Execution failed!
         """Zu viele Gleichungen
         |- überbestimmtes System. Das Modell hat 24 Gleichung(en) und 23 Variable(n).""".stripMargin
     )))
+
+    val msg2 =
+"""\"\"
+|\"\"
+|\"Error: Failed to load package ResistorTest (default) using MODELICAPATH /opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+|Error: Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden.
+|\"
+|""".stripMargin
+
+    compiler.parseErrorMsg(msg2) should be (List(
+      CompilerError("Error",
+        "",
+        FilePosition(0,0), FilePosition(0,0),
+        "Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden."
+      )
+    ))
   }
 
   "Notifications inside errors" should "get ignored" in {
