@@ -55,19 +55,18 @@ __DO NOT CHANGE THE ```akka { .. }```-SECTION!__
 If you messed up your configuration just kill the whole ```~/.moie``` directory.
 
 # Using an IDE
-Because Mo|E uses several subprojects from different repositories it's not so easy to
-setup an IDE.
 
 ## IntelliJ
-Temporary comment the lines
-```
-unmanagedJars in Runtime +=
-   file(System.getenv("JAVA_HOME")) / "jre" / "lib" / "resources.jar"
-```
-in ```omc-java-api/build.sbt``` in order to import ```moie-server``` into IntelliJ. These 2 lines are only needed inside sbt to add the runtime-dependency which doesn't get set. IntelliJ doesn't have a
-```$JAVA_HOME``` environment variable so that the import crashs with a
-typicall ```NullPointerException``` if these lines aren't commented.
-After importing the project uncomment these 2 lines or ```git reset``` the changes inside ```omc-java-api/build.sbt```.
+Its possible to import this project as an sbt project.
+
+If you are using Mac OS X make sure that IntelliJ "sees" the
+```$JAVA_HOME``` variable. OS X doesn't publish environment 
+variables to GUI applications which are set inside
+```.bash_profile```, ```.bashrc```, ...You have to set
+the ```$JAVA_HOME``` variable inside
+the file ```/etc/launchd.conf```. This file is visible to GUI applications.
+Further information for this strange behaviour of Mac OS X are available here:
+http://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x
 
 ## Eclipse
 Import each subproject into the workspace and add these as project
