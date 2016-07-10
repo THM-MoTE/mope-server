@@ -90,7 +90,7 @@ class ProjectManagerActorSpec
       Thread.sleep(1000) //give OS time to throw a CREATE event
 
         //test errors
-      testRef ! CompileProject
+      testRef ! CompileProject(testFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
       xs.size should be (1)
     }
@@ -113,7 +113,7 @@ class ProjectManagerActorSpec
       Thread.sleep(1000) //wait till buffers are written
 
         //test errors
-      testRef ! CompileProject
+      testRef ! CompileProject(testFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
       xs.size should be (0)
     }

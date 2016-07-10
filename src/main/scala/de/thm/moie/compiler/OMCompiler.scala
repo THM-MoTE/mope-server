@@ -35,7 +35,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   def sortPathes(paths:List[Path]): List[Path] =
     paths.map(p => p.getParent -> p).sorted.map(_._2)
 
-  override def compile(files: List[Path]): Seq[CompilerError] = {
+  override def compile(files: List[Path], openedFile:Path): Seq[CompilerError] = {
     files.headOption match {
       case Some(path) if files.exists(isPackageMo) =>
         createOutputDir(outputDir)
@@ -44,7 +44,11 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
           //expect a package.mo in root-directory
           if(Files.exists(rootProjectFile)) {
             val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
-            typecheckIfEmpty(xs)
+            val modelnameOpt:Option[String] = ScriptingHelper.getModelName(openedFile)
+            log.debug(s"modelname in {} {}", openedFile, modelnameOpt:Any)
+            modelnameOpt.
+              map(typecheckIfEmpty(xs, _)).
+              getOrElse(xs)
           } else List(CompilerError("Error",
             rootProjectFile.toString,
             FilePosition(0,0),
@@ -54,7 +58,12 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       case Some(path) =>
         createOutputDir(outputDir)
         withOutputDir(outputDir) {
-          typecheckIfEmpty(loadAllFiles(files))
+          val xs = loadAllFiles(files)
+          val modelnameOpt:Option[String] = ScriptingHelper.getModelName(openedFile)
+          log.debug(s"modelname in {} {}", openedFile, modelnameOpt:Any)
+          modelnameOpt.
+            map(typecheckIfEmpty(xs, _)).
+            getOrElse(xs)
         }
       case None => Seq[CompilerError]()
     }
@@ -82,9 +91,15 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
-  private def typecheckIfEmpty(xs:Seq[CompilerError]):Seq[CompilerError] =
+  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] =
     if(xs.nonEmpty) xs
-    else typecheckModels()
+    else typecheckModel(model)
+
+  private def typecheckModel(model:String): Seq[CompilerError] = {
+    val res = omc.checkAllModelsRecursive(model)
+    log.debug("checkModel returned {}", res)
+    parseErrorMsg(res)
+  }
 
   private def typecheckModels(): Seq[CompilerError] = {
     @scala.annotation.tailrec

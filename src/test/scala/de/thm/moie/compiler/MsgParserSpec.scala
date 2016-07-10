@@ -11,7 +11,8 @@ class MsgParserSpec extends FlatSpec with Matchers {
 
   "Compiler" should "return no errors if filelist is empty" in {
     val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
-    compiler.compile(Nil) shouldEqual Nil
+    compiler.compile(Nil, Paths.get("")) shouldEqual Nil
+    compiler.stop()
   }
 
   "Compiler errors" should "get parsed" in {
@@ -167,6 +168,8 @@ Execution failed!""".stripMargin
 """Incompatible components in connect statement: connect(resistor2.R, ground1.p)
 - resistor2.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
 - ground1.p has components {i, v}""")))
+
+    compiler.stop()
   }
 
   "Multiple Compiler errors" must "get parsed as list" in {
@@ -227,6 +230,8 @@ Error: Error occurred while flattening model myModel
         FilePosition(3,4), FilePosition(3,13),
         "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
     ))
+
+    compiler.stop()
   }
 
   "Errors without position" should "get parsed" in {
@@ -268,6 +273,8 @@ Execution failed!
         "Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden."
       )
     ))
+
+    compiler.stop()
   }
 
   "Notifications inside errors" should "get ignored" in {
@@ -311,6 +318,8 @@ Execution failed!
       """.stripMargin
       val errors3 = compiler.parseErrorMsg(msg3)
       errors3.size should be (0)
+
+    compiler.stop()
   }
 
   "Script errors" should "get parsed" in {
@@ -370,5 +379,7 @@ Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documen
       errors5.head should be (CompilerError(
         "Error", "/Users/nico/Documents/moTests2/test.mo", FilePosition(2,7), FilePosition(4,8),
         "Parse error: The identifier at start and end are different"))
+
+    compiler.stop()
   }
 }
