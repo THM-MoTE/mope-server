@@ -21,9 +21,11 @@ lazy val root = Project(id = "moie-server", base = file(".")).
     name := "Mo|E-server",
     version := "0.1",
     scalaVersion := "2.11.8",
-    javacOptions ++= Seq("-source", "1.8")
+    javacOptions ++= Seq("-source", "1.8"),
+    aggregate in Test := false
   ).
-  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject)
+  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject).
+  aggregate(Dependencies.corbaProject)
 
 mainClass in Compile := Some("de.thm.moie.MoIE")
 mainClass in assembly := (mainClass in Compile).value
