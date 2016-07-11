@@ -33,5 +33,14 @@ Connects a client to the server and starts a manager for the given project.
   \newline\textbf{Code} 400 Bad Request
   \newline\textbf{Content} Akka-generated error message which states that it couldn't decode the
   object. Similar like this: \code{The request content was malformed..}
+
+  \textbf{Cause} The data-field isn't a valid ProjectDescription.
+  The fields of the given object have to meet this criterias:
+  \begin{itemize}
+  \item The \code{path}-field must be a fullpath and a directory
+  \item The optional \code{buildScript}-field must be a regular file with a ``.mos'' extension.
+  \end{itemize}
+  \textbf{Code} 400 Bad Request
+  \newline\textbf{Content} An json-array containing validation errors.
   \item \textbf{Sample Call}
 \end{itemize}
