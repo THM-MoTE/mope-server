@@ -55,7 +55,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   def withExists[T](p:Path)(fn: => Future[T]): Future[T] =
     if(Files.exists(p)) fn
-    else Future.failed(new NotFoundException(s"Can't find script called $p!"))
+    else Future.failed(new NotFoundException(s"Can't find file $p!"))
 
   override def preStart() =
     for {
