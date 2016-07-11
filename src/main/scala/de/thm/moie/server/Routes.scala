@@ -75,42 +75,45 @@ trait Routes extends JsonSupport with ErrorHandling {
             complete(StatusCodes.Accepted)
           }
         } ~
-        pathPrefix("project" / IntNumber) { id =>
-          path("disconnect") {
-            post {
-              disconnectWithExit(id)
-              complete(StatusCodes.NoContent)
-            }
-          } ~
-          path("compile") {
-            post {
-              entity(as[FilePath]) { filepath =>
-                withIdExists(id) { projectManager =>
-                  for {
-                    errors <- (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
-                  } yield errors.toList
-                }
-              }
-            }
-          } ~
-          path("compileScript") {
-            post {
-              entity(as[FilePath]) { filepath =>
-                withIdExists(id) { projectManager =>
-                  for {
-                    errors <- (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
-                  } yield errors.toList
-                }
-              }
-            } ~ get {
+        projectRoutes
+      }
+    }
+
+  def projectRoutes =
+    pathPrefix("project" / IntNumber) { id =>
+      path("disconnect") {
+        post {
+          disconnectWithExit(id)
+          complete(StatusCodes.NoContent)
+        }
+      } ~
+        path("compile") {
+          post {
+            entity(as[FilePath]) { filepath =>
               withIdExists(id) { projectManager =>
                 for {
-                  errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
+                  errors <- (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
                 } yield errors.toList
               }
             }
           }
+        } ~
+        path("compileScript") {
+          post {
+            entity(as[FilePath]) { filepath =>
+              withIdExists(id) { projectManager =>
+                for {
+                  errors <- (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
+                } yield errors.toList
+              }
+            }
+          } ~ get {
+            withIdExists(id) { projectManager =>
+              for {
+                errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
+              } yield errors.toList
+            }
+          }
         }
-      }
     }
 }
