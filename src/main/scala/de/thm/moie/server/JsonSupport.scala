@@ -6,7 +6,7 @@ package de.thm.moie.server
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import de.thm.moie.compiler.{CompilerError, FilePosition}
-import de.thm.moie.project.{ProjectDescription, FilePath}
+import de.thm.moie.project.{Completion, FilePath, ProjectDescription}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
@@ -14,4 +14,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val filePositionFormat:RootJsonFormat[FilePosition] = jsonFormat2(FilePosition)
   implicit val compileErrorFormat:RootJsonFormat[CompilerError] = jsonFormat5(CompilerError)
   implicit val filePathFormat:RootJsonFormat[FilePath] = jsonFormat1(FilePath.apply)
+  implicit val completionFormat:RootJsonFormat[Completion] = jsonFormat3(Completion)
 }
