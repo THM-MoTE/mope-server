@@ -8,7 +8,7 @@ import org.scalatest._
 import java.nio.file._
 
 import de.thm.moie._
-class OMCompilerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
+class OMCompilerSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
   val path = Files.createTempDirectory("moie")
   val compiler = new OMCompiler(Nil, "omc", path.resolve("target"))
 
