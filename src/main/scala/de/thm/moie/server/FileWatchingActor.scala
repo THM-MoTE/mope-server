@@ -58,11 +58,6 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
   private def files(path:Path) =
     getFiles(path, moFileFilter).sorted
 
-  private def moFileFilter(path:Path):Boolean = {
-    !Files.isHidden(path) &&
-    path.toString.endsWith(".mo")
-  }
-
   override def handleMsg: Receive = {
     case GetFiles =>
       Future(files(rootPath)) pipeTo sender
@@ -89,6 +84,11 @@ object FileWatchingActor {
   case class ModifiedPath(path:Path)
 
   type PathFilter = Path => Boolean
+
+  def moFileFilter(path:Path):Boolean = {
+    !Files.isHidden(path) &&
+      path.toString.endsWith(".mo")
+  }
 
   def getFiles(root:Path, filter:PathFilter): List[Path] = {
     val visitor = new AccumulateFiles(filter)
