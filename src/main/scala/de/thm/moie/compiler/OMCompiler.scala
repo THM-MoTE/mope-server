@@ -3,9 +3,9 @@
  */
 
 package de.thm.moie.compiler
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.{Files, Path}
 
-import akka.stream.impl.StreamLayout.Combine
+import de.thm.moie.server.NotFoundException
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
 import omc.corba._
@@ -18,6 +18,8 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = new OMCClient(executableName)
+
+  val rootProjectFile = outputDir.getParent.resolve("package.mo")
 
   private val stdLibClasses = List(
     "ModelicaServices",
@@ -35,35 +37,41 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   def sortPathes(paths:List[Path]): List[Path] =
     paths.map(p => p.getParent -> p).sorted.map(_._2)
 
+  def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
+    createOutputDir(outputDir)
+    if(files.exists(isPackageMo)) {
+      withOutputDir(outputDir) {
+        //expect a package.mo in root-directory
+        if(Files.exists(rootProjectFile)) {
+          val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
+          fn(xs)
+        } else throw new NotFoundException(s"Expected a root `package.mo`-file in ${rootProjectFile.getParent}")
+      }
+    } else {
+      withOutputDir(outputDir) {
+        val xs = loadAllFiles(files)
+        fn(xs)
+      }
+    }
+  }
+
   override def compile(files: List[Path], openedFile:Path): Seq[CompilerError] = {
     files.headOption match {
-      case Some(path) if files.exists(isPackageMo) =>
-        createOutputDir(outputDir)
-        val rootProjectFile = outputDir.getParent.resolve("package.mo")
-        withOutputDir(outputDir) {
-          //expect a package.mo in root-directory
-          if(Files.exists(rootProjectFile)) {
-            val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
-            val modelnameOpt:Option[String] = ScriptingHelper.getModelName(openedFile)
-            log.debug(s"modelname in {} {}", openedFile, modelnameOpt:Any)
+      case Some(path) =>
+        try {
+          setupProject(files) { xs =>
+            val modelnameOpt: Option[String] = ScriptingHelper.getModelName(openedFile)
+            log.debug(s"modelname in {} {}", openedFile, modelnameOpt: Any)
             modelnameOpt.
               map(typecheckIfEmpty(xs, _)).
               getOrElse(xs)
-          } else List(CompilerError("Error",
+          }
+        } catch {
+          case e:NotFoundException => List(CompilerError("Error",
             rootProjectFile.toString,
-            FilePosition(0,0),
-            FilePosition(0,0),
-            s"Expected a root `package.mo`-file in ${rootProjectFile.getParent}"))
-        }
-      case Some(path) =>
-        createOutputDir(outputDir)
-        withOutputDir(outputDir) {
-          val xs = loadAllFiles(files)
-          val modelnameOpt:Option[String] = ScriptingHelper.getModelName(openedFile)
-          log.debug(s"modelname in {} {}", openedFile, modelnameOpt:Any)
-          modelnameOpt.
-            map(typecheckIfEmpty(xs, _)).
-            getOrElse(xs)
+            FilePosition(0, 0),
+            FilePosition(0, 0),
+            e.msg))
         }
       case None => Seq[CompilerError]()
     }
@@ -88,12 +96,14 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
 
   override def checkModel(files:List[Path], path: Path): String = {
-    val xs = loadAllFiles(files)
-    val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
-    log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
-    modelnameOpt.
-      map(omc.checkModel(_)).
-      getOrElse("")
+    //TODO load package.mo directories same as in compile
+    setupProject(files) { _ =>
+      val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
+      log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
+      modelnameOpt.
+        map(omc.checkModel(_)).
+        getOrElse("")
+    }
   }
 
   private def parseResult(result:Result)  = {
@@ -143,13 +153,13 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       Files.createDirectory(path)
   }
 
-  private def withOutputDir(dir: Path)(f: => Seq[CompilerError]): Seq[CompilerError] = {
+  private def withOutputDir[A](dir: Path)(f: => A): A = {
     val res = omc.sendExpression(s"""cd(${asString(dir)})""")
     if (res.result.contains(dir.toString)) {
       f
     } else {
       log.error("Couldn't change working directory for omc into {}", dir)
-      Seq[CompilerError]()
+      throw new IllegalStateException("cd() error")
     }
   }
 
