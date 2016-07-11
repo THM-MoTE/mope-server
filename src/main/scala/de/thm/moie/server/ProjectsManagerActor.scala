@@ -31,7 +31,7 @@ class ProjectsManagerActor
     val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
     val compiler = constructor.newInstance(description.compilerFlags, executableString, outputPath)
-    context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$id")
+    context.actorOf(Props(new ProjectManagerActor(description, compiler, true)), name = s"proj-manager-$id")
   }
 
   override def handleMsg: Receive = {
