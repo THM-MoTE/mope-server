@@ -42,6 +42,10 @@ class ProjectsManagerSpec()
       (act, descr)
   }
 
+  override def afterAll(): Unit = {
+    removeDirectoryTree(projPath)
+  }
+
   "A ProjectsManager" must {
     "return a project id, when sending a ProjectDescription" in {
       val (actor, descr) = projectActorWithStubDescription
