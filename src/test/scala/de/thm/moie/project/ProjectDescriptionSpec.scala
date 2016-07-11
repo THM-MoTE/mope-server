@@ -14,11 +14,11 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
     removeDirectoryTree(path)
   }
 
-  "ProjectDescription.`validate`" should "return errors for undefined path" in {
+  "ProjectDescription.validate" should "return errors for undefined path" in {
     val descr = ProjectDescription("unknown-path", "target", Nil, None)
 
     val errors = ProjectDescription.validate(descr)
-    errors should have size (1)
+    errors should have size 1
     errors.head should be ("unknown-path isn't a directory")
   }
 
@@ -29,7 +29,7 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
                                     Some("unknownScript"))
 
     val errors = ProjectDescription.validate(descr)
-    errors should have size (1)
+    errors should have size 1
     errors.head should be (s"${path.resolve("unknownScript")} isn't a regular *.mos file!")
 
     val descr2 = ProjectDescription(path.toString,
@@ -38,7 +38,7 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
                                     None)
 
     val errors2 = ProjectDescription.validate(descr2)
-    errors2 should have size (0)
+    errors2 should have size 0
   }
 
   it should "return no errors for valid description" in {
@@ -48,7 +48,7 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
                                     None)
 
     val errors = ProjectDescription.validate(descr)
-    errors should have size (0)
+    errors should have size 0
 
     val descr2 = ProjectDescription(path.toString,
                                     "target",
@@ -56,6 +56,6 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
                                     Some(scriptPath.getFileName.toString))
 
     val errors2 = ProjectDescription.validate(descr2)
-    errors2 should have size (0)
+    errors2 should have size 0
   }
 }
