@@ -12,12 +12,13 @@ import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import de.thm.moie.Global
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
-import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
+import de.thm.moie.project.{Completion, InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.io.Source
 import de.thm.moie.utils.ThreadUtils
+
 import scala.collection._
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -35,18 +36,11 @@ class ProjectManagerActor(description:ProjectDescription,
 
   implicit val timeout = Timeout(5 seconds)
 
-
-  def filterLines(line:String):Boolean = line.isEmpty
-
-  val keywords =
-    Global.readValuesFromResource(getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _)
-  val types =
-    Global.readValuesFromResource(getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _)
-
   val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOIE-"+self.path.name))
   implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
+  val completionActor = context.actorOf(Props[CodeCompletionActor])
 
   private var projectFiles = List[Path]()
   private var compileErrors = Seq[CompilerError]()
@@ -106,6 +100,7 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
+    case x:Completion => completionActor forward x
     case CheckModel(file) =>
       withExists(file)(for {
         files <- getProjectFiles
