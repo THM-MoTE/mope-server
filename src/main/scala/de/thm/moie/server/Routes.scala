@@ -17,7 +17,7 @@ import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project.{FilePath, ProjectDescription}
 import de.thm.moie.project.FilePath
-import de.thm.moie.server.ProjectManagerActor.{CompileDefaultScript, CompileProject, CompileScript}
+import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
 import scala.concurrent.Future
@@ -112,6 +112,17 @@ trait Routes extends JsonSupport with ErrorHandling {
               for {
                 errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
               } yield errors.toList
+            }
+          }
+        } ~
+        path("checkModel") {
+          post {
+            entity(as[FilePath]) { filepath =>
+              withIdExists(id) { projectManager =>
+                for {
+                  msg <- (projectManager ? CheckModel(filepath)).mapTo[String]
+                } yield msg
+              }
             }
           }
         }

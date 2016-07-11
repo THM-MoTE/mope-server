@@ -19,4 +19,9 @@ trait ModelicaCompiler {
   def compileScriptAsync(path:Path)(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =
     Future(compileScript(path))
+
+  def checkModel(files:List[Path], path:Path): String
+  def checkModelAsync(files:List[Path], path:Path)(
+    implicit context:ExecutionContext): Future[String] =
+    Future(checkModel(files, path))
 }

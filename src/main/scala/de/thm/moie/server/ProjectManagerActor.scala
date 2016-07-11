@@ -95,6 +95,11 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
+    case CheckModel(file) =>
+      withExists(file)(for {
+        files <- getProjectFiles
+        msg <- compiler.checkModelAsync(files, file)
+      } yield msg) pipeTo sender
     case CompileScript(path) =>
       withExists(path) {
         for {
@@ -133,6 +138,7 @@ object ProjectManagerActor {
   case class CompileProject(file:Path) extends ProjectManagerMsg
   case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
+  case class CheckModel(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
   private[ProjectManagerActor] case class NewFiles(files:Seq[Path])

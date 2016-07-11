@@ -86,6 +86,16 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
   }
 
+
+  override def checkModel(files:List[Path], path: Path): String = {
+    val xs = loadAllFiles(files)
+    val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
+    log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
+    modelnameOpt.
+      map(omc.checkModel(_)).
+      getOrElse("")
+  }
+
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
