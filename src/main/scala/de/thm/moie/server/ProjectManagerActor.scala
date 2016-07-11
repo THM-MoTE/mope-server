@@ -53,6 +53,10 @@ class ProjectManagerActor(description:ProjectDescription,
       throw new NotFoundException(s"Can't find script called $defaultScript!")
   }
 
+  def withExists[T](p:Path)(fn: => Future[T]): Future[T] =
+    if(Files.exists(p)) fn
+    else Future.failed(new NotFoundException(s"Can't find script called $p!"))
+
   override def preStart() =
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
@@ -74,11 +78,13 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive = {
     case CompileProject(file) =>
-      (for {
-        files <- getProjectFiles
-        errors <- compiler.compileAsync(files, file)
-        filteredErrors = errors.filter(errorInProjectFile)
-      } yield filteredErrors) pipeTo sender
+      withExists(file) {
+        for {
+          files <- getProjectFiles
+          errors <- compiler.compileAsync(files, file)
+          filteredErrors = errors.filter(errorInProjectFile)
+        } yield filteredErrors
+      } pipeTo sender
     case NewFiles(files) =>
       projectFiles = (files ++ projectFiles).toList.sorted
     case NewPath(p) if Files.isDirectory(p) =>
@@ -90,11 +96,12 @@ class ProjectManagerActor(description:ProjectDescription,
     case DeletedPath(p) =>
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
     case CompileScript(path) =>
-      (for {
-        errors <- compiler.compileScriptAsync(path)
-        filteredErrors = errors.filter(errorInProjectFile)
-        _ = printDebug(filteredErrors)
-      } yield filteredErrors) pipeTo sender
+      withExists(path) {
+        for {
+          errors <- compiler.compileScriptAsync(path)
+          filteredErrors = errors.filter(errorInProjectFile)
+        } yield filteredErrors
+      } pipeTo sender
     case CompileDefaultScript =>
       (for {
         path <- getDefaultScriptPath

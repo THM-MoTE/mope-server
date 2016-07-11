@@ -126,6 +126,16 @@ class ProjectManagerActorSpec
       xs.head shouldBe invalidScriptError(scriptFile)
     }
 
+    "fail if opened file doesn't exist" in {
+      testRef ! CompileProject(projectPath.resolve("unknown"))
+      val failure = expectMsgType[akka.actor.Status.Failure](10 seconds)
+      failure.cause.isInstanceOf[NotFoundException] shouldBe true
+
+      testRef ! CompileScript(projectPath.resolve("unknownscript"))
+      val failure2 = expectMsgType[akka.actor.Status.Failure](10 seconds)
+      failure2.cause.isInstanceOf[NotFoundException] shouldBe true
+    }
+
     "return 0 compile errors for valid scripts" in {
       val validScriptFile = createValidScript(projectPath)
       //test errors
