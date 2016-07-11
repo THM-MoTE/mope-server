@@ -21,7 +21,8 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ProjectManagerActor(description:ProjectDescription,
-                          compiler:ModelicaCompiler)
+                          compiler:ModelicaCompiler,
+                          indexFiles:Boolean = true)
   extends Actor
   with UnhandledReceiver
   with LogMessages {
@@ -39,7 +40,9 @@ class ProjectManagerActor(description:ProjectDescription,
   private var projectFiles = List[Path]()
   private var compileErrors = Seq[CompilerError]()
 
-  def getProjectFiles = projectFiles
+  def getProjectFiles:Future[List[Path]] =
+    if(indexFiles) Future.successful(projectFiles)
+    else Future(FileWatchingActor.getFiles(rootDir, FileWatchingActor.moFileFilter).sorted)
 
   private def getDefaultScriptPath:Future[Path] = Future {
     val defaultScript = description.buildScript.getOrElse("build.mos")
@@ -71,10 +74,11 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive = {
     case CompileProject(file) =>
-      compiler.
-        compileAsync(getProjectFiles, file).
-        map(_.filter(errorInProjectFile)).
-        pipeTo(sender)
+      (for {
+        files <- getProjectFiles
+        errors <- compiler.compileAsync(files, file)
+        filteredErrors = errors.filter(errorInProjectFile)
+      } yield filteredErrors) pipeTo sender
     case NewFiles(files) =>
       projectFiles = (files ++ projectFiles).toList.sorted
     case NewPath(p) if Files.isDirectory(p) =>
