@@ -4,18 +4,20 @@
 
 package de.thm.moie.compiler
 
+import java.nio.file.Paths
 import org.scalatest._
 
-class OMCompilerParserTest extends FlatSpec with Matchers {
+class MsgParserSpec extends FlatSpec with Matchers {
 
   "Compiler" should "return no errors if filelist is empty" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
-    compiler.compile(Nil) shouldEqual Nil
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
+    compiler.compile(Nil, Paths.get("")) shouldEqual Nil
+    compiler.stop()
   }
 
   "Compiler errors" should "get parsed" in {
 
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
 
     val msg = """
 Error processing file: ../circuit.mo
@@ -166,10 +168,12 @@ Execution failed!""".stripMargin
 """Incompatible components in connect statement: connect(resistor2.R, ground1.p)
 - resistor2.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
 - ground1.p has components {i, v}""")))
+
+    compiler.stop()
   }
 
   "Multiple Compiler errors" must "get parsed as list" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     val msg10 = """
     Error processing file: ../ResistorTest.mo
     Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
@@ -227,7 +231,12 @@ Error: Error occurred while flattening model myModel
         "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
     ))
 
-    val msg12 =
+    compiler.stop()
+  }
+
+  "Errors without position" should "get parsed" in {
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
+    val msg1 =
 """
 Error processing file: /Users/testi/ResistorTest.mo
 Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
@@ -241,25 +250,90 @@ Error: pre-optimization module clockPartitioning (simulation) failed.
 
 Execution failed!
 """.stripMargin
-    compiler.parseErrorMsg(msg12) should be (List(
+    compiler.parseErrorMsg(msg1) should be (List(
       CompilerError("Error",
         "/Users/testi/ResistorTest.mo",
         FilePosition(0,0), FilePosition(0,0),
         """Zu viele Gleichungen
         |- überbestimmtes System. Das Modell hat 24 Gleichung(en) und 23 Variable(n).""".stripMargin
     )))
+
+    val msg2 =
+"""\"\"
+|\"\"
+|\"Error: Failed to load package ResistorTest (default) using MODELICAPATH /opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+|Error: Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden.
+|\"
+|""".stripMargin
+
+    compiler.parseErrorMsg(msg2) should be (List(
+      CompilerError("Error",
+        "",
+        FilePosition(0,0), FilePosition(0,0),
+        "Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden."
+      )
+    ))
+
+    compiler.stop()
+  }
+
+  "Notifications inside errors" should "get ignored" in {
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
+
+    val msg = """
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
+      """.stripMargin
+
+    val msg2 = """
+    |"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation."
+    |"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation."
+    |"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation."
+    """.stripMargin + msg
+
+    val errors2 = compiler.parseErrorMsg(msg2)
+    errors2(0) should be (CompilerError("Error",
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
+    )
+
+    errors2(1) should be (CompilerError("Error",
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+    errors2(2) should be (CompilerError("Error",
+      "/Users/nico/Documents/mo-tests/build.mos",
+      FilePosition(5,1), FilePosition(5,30),
+      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+
+      val msg3 = """
+      |test;true,false
+      |
+      |"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation."
+      |"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation."
+      |"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation."
+      """.stripMargin
+      val errors3 = compiler.parseErrorMsg(msg3)
+      errors3.size should be (0)
+
+    compiler.stop()
   }
 
   "Script errors" should "get parsed" in {
-    val compiler = new OMCompiler(List[String](), "omc", "target")
+    val compiler = new OMCompiler(List[String](), "omc", Paths.get("target"))
     val msg = """
       |false
       |false
       |true
       |true
-      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
-      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
-      |{"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.", "TRANSLATION", "Error", "3"}
+      |""
+      |"bla"
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
+      |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
       """.stripMargin
 
     val errors = compiler.parseErrorMsg(msg)
@@ -279,38 +353,33 @@ Execution failed!
       FilePosition(5,1), FilePosition(5,30),
       "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
 
-    val msg2 = msg + """
-    |{"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    |{"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    |{"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    """.stripMargin
+val msg4 =
+"""
+true
+hans
+hey
+"[/Users/nico/Documents/moTests2/test.mo:5:0-5:0:writable] Error: Parser error: Unexpected token near: (<EOF>)
+Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.""""
 
-    val errors2 = compiler.parseErrorMsg(msg2)
-    errors2(0) should be (CompilerError("Error",
-      "/Users/nico/Documents/mo-tests/build.mos",
-      FilePosition(5,1), FilePosition(5,30),
-      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
-    )
+    val errors4 = compiler.parseErrorMsg(msg4)
+    errors4.size should be (1)
 
-    errors2(1) should be (CompilerError("Error",
-      "/Users/nico/Documents/mo-tests/build.mos",
-      FilePosition(5,1), FilePosition(5,30),
-      "Klasse instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+    errors4.head should be (CompilerError("Error", "/Users/nico/Documents/moTests2/test.mo",
+      FilePosition(5,0), FilePosition(5,0), "Parser error: Unexpected token near: (<EOF>)"))
 
-    errors2(2) should be (CompilerError("Error",
-      "/Users/nico/Documents/mo-tests/build.mos",
-      FilePosition(5,1), FilePosition(5,30),
-      "Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."))
+    val msg5 =
+    """
+    false
+    "[/Users/nico/Documents/moTests2/test.mo:2:7-4:8:writable] Error: Parse error: The identifier at start and end are different
+    Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+    """"
 
+      val errors5 = compiler.parseErrorMsg(msg5)
+      errors5.size should be (1)
+      errors5.head should be (CompilerError(
+        "Error", "/Users/nico/Documents/moTests2/test.mo", FilePosition(2,7), FilePosition(4,8),
+        "Parse error: The identifier at start and end are different"))
 
-    val msg3 = """
-    |test;true,false
-    |
-    |{"Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    |{"Notification: Automatically loaded package Complex 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    |{"Notification: Automatically loaded package ModelicaServices 3.2.1 due to uses annotation.", "SCRIPTING", "Notification", "223"}
-    """.stripMargin
-    val errors3 = compiler.parseErrorMsg(msg3)
-    errors3.size should be (0)
+    compiler.stop()
   }
 }

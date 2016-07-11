@@ -15,15 +15,17 @@ configDir := new File(System.getProperty("user.home")) / ".moie"
 
 cleanConfig := IO.delete(configDir.value)
 
-lazy val root = (project in file(".")).
+lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
     organization := "thm",
     name := "Mo|E-server",
     version := "0.1",
     scalaVersion := "2.11.8",
-    javacOptions ++= Seq("-source", "1.8")
+    javacOptions ++= Seq("-source", "1.8"),
+    aggregate in Test := false
   ).
-  dependsOn(Dependencies.ewsProject)
+  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject).
+  aggregate(Dependencies.corbaProject)
 
 mainClass in Compile := Some("de.thm.moie.MoIE")
 mainClass in assembly := (mainClass in Compile).value

@@ -1,0 +1,1 @@
+lodFile("validFile.mo");

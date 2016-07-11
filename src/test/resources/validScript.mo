@@ -1,0 +1,1 @@
+loadFile("validFile.mo");

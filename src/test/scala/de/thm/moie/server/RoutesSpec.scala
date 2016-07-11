@@ -4,42 +4,41 @@
 
 package de.thm.moie.server
 
-import akka.stream.ActorMaterializer
-import org.scalatest.{Matchers, WordSpec}
-import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.http.scaladsl.model._
-import akka.util.ByteString
-import akka.http.scaladsl.testkit.ScalatestRouteTest
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.language.postfixOps
 import java.nio.file._
+import java.util.concurrent.TimeoutException
 
+import akka.actor.{ActorRef, Props}
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.stream.ActorMaterializer
+import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.CompilerError
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeoutException
+import de.thm.moie.project.FilePath
+import org.scalatest.{Matchers, WordSpec}
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with JsonSupport {
   val service = new ServerSetup with Routes {
-    override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+    override def actorSystem = system
+    override implicit lazy val materializer:ActorMaterializer = ActorMaterializer()
+    override lazy val projectsManager: ActorRef = system.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
   }
 
   val tmpPath = Files.createTempDirectory("moie")
   val projPath = tmpPath.resolve("routes-test")
-  val testFile = projPath.resolve("test.mo")
-  val testScript = projPath.resolve("test.mos")
+
+  val timeout:Duration = 3 seconds
 
   override def beforeAll() = {
     Files.createDirectory(projPath)
   }
 
   override def afterAll() = {
-    if(!service.actorSystem.whenTerminated.isCompleted) {
-      service.actorSystem.terminate()
-      fail("ActorSystem didn't terminate as expected!")
-    }
+    super.afterAll()
     removeDirectoryTree(tmpPath)
   }
 
@@ -59,6 +58,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return a valid project-id for POST /moie/connect" in {
       postRequest ~> service.routes ~> check {
+        Thread.sleep(2000)
         responseAs[String] shouldEqual "0"
       }
     }
@@ -71,7 +71,27 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
+    "return BadRequest with an error description if path in ProjectDescription is faulty" in {
+      val faultyJsonRequest = ByteString(
+          s"""
+             |{
+             |"path":"derb",
+             |"outputDirectory": "target",
+             |"compilerFlags": []
+             |}
+          """.stripMargin)
+        val faultyPostRequest = HttpRequest(
+          HttpMethods.POST,
+          uri = "/moie/connect",
+          entity = HttpEntity(MediaTypes.`application/json`, faultyJsonRequest))
+        faultyPostRequest ~> service.routes ~> check {
+          responseAs[List[String]] shouldEqual List("derb isn't a directory")
+          status shouldEqual StatusCodes.BadRequest
+        }
+    }
+
     "return NoContent for /disconnect with valid project-id" in {
+      //first connect
       postRequest ~> service.routes ~> check {
         responseAs[String] shouldEqual "0"
       }
@@ -87,121 +107,89 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     }
 
     "return NotFound for /compile with non-valid project-id" in {
-      Get("/moie/project/200/compile") ~> service.routes ~> check {
+      val compileRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/200/compile",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
+      compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[String] shouldEqual "unknown project-id 200"
       }
     }
 
-    "return a json-array with compiler errors for /compile" in {
-      val content = """
-model test
-Rel x;
-end test;
-""".stripMargin
-
-      val bw = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)
-      bw.write(content)
-      bw.close()
-
-      Thread.sleep(10000) //wait till buffers are written
-
-      Get("/moie/project/0/compile") ~> service.routes ~> check {
-        status shouldEqual StatusCodes.OK
-        val errors = responseAs[List[CompilerError]]
-        errors.size shouldBe (1)
-      }
-
-      val validContent = """
-model test
-Real x;
-end test;
-""".stripMargin
-
-      val bw2 = Files.newBufferedWriter(testFile, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)
-      bw2.write(validContent)
-      bw2.close()
-
-      Thread.sleep(10000) //wait till buffers are written
-
-      Get("/moie/project/0/compile") ~> service.routes ~> check {
-        status shouldEqual StatusCodes.OK
-        val errors = responseAs[List[CompilerError]]
-        errors.size shouldBe (0)
+    "return NotFound for /compileScript with non-valid project-id" in {
+      val compileRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/200/compileScript",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
+      compileRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.NotFound
+        responseAs[String] shouldEqual "unknown project-id 200"
       }
     }
 
-        "return a json-array with compiler errors for /compileScript" in {
-      val content = """
-lodFile("bouncing_ball.mo");
-""".stripMargin
-
-      val bw = Files.newBufferedWriter(testScript, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)
-      bw.write(content)
-      bw.close()
-
-      Thread.sleep(10000) //wait till buffers are written
-
-          val jsonRequest = ByteString(s"""
-{ "path": "${testScript.toAbsolutePath}" }
-""")
-
-      val postRequest = HttpRequest(
+    "return errors for /compile" in {
+      val invalidFile = createInvalidFile(projPath)
+      val compileRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest))
-
-       postRequest ~> service.routes ~> check {
+        uri = "/moie/project/0/compile",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
+      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+      compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        val errors = responseAs[List[CompilerError]]
-        errors.size shouldBe > (0)
+        responseAs[List[CompilerError]].size should be >= (1)
       }
 
-      val validContent = """
-loadFile("bouncing_ball.mo");
-""".stripMargin
+      Files.delete(invalidFile)
+      val validFile = createValidFile(projPath)
 
-      val bw2 = Files.newBufferedWriter(testScript, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)
-      bw2.write(validContent)
-      bw2.close()
-
-      Thread.sleep(10000) //wait till buffers are written
-
-          val jsonRequest2 = ByteString(s"""
-{ "path": "${testScript.toAbsolutePath}" }
-""")
-
-                val postRequest2 = HttpRequest(
+      val compileRequest2 = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest2))
+        uri = "/moie/project/0/compile",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
-
-         postRequest2 ~> service.routes ~> check {
+      compileRequest2 ~> service.routes ~> check {
+        Thread.sleep(5000)
         status shouldEqual StatusCodes.OK
-        val errors = responseAs[List[CompilerError]]
-        errors.size shouldBe (0)
+        responseAs[List[CompilerError]] shouldBe empty
       }
     }
 
-    "moie" should {
-      "shutdown when calling /stop-server" in {
-        Post("/moie/stop-server") ~> service.routes ~> check {
-          status shouldEqual StatusCodes.Accepted
-        }
-        try {
-          Await.ready(service.actorSystem.whenTerminated, 5 seconds)
-        } catch {
-          case _:TimeoutException => fail("ActorSystem didn't terminated as expected")
-        }
+    "return errors for /compileScript" in {
+      val invalidScript = createInvalidScript(projPath)
+      val compileRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/compileScript",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
+      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+      compileRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[List[CompilerError]].size should be >= (1)
+      }
+
+      Files.delete(invalidScript)
+      val validFile = createValidScript(projPath)
+
+      val compileRequest2 = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/compileScript",
+        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
+
+      compileRequest2 ~> service.routes ~> check {
+        Thread.sleep(5000)
+        status shouldEqual StatusCodes.OK
+        responseAs[List[CompilerError]] shouldBe empty
+      }
+    }
+
+    "shutdown when calling /stop-server" in {
+      Post("/moie/stop-server") ~> service.routes ~> check {
+        status shouldEqual StatusCodes.Accepted
+      }
+      try {
+        Await.ready(service.actorSystem.whenTerminated, 5 seconds)
+      } catch {
+        case _: TimeoutException => fail("ActorSystem didn't terminated as expected")
       }
     }
   }

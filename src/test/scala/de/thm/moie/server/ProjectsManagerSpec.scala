@@ -5,6 +5,7 @@
 package de.thm.moie.server
 
 import java.nio.file.Files
+import de.thm.moie._
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectsManagerActor._
 import akka.pattern.ask
@@ -42,37 +43,41 @@ class ProjectsManagerSpec()
       (act, descr)
   }
 
+  override def afterAll(): Unit = {
+    removeDirectoryTree(projPath)
+  }
+
   "A ProjectsManager" must {
     "return a project id, when sending a ProjectDescription" in {
       val (actor, descr) = projectActorWithStubDescription
-      expectMsg(ProjectId(0))
+      expectMsg(Right(ProjectId(0)))
     }
 
     "return same project id, when sending same ProjectDescription twice" in {
       val (actor, descr) = projectActorWithStubDescription
-      expectMsg(ProjectId(0))
+      expectMsg(Right(ProjectId(0)))
 
       actor ! descr
-      expectMsg(ProjectId(0))
+      expectMsg(Right(ProjectId(0)))
     }
 
     "return a Some(ActorRef) when sending a valid ProjectId" in {
       val (actor, descr) = projectActorWithStubDescription
-      expectMsg(ProjectId(0))
+      expectMsg(Right(ProjectId(0)))
       actor ! ProjectId(0)
       expectMsgClass(timeout, classOf[Some[ActorRef]])
     }
 
     "return a None when sending a unknown ProjectId" in {
       val (actor, descr) = projectActorWithStubDescription
-      expectMsg(ProjectId(0))
+      expectMsg(Right(ProjectId(0)))
       actor ! ProjectId(1)
       expectMsgAnyOf(timeout, None)
     }
 
     "return same ref when sending same ProjectId" in {
       val (actor, descr) = projectActorWithStubDescription
-      val projId = expectMsg(ProjectId(0))
+      val projId = expectMsg(Right(ProjectId(0))).right.get
       actor ! projId
       val ref = expectMsgClass(timeout, classOf[Some[ActorRef]])
       actor ! projId
@@ -82,7 +87,7 @@ class ProjectsManagerSpec()
     "kill ProjectManager when sending Disconnect" in {
       val (actor, descr) = projectActorWithStubDescription
       //wait until processing of first msg is done
-      expectMsgClass(timeout, classOf[ProjectId])
+      expectMsgClass(timeout, classOf[Right[_,_]])
       actor ! ProjectId(0)
       val probe = TestProbe()
       val target = expectMsgClass(timeout, classOf[Some[ActorRef]]).get
@@ -95,9 +100,9 @@ class ProjectsManagerSpec()
     "not kill ProjectManager if there are multiple clients for same project" in {
       val (actor, descr) = projectActorWithStubDescription
       //wait until processing of first msg is done
-      expectMsgClass(timeout, classOf[ProjectId])
+      expectMsgClass(timeout, classOf[Right[_,_]])
       actor ! descr
-      expectMsgClass(timeout, classOf[ProjectId])
+      expectMsgClass(timeout, classOf[Right[_,_]])
       actor ! Disconnect(0)
       expectMsg(timeout, Some(RemainingClients(1)))
       actor ! Disconnect(0)

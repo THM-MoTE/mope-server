@@ -9,13 +9,19 @@ import java.nio.file.Path
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ModelicaCompiler {
-  def compile(files:List[Path]): Seq[CompilerError]
-  def compileAsync(files:List[Path])(
+  def stop(): Unit
+  def compile(files:List[Path], openedFile:Path): Seq[CompilerError]
+  def compileAsync(files:List[Path], openedFile:Path)(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =
-    Future(compile(files))
+    Future(compile(files, openedFile))
 
   def compileScript(path:Path): Seq[CompilerError]
   def compileScriptAsync(path:Path)(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =
     Future(compileScript(path))
+
+  def checkModel(files:List[Path], path:Path): String
+  def checkModelAsync(files:List[Path], path:Path)(
+    implicit context:ExecutionContext): Future[String] =
+    Future(checkModel(files, path))
 }

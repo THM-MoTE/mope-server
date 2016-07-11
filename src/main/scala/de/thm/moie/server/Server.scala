@@ -4,7 +4,8 @@
 
 package de.thm.moie.server
 
-import akka.actor.{ActorRef, Props}
+import akka.actor.{ActorSystem, ActorRef, Props}
+import akka.stream.ActorMaterializer
 import akka.http.scaladsl.Http
 import de.thm.moie.Global.ApplicationMode
 
@@ -13,17 +14,17 @@ import scala.io.StdIn
 
 class Server() extends Routes with ServerSetup {
 
-  private val escCode = 0x1b
-
+  override implicit lazy val actorSystem = ActorSystem("moie-system", akkaConfig)
+  override implicit lazy val materializer = ActorMaterializer()
   override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
 
   val bindingFuture = Http().bindAndHandle(routes, interface, port)
-  serverlog.info(s"Server running at localhost:$port")
+  serverlog.info("Server running at localhost:{}", port)
   if(applicationMode == ApplicationMode.Development) {
     Future {
       blocking {
         serverlog.info("Press Enter to interrupt")
-        var char = StdIn.readLine()
+        StdIn.readLine()
         bindingFuture.
           flatMap(_.unbind()).
           onComplete(_ => actorSystem.terminate())

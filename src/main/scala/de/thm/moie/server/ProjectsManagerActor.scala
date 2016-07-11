@@ -4,6 +4,7 @@
 
 package de.thm.moie.server
 
+import java.nio.file.{Path, Paths}
 import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
@@ -27,15 +28,20 @@ class ProjectsManagerActor
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
     val executableString = Global.getCompilerExecutable
     val compilerClazz = Global.getCompilerClass
-    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[String])
-    val compiler = constructor.newInstance(description.compilerFlags, executableString, description.outputDirectory)
-    context.actorOf(Props(new ProjectManagerActor(description, compiler)), name = s"proj-manager-$id")
+    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
+    val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
+    val compiler = constructor.newInstance(description.compilerFlags, executableString, outputPath)
+    context.actorOf(Props(new ProjectManagerActor(description, compiler, true)), name = s"proj-manager-$id")
   }
 
   override def handleMsg: Receive = {
     case description:ProjectDescription =>
+      val errors = ProjectDescription.validate(description)
+      if(errors.isEmpty) {
         val id = register.add(description)(newManager)
-        sender ! ProjectId(id)
+        log.debug("Client registered for projId {}", id)
+        sender ! Right(ProjectId(id))
+      } else sender ! Left(errors)
     case ProjectId(id) =>
       sender ! withIdExists(id) { (_, actor) => actor }
     case Disconnect(id) =>
@@ -46,6 +52,7 @@ class ProjectsManagerActor
         case ProjectEntry(_,_,_) =>
           RemainingClients(register.clientCount)
       }
+      log.debug("Client {} disconnected; remaining clients {}", id, register.clientCount)
   }
 
   override def postStop(): Unit = log.info("stopping")

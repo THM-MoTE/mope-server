@@ -15,6 +15,13 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 trait ServerSetup {
+
+  /* Route java.util.logging into slf4j */
+ // remove existing handlers attached to j.u.l root logger
+ org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger();
+ // add SLF4JBridgeHandler to j.u.l's root logger
+ org.slf4j.bridge.SLF4JBridgeHandler.install();
+
   val serverName = "moie-server"
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode").getOrElse("prod"))
 
@@ -23,12 +30,15 @@ trait ServerSetup {
       setup.serverName
   }
 
-  private val akkaConfig = ConfigFactory.parseFile(
+  val akkaConfig = ConfigFactory.parseFile(
     new java.io.File(configFileURL.toURI))
 
-  implicit val actorSystem = ActorSystem("moie-system", akkaConfig)
-  implicit val execContext = actorSystem.dispatcher
-  implicit val materializer = ActorMaterializer()
+  /** Overwrite as lazy val! */
+  implicit def actorSystem:ActorSystem
+  /** Overwrite as lazy val! */
+  implicit def execContext = actorSystem.dispatcher
+  /** Overwrite as lazy val! */
+  implicit def materializer:ActorMaterializer
   implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout").getOrElse(20) seconds)
 
   val serverlog = Logging(actorSystem, this)

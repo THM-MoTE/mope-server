@@ -17,13 +17,15 @@ import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.io.Source
+import de.thm.moie.utils.ThreadUtils
 import scala.collection._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ProjectManagerActor(description:ProjectDescription,
-                          compiler:ModelicaCompiler)
+                          compiler:ModelicaCompiler,
+                          indexFiles:Boolean = true)
   extends Actor
   with UnhandledReceiver
   with LogMessages {
@@ -33,24 +35,25 @@ class ProjectManagerActor(description:ProjectDescription,
 
   implicit val timeout = Timeout(5 seconds)
 
-  val executor = Executors.newCachedThreadPool()
 
   def filterLines(line:String):Boolean = line.isEmpty
 
   val keywords =
     Global.readValuesFromResource(getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _)
-
   val types =
     Global.readValuesFromResource(getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _)
 
+  val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOIE-"+self.path.name))
   implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
 
-  private val projectFiles = mutable.ArrayBuffer[Path]()
+  private var projectFiles = List[Path]()
   private var compileErrors = Seq[CompilerError]()
 
-  private def getProjectFiles = projectFiles.sorted.toList
+  def getProjectFiles:Future[List[Path]] =
+    if(indexFiles) Future.successful(projectFiles)
+    else Future(FileWatchingActor.getFiles(rootDir, FileWatchingActor.moFileFilter).sorted)
 
   private def getDefaultScriptPath:Future[Path] = Future {
     val defaultScript = description.buildScript.getOrElse("build.mos")
@@ -61,49 +64,60 @@ class ProjectManagerActor(description:ProjectDescription,
       throw new NotFoundException(s"Can't find script called $defaultScript!")
   }
 
+  def withExists[T](p:Path)(fn: => Future[T]): Future[T] =
+    if(Files.exists(p)) fn
+    else Future.failed(new NotFoundException(s"Can't find file $p!"))
+
   override def preStart() =
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
-      errors <- compiler.compileAsync(files)
     } {
-      self ! InitialInfos(files, errors)
+      self ! InitialInfos(files, Nil)
     }
 
  def errorInProjectFile(error:CompilerError): Boolean =
+   error.file.isEmpty ||
    Paths.get(error.file).startsWith(rootDir) ||
    Paths.get(error.file).startsWith(rootDir.toRealPath())
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
-      projectFiles.clear()
-      projectFiles ++= files
+      projectFiles = files.toList.sorted
       compileErrors = errors
       context become initialized
   }
 
   private def initialized: Receive = {
-    case CompileProject =>
-      compiler.
-        compileAsync(getProjectFiles).
-        map(_.filter(errorInProjectFile)).
-        pipeTo(sender)
+    case CompileProject(file) =>
+      withExists(file) {
+        for {
+          files <- getProjectFiles
+          errors <- compiler.compileAsync(files, file)
+          filteredErrors = errors.filter(errorInProjectFile)
+        } yield filteredErrors
+      } pipeTo sender
     case NewFiles(files) =>
-      projectFiles ++= files
+      projectFiles = (files ++ projectFiles).toList.sorted
     case NewPath(p) if Files.isDirectory(p) =>
       for {
         files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
       } yield self ! NewFiles(files)
     case NewPath(p) =>
-      projectFiles += p
+      projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
-      val filesToRemove = projectFiles.filter { path => path.startsWith(p) }
-      projectFiles --= filesToRemove
+      projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
+    case CheckModel(file) =>
+      withExists(file)(for {
+        files <- getProjectFiles
+        msg <- compiler.checkModelAsync(files, file)
+      } yield msg) pipeTo sender
     case CompileScript(path) =>
-      (for {
-        errors <- compiler.compileScriptAsync(path)
-        filteredErrors = errors.filter(errorInProjectFile)
-        _ = printDebug(filteredErrors)
-      } yield filteredErrors) pipeTo sender
+      withExists(path) {
+        for {
+          errors <- compiler.compileScriptAsync(path)
+          filteredErrors = errors.filter(errorInProjectFile)
+        } yield filteredErrors
+      } pipeTo sender
     case CompileDefaultScript =>
       (for {
         path <- getDefaultScriptPath
@@ -114,23 +128,28 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
-    log.debug(s"Compiled project ${description.path} with" +
-      (if(errors.isEmpty) " no errors" else errors.mkString("\n"))
-    )
+    log.debug("Compiled project {} with {}", description.path,
+      if(errors.isEmpty) " no errors" else errors.mkString("\n"))
   }
 
   override def postStop(): Unit = {
+    compiler.stop()
     executor.shutdown()
-    executor.awaitTermination(2, TimeUnit.SECONDS)
+    if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+      log.warning("Force shutdown threadpool")
+      executor.shutdownNow()
+    }
+
     log.info("stopping")
   }
 }
 
 object ProjectManagerActor {
   sealed trait ProjectManagerMsg
-  case object CompileProject extends ProjectManagerMsg
+  case class CompileProject(file:Path) extends ProjectManagerMsg
   case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
+  case class CheckModel(path:Path) extends ProjectManagerMsg
   private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
   private[ProjectManagerActor] case class NewFiles(files:Seq[Path])

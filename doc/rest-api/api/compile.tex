@@ -3,12 +3,13 @@ Compiles all files from the project identified by the given \code{id}.
 
 \begin{itemize}
 \item \textbf{URL} \code{/moie/project/:id/compile}
-\item \textbf{Method} \code{GET}
+\item \textbf{Method} \code{POST}
 
 \item \textbf{URL Params}
   \newline\textbf{Required} \code{id=[integer]}
 
-\item \textbf{Data Params} Empty
+\item \textbf{Data Params} An \code{FilePath}-object with a path to the currently opened file.
+  
 
 \item \textbf{Success Response}
   \newline\textbf{Code} 200 OK
@@ -25,6 +26,10 @@ Compiles all files from the project identified by the given \code{id}.
   \newline\textbf{Cause} Given id is unknown.
   \newline\textbf{Code} 404 Not Found
   \newline\textbf{Content} \code{unknown project-id :id}
+
+  \textbf{Cause} Given filepath is unknown.
+  \newline\textbf{Code} 404 Not Found
+  \newline\textbf{Content} \code{Can't find file :path}
 
 \item \textbf{Sample Call}
 \end{itemize}
