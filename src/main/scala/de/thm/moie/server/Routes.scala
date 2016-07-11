@@ -38,10 +38,8 @@ trait Routes extends JsonSupport with ErrorHandling {
 
   private def disconnectWithExit(id:Int):Unit =
     (projectsManager ? Disconnect(id)).
-      mapTo[Option[RemainingClients]].flatMap {
-        case Some(RemainingClients(0)) if exitOnLastDisconnect =>
-          Future.successful(())
-        case _ => Future.failed(new Exception())
+      mapTo[Option[RemainingClients]].collect {
+        case Some(RemainingClients(0)) if exitOnLastDisconnect => ()
       }.foreach { _ =>
         shutdown("no active clients left")
       }
