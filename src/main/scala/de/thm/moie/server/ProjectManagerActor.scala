@@ -88,6 +88,7 @@ class ProjectManagerActor(description:ProjectDescription,
           files <- getProjectFiles
           errors <- compiler.compileAsync(files, file)
           filteredErrors = errors.filter(errorInProjectFile)
+          _ = printDebug(filteredErrors)
         } yield filteredErrors
       } pipeTo sender
     case NewFiles(files) =>
@@ -99,18 +100,21 @@ class ProjectManagerActor(description:ProjectDescription,
     case NewPath(p) =>
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
+      log.debug("Deleted {}", p)
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
     case x:CompletionRequest => completionActor forward x
     case CheckModel(file) =>
       withExists(file)(for {
         files <- getProjectFiles
         msg <- compiler.checkModelAsync(files, file)
+        _ = log.debug("Checked model from {} with {}", file, msg:Any)
       } yield msg) pipeTo sender
     case CompileScript(path) =>
       withExists(path) {
         for {
           errors <- compiler.compileScriptAsync(path)
           filteredErrors = errors.filter(errorInProjectFile)
+          _ = printDebug(filteredErrors)
         } yield filteredErrors
       } pipeTo sender
     case CompileDefaultScript =>

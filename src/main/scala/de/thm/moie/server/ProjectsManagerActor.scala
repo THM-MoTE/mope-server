@@ -20,6 +20,8 @@ class ProjectsManagerActor
 
   private val register = new ProjectRegister()
 
+  private val indexFiles = Global.config.getBoolean("indexFiles").getOrElse(true)
+
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
     register.get(id) map {
       case ProjectEntry(descr, actor, _) => f(descr, actor)
@@ -31,7 +33,7 @@ class ProjectsManagerActor
     val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
     val compiler = constructor.newInstance(description.compilerFlags, executableString, outputPath)
-    context.actorOf(Props(new ProjectManagerActor(description, compiler, true)), name = s"proj-manager-$id")
+    context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
   }
 
   override def handleMsg: Receive = {
@@ -39,7 +41,7 @@ class ProjectsManagerActor
       val errors = ProjectDescription.validate(description)
       if(errors.isEmpty) {
         val id = register.add(description)(newManager)
-        log.debug("Client registered for projId {}", id)
+        log.debug("Client registered for id {}", id)
         sender ! Right(ProjectId(id))
       } else sender ! Left(errors)
     case ProjectId(id) =>

@@ -17,6 +17,11 @@ package object moie {
     FilePosition(3,9),
     "Parse error: The identifier at start and end are different")
 
+  def semanticInvalidFileError(file:Path) = CompilerError("Error",
+      file.toRealPath().toString,
+      FilePosition(2,7),FilePosition(2,22),
+      "Type mismatch in binding x = \"test\", expected subtype of Real, got type String.")
+
   def invalidScriptError(file:Path) = CompilerError("Error",
     file.toRealPath().toString,
     FilePosition(1,1),
@@ -36,6 +41,11 @@ package object moie {
   def createInvalidFile(parent:Path):Path = {
     val path = parent.resolve("invalidFile.mo")
     createFile("/invalidFile.mo", path)
+  }
+
+  def createSemanticInvalidFile(parent:Path):Path = {
+    val path = parent.resolve("invalidSemanticFile.mo")
+    createFile("/invalidSemanticFile.mo", path)
   }
 
   def createValidScript(parent:Path):Path = {
