@@ -102,6 +102,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
       modelnameOpt.
         map(omc.checkModel(_)).
+        map(killTrailingHyphens).
         getOrElse("")
     }
   }
