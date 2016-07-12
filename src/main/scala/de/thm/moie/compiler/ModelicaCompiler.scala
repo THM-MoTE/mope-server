@@ -24,4 +24,9 @@ trait ModelicaCompiler {
   def checkModelAsync(files:List[Path], path:Path)(
     implicit context:ExecutionContext): Future[String] =
     Future(checkModel(files, path))
+
+  def getClasses(className:String): Set[(String, String)]
+  def getClassesAsync(className:String)(
+    implicit context:ExecutionContext): Future[Set[(String, String)]] =
+      Future(getClasses(className))
 }

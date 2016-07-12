@@ -1,5 +1,6 @@
 package de.thm.moie.server
 
+import java.nio.file.Files
 import akka.testkit.TestActorRef
 import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.project.{CompletionRequest, CompletionResponse}
@@ -9,9 +10,10 @@ import scala.language.postfixOps
 import scala.concurrent.Await
 
 class CodeCompletionActorSpec extends ActorSpec {
-  val testRef = TestActorRef[CodeCompletionActor](new CodeCompletionActor())
+  val path = Files.createTempDirectory("moie")
+  val compiler = new OMCompiler(Nil, "omc", path.resolve("target"))
+  val testRef = TestActorRef[CodeCompletionActor](new CodeCompletionActor(compiler))
   val completionActor = testRef.underlyingActor
-
 
   def simpleRequest(word:String) = CompletionRequest("unknown", FilePosition(0,0), word)
 
@@ -75,6 +77,40 @@ class CodeCompletionActorSpec extends ActorSpec {
 
       testRef ! simpleRequest("In")
       expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Integer", None)))
+    }
+
+    "return package-names" in {
+      testRef ! simpleRequest("Modelica.Electrical.")
+      val names = Set(
+      "Modelica.Electrical.Analog",
+      "Modelica.Electrical.Digital",
+      "Modelica.Electrical.Machines",
+      "Modelica.Electrical.MultiPhase",
+      "Modelica.Electrical.QuasiStationary",
+      "Modelica.Electrical.Spice3")
+
+      expectMsg(10 seconds, names.map(CompletionResponse(CompletionType.Type, _ , None)))
+
+      val names2 = Set(
+        "Modelica.UsersGuide",
+        "Modelica.Blocks",
+        "Modelica.ComplexBlocks",
+        "Modelica.StateGraph",
+        "Modelica.Electrical",
+        "Modelica.Magnetic",
+        "Modelica.Mechanics",
+        "Modelica.Fluid",
+        "Modelica.Media",
+        "Modelica.Thermal",
+        "Modelica.Math",
+        "Modelica.ComplexMath",
+        "Modelica.Utilities",
+        "Modelica.Constants",
+        "Modelica.Icons",
+        "Modelica.SIunits")
+
+      testRef ! simpleRequest("Modelica.")
+      expectMsg(10 seconds, names2.map(CompletionResponse(CompletionType.Type, _ , None)))
     }
   }
 }

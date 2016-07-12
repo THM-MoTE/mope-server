@@ -5,6 +5,7 @@ import java.nio.file.Path
 import akka.pattern.pipe
 import akka.actor.Actor
 import de.thm.moie.Global
+import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.project.{CompletionRequest, CompletionResponse}
 import de.thm.moie.utils.actors.UnhandledReceiver
@@ -12,7 +13,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 import scala.collection.Seq
 import scala.concurrent.Future
 
-class CodeCompletionActor
+class CodeCompletionActor(compiler:ModelicaCompiler)
   extends Actor
     with UnhandledReceiver
     with LogMessages {
@@ -29,6 +30,14 @@ class CodeCompletionActor
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
 
   override def handleMsg: Receive = {
+    case CompletionRequest(_,_,word) if word.endsWith(".") =>
+      log.debug("word {}", word)
+      compiler.getClassesAsync(word.dropRight(1)).
+      map { set =>
+        set.map { case (name, tpe) =>
+          CompletionResponse(CompletionType.withName(tpe), name, None)
+        }
+      } pipeTo sender
     case CompletionRequest(_,_,word) =>
       findClosestMatch(word, keywords ++ types).map { set =>
         set.map { x =>

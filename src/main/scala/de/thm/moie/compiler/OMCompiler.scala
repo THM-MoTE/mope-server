@@ -107,6 +107,20 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
   }
 
+  override def getClasses(className: String): Set[(String, String)] = {
+    val classNames = omc.getList("getClassNames", className,
+      java.lang.Boolean.valueOf(false),
+      java.lang.Boolean.valueOf(true)).asScala
+
+    log.debug("classNames {}", classNames)
+    val xs = classNames.map { x =>
+      if(omc.is_("Function", x)) x -> "Function"
+      else x -> "Type"
+    }.toSet
+    log.debug("is* {}", xs)
+    xs
+  }
+
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
