@@ -13,8 +13,9 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.thm.moie._
-import de.thm.moie.compiler.CompilerError
-import de.thm.moie.project.FilePath
+import de.thm.moie.compiler.{CompilerError, FilePosition}
+import de.thm.moie.project.CompletionResponse.CompletionType
+import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -179,6 +180,32 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         Thread.sleep(5000)
         status shouldEqual StatusCodes.OK
         responseAs[List[CompilerError]] shouldBe empty
+      }
+    }
+
+    "return keyword completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "an")
+      val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None))
+      val completionRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Set[CompletionResponse]] shouldBe exp
+      }
+    }
+
+    "return type completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "Int")
+      val exp = Set("Integer").map(CompletionResponse(CompletionType.Type, _, None))
+      val completionRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Set[CompletionResponse]] shouldBe exp
       }
     }
 

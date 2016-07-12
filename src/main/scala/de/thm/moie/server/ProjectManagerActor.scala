@@ -12,7 +12,7 @@ import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import de.thm.moie.Global
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
-import de.thm.moie.project.{Completion, InternalProjectConfig, ProjectDescription}
+import de.thm.moie.project.{CompletionRequest, InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
@@ -100,7 +100,7 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
-    case x:Completion => completionActor forward x
+    case x:CompletionRequest => completionActor forward x
     case CheckModel(file) =>
       withExists(file)(for {
         files <- getProjectFiles
