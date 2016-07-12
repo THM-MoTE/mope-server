@@ -73,6 +73,7 @@ class ProjectManagerActor(description:ProjectDescription,
     case InitialInfos(files, errors) =>
       projectFiles = files.toList.sorted
       compileErrors = errors
+      log.debug("initialized")
       context become initialized
   }
 

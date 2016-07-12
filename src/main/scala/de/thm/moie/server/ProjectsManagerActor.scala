@@ -33,6 +33,7 @@ class ProjectsManagerActor
     val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
     val compiler = constructor.newInstance(description.compilerFlags, executableString, outputPath)
+    log.debug("new manager for id:{}", id)
     context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
   }
 
@@ -41,7 +42,7 @@ class ProjectsManagerActor
       val errors = ProjectDescription.validate(description)
       if(errors.isEmpty) {
         val id = register.add(description)(newManager)
-        log.debug("Client registered for id {}", id)
+        log.debug("Client registered for id:{}", id)
         sender ! Right(ProjectId(id))
       } else sender ! Left(errors)
     case ProjectId(id) =>
