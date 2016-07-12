@@ -10,8 +10,16 @@ trait ErrorHandling {
   this: ServerSetup =>
 
   def exceptionHandler: ExceptionHandler = ExceptionHandler {
-    case ex:NotFoundException => complete(HttpResponse(StatusCodes.NotFound, entity = ex.msg))
-    case ex:NoSuchElementException => complete(HttpResponse(StatusCodes.NotFound, entity = ex.getMessage))
+    case ex:NotFoundException =>
+      extractUri { uri =>
+        serverlog.debug("got NotFoundExc for {}", uri)
+        complete(HttpResponse(StatusCodes.NotFound, entity = ex.msg))
+      }
+    case ex:NoSuchElementException =>
+      extractUri { uri =>
+        serverlog.debug("got NoSucheElementExc for {}", uri)
+        complete(HttpResponse(StatusCodes.NotFound, entity = ex.getMessage))
+      }
     case ex:Exception =>
       extractUri { uri =>
         serverlog.error(s"Error by request $uri {}", ex)

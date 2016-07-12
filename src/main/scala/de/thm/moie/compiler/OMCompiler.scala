@@ -90,13 +90,13 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     withOutputDir(startDir) {
       omc.sendExpression("clear()")
       val resScript = omc.sendExpression(s"""runScript(${asString(path)})""")
+      log.debug("runScript returned {}", resScript)
       parseResult(resScript)
     }
   }
 
 
   override def checkModel(files:List[Path], path: Path): String = {
-    //TODO load package.mo directories same as in compile
     setupProject(files) { _ =>
       val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
       log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
