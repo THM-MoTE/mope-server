@@ -43,7 +43,7 @@ class ProjectsManagerSpec()
   }
 
   override def afterAll(): Unit = {
-    removeDirectoryTree(projPath)
+    de.thm.moie.removeDirectoryTree(projPath)
   }
 
   "A ProjectsManager" must {

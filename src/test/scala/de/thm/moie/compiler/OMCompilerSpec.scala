@@ -28,6 +28,11 @@ class OMCompilerSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     compiler.compile(files, files.head) shouldBe List(invalidFileError(files.head))
   }
 
+  it should "return 1 type-error for invalid modelica files" in {
+    val files = List(createSemanticInvalidFile(path))
+    compiler.compile(files, files.head) shouldBe List(semanticInvalidFileError(files.head))
+  }
+
   it should "return no errors for valid modelica script files" in {
     val file = createValidScript(path)
     compiler.compileScript(file) shouldBe empty
