@@ -5,6 +5,7 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path}
 
+import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.server.NotFoundException
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
@@ -107,15 +108,18 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
   }
 
-  override def getClasses(className: String): Set[(String, String)] = {
+  override def getClasses(className: String): Set[(String, CompletionType.Value)] = {
     val classNames = omc.getList("getClassNames", className,
       java.lang.Boolean.valueOf(false),
       java.lang.Boolean.valueOf(true)).asScala
 
     log.debug("classNames {}", classNames)
     val xs = classNames.map { x =>
-      if(omc.is_("Function", x)) x -> "Function"
-      else x -> "Type"
+      if(omc.is_("Function", x)) x -> CompletionType.Function
+      else if(omc.is_("Package", x)) x -> CompletionType.Package
+      else if(omc.is_("Type", x)) x -> CompletionType.Type
+      else if(omc.is_("Model", x)) x -> CompletionType.Model
+      else x -> CompletionType.Class
     }.toSet
     log.debug("is* {}", xs)
     xs

@@ -7,6 +7,6 @@ case class CompletionResponse(completionType: CompletionType.Value,
 
 object CompletionResponse {
   object CompletionType extends Enumeration {
-    val Type, Variable, Function, Keyword = Value
+    val Type, Variable, Function, Keyword, Package, Model, Class = Value
   }
 }

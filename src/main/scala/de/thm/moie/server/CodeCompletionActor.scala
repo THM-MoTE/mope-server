@@ -35,7 +35,7 @@ class CodeCompletionActor(compiler:ModelicaCompiler)
       compiler.getClassesAsync(word.dropRight(1)).
       map { set =>
         set.map { case (name, tpe) =>
-          CompletionResponse(CompletionType.withName(tpe), name, None)
+          CompletionResponse(tpe, name, None)
         }
       } pipeTo sender
     case CompletionRequest(_,_,word) =>

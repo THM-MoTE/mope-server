@@ -4,6 +4,7 @@
 
 package de.thm.moie.compiler
 
+import de.thm.moie.project.CompletionResponse.CompletionType
 import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,8 +26,8 @@ trait ModelicaCompiler {
     implicit context:ExecutionContext): Future[String] =
     Future(checkModel(files, path))
 
-  def getClasses(className:String): Set[(String, String)]
+  def getClasses(className:String): Set[(String, CompletionType.Value)]
   def getClassesAsync(className:String)(
-    implicit context:ExecutionContext): Future[Set[(String, String)]] =
+    implicit context:ExecutionContext): Future[Set[(String, CompletionType.Value)]] =
       Future(getClasses(className))
 }
