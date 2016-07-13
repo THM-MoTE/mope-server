@@ -5,7 +5,7 @@ import java.nio.file.Path
 import akka.pattern.pipe
 import akka.actor.Actor
 import de.thm.moie.Global
-import de.thm.moie.compiler.ModelicaCompiler
+import de.thm.moie.compiler.CompletionLike
 import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.project.{CompletionRequest, CompletionResponse}
 import de.thm.moie.utils.actors.UnhandledReceiver
@@ -13,7 +13,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 import scala.collection.Seq
 import scala.concurrent.Future
 
-class CodeCompletionActor(compiler:ModelicaCompiler)
+class CodeCompletionActor(compiler:CompletionLike)
   extends Actor
     with UnhandledReceiver
     with LogMessages {

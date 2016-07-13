@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ModelicaCompiler {
+trait ModelicaCompiler extends CompletionLike {
   def stop(): Unit
   def compile(files:List[Path], openedFile:Path): Seq[CompilerError]
   def compileAsync(files:List[Path], openedFile:Path)(
@@ -25,9 +25,4 @@ trait ModelicaCompiler {
   def checkModelAsync(files:List[Path], path:Path)(
     implicit context:ExecutionContext): Future[String] =
     Future(checkModel(files, path))
-
-  def getClasses(className:String): Set[(String, CompletionType.Value)]
-  def getClassesAsync(className:String)(
-    implicit context:ExecutionContext): Future[Set[(String, CompletionType.Value)]] =
-      Future(getClasses(className))
 }
