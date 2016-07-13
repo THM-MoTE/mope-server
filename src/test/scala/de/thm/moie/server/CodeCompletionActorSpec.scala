@@ -89,7 +89,7 @@ class CodeCompletionActorSpec extends ActorSpec {
       "Modelica.Electrical.QuasiStationary",
       "Modelica.Electrical.Spice3")
 
-      expectMsg(10 seconds, names.map(CompletionResponse(CompletionType.Type, _ , None)))
+      expectMsg(10 seconds, names.map(CompletionResponse(CompletionType.Package, _ , None)))
 
       val names2 = Set(
         "Modelica.UsersGuide",
@@ -110,7 +110,7 @@ class CodeCompletionActorSpec extends ActorSpec {
         "Modelica.SIunits")
 
       testRef ! simpleRequest("Modelica.")
-      expectMsg(10 seconds, names2.map(CompletionResponse(CompletionType.Type, _ , None)))
+      expectMsg(10 seconds, names2.map(CompletionResponse(CompletionType.Package, _ , None)))
     }
   }
 }

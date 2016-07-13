@@ -129,60 +129,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
-    "return errors for /compile" in {
-      val invalidFile = createInvalidFile(projPath)
-      val compileRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compile",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
-      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
-      compileRequest ~> service.routes ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]].size should be >= (1)
-      }
-
-      Files.delete(invalidFile)
-      val validFile = createValidFile(projPath)
-
-      val compileRequest2 = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compile",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
-
-      compileRequest2 ~> service.routes ~> check {
-        Thread.sleep(5000)
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]] shouldBe empty
-      }
-    }
-
-    "return errors for /compileScript" in {
-      val invalidScript = createInvalidScript(projPath)
-      val compileRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
-      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
-      compileRequest ~> service.routes ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]].size should be >= (1)
-      }
-
-      Files.delete(invalidScript)
-      val validFile = createValidScript(projPath)
-
-      val compileRequest2 = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
-
-      compileRequest2 ~> service.routes ~> check {
-        Thread.sleep(5000)
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]] shouldBe empty
-      }
-    }
-
     "return keyword completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "an")
       val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None))
@@ -208,6 +154,82 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         responseAs[Set[CompletionResponse]] shouldBe exp
       }
     }
+
+    "return package completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "Modelica.Electrical.")
+      val exp = Set(
+        "Modelica.Electrical.Analog",
+        "Modelica.Electrical.Digital",
+        "Modelica.Electrical.Machines",
+        "Modelica.Electrical.MultiPhase",
+        "Modelica.Electrical.QuasiStationary",
+        "Modelica.Electrical.Spice3").
+        map(CompletionResponse(CompletionType.Package, _, None))
+
+      val completionRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Set[CompletionResponse]] shouldBe exp
+      }
+    }
+
+
+        "return errors for /compile" in {
+          val invalidFile = createInvalidFile(projPath)
+          val compileRequest = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compile",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
+          Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+          compileRequest ~> service.routes ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]].size should be >= (1)
+          }
+
+          Files.delete(invalidFile)
+          val validFile = createValidFile(projPath)
+
+          val compileRequest2 = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compile",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
+
+          compileRequest2 ~> service.routes ~> check {
+            Thread.sleep(5000)
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]] shouldBe empty
+          }
+        }
+
+        "return errors for /compileScript" in {
+          val invalidScript = createInvalidScript(projPath)
+          val compileRequest = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compileScript",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
+          Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+          compileRequest ~> service.routes ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]].size should be >= (1)
+          }
+
+          Files.delete(invalidScript)
+          val validFile = createValidScript(projPath)
+
+          val compileRequest2 = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compileScript",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
+
+          compileRequest2 ~> service.routes ~> check {
+            Thread.sleep(5000)
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]] shouldBe empty
+          }
+        }
 
     "shutdown when calling /stop-server" in {
       Post("/moie/stop-server") ~> service.routes ~> check {
