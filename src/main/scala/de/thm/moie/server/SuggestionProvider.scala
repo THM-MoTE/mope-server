@@ -1,16 +1,13 @@
 package de.thm.moie.server
 
-import java.nio.file.Path
-
-import akka.pattern.pipe
 import akka.actor.Actor
+import akka.pattern.pipe
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompletionLike
 import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.project.{CompletionRequest, CompletionResponse}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
-import scala.collection.Seq
 import scala.concurrent.Future
 
 class SuggestionProvider(compiler:CompletionLike)
@@ -45,18 +42,47 @@ class SuggestionProvider(compiler:CompletionLike)
         }
       } pipeTo sender
     case CompletionRequest(_,_,word) =>
-      findClosestMatch(word, keywords ++ types).map { set =>
-        set.map { x =>
-          if(keywords.contains(x))
-            CompletionResponse(CompletionType.Keyword, x, None, None)
-          else if(types.contains(x))
-            CompletionResponse(CompletionType.Type, x, None, None)
-          else {
-            CompletionResponse(CompletionType.Keyword, x, None, None)
-            log.warning("Couldn't find CompletionType for {}", x)
-          }
+      val future1 = closestKeyWordType(word)
+      val future2 = findMatchingClasses(word)
+      (for {
+        closestKeywordsTypes <- future1
+        closestClasses <- future2
+      } yield closestKeywordsTypes ++ closestClasses) pipeTo sender
+  }
+
+  private def closestKeyWordType(word:String): Future[Set[CompletionResponse]] =
+    findClosestMatch(word, keywords ++ types).map { set =>
+      set.map { x =>
+        if (keywords.contains(x))
+          CompletionResponse(CompletionType.Keyword, x, None, None)
+        else if (types.contains(x))
+          CompletionResponse(CompletionType.Type, x, None, None)
+        else {
+          log.warning("Couldn't find CompletionType for {}", x)
+          CompletionResponse(CompletionType.Keyword, x, None, None)
         }
-      } pipeTo sender
+      }
+    }
+
+  private def findMatchingClasses(word:String): Future[Set[CompletionResponse]] = {
+    val pointIdx = word.lastIndexOf(".")
+    if(pointIdx == -1) Future(Set())
+    else {
+      val parentPackage = word.substring(0, pointIdx)
+      val searchingWord = word.substring(pointIdx+1)
+      compiler.getClassesAsync(parentPackage).flatMap { clazzes =>
+        val classMap = clazzes.toMap
+        val classNames = clazzes.map(_._1)
+        findClosestMatch(word, classNames).map { set =>
+          val xs = set.map { clazz =>
+            val classComment = compiler.getClassDocumentation(clazz)
+            CompletionResponse(classMap(clazz), clazz, None, classComment)
+          }
+          log.debug("final suggestions: {}", xs)
+          xs
+        }
+      }
+    }
   }
 
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {

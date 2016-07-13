@@ -118,5 +118,22 @@ class SuggestionProviderSpec extends ActorSpec {
       testRef ! simpleRequest("Modelica.")
       expectMsg(10 seconds, exp2)
     }
+
+    "return names for started classes" in {
+      val exp = Set(CompletionResponse(CompletionType.Package, "Modelica.Electrical",
+        None,
+        Some("Library of electrical models (analog, digital, machines, multi-phase)")))
+      testRef ! simpleRequest("Modelica.Elec")
+      expectMsg(10 seconds, exp)
+
+      val exp2 = Set(
+        "Modelica.Magnetic" -> "Library of magnetic models",
+        "Modelica.Math" -> "Library of mathematical functions (e.g., sin, cos) and of functions operating on vectors and matrices").
+        map {
+        case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+      }
+      testRef ! simpleRequest("Modelica.Ma")
+      expectMsg(10 seconds, exp2)
+    }
   }
 }
