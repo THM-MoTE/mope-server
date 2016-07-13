@@ -14,4 +14,5 @@ trait CompletionLike {
       Future(getClasses(className))
 
   def getParameters(className:String): List[(String, Option[String])]
+  def getClassDocumentation(className:String): Option[String]
 }

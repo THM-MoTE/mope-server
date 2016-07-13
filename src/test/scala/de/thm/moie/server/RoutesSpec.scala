@@ -131,7 +131,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return keyword completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "an")
-      val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None))
+      val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
         uri = "/moie/project/0/completion",
@@ -144,7 +144,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return type completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "Int")
-      val exp = Set("Integer").map(CompletionResponse(CompletionType.Type, _, None))
+      val exp = Set("Integer").map(CompletionResponse(CompletionType.Type, _, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
         uri = "/moie/project/0/completion",
@@ -158,13 +158,15 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     "return package completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "Modelica.Electrical.")
       val exp = Set(
-        "Modelica.Electrical.Analog",
-        "Modelica.Electrical.Digital",
-        "Modelica.Electrical.Machines",
-        "Modelica.Electrical.MultiPhase",
-        "Modelica.Electrical.QuasiStationary",
-        "Modelica.Electrical.Spice3").
-        map(CompletionResponse(CompletionType.Package, _, None))
+        "Modelica.Electrical.Analog" -> "Library for analog electrical models",
+        "Modelica.Electrical.Digital" -> "Library for digital electrical components based on the VHDL standard with 9-valued logic and conversion to 2-,3-,4-valued logic",
+        "Modelica.Electrical.Machines" -> "Library for electric machines",
+        "Modelica.Electrical.MultiPhase" -> "Library for electrical components with 2, 3 or more phases",
+        "Modelica.Electrical.QuasiStationary" -> "Library for quasi-stationary electrical singlephase and multiphase AC simulation",
+        "Modelica.Electrical.Spice3" -> "Library for components of the Berkeley SPICE3 simulator").
+        map {
+          case (name, classComment) => CompletionResponse(CompletionType.Package, name, None, Some(classComment))
+        }
 
       val completionRequest = HttpRequest(
         HttpMethods.POST,

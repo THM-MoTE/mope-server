@@ -50,11 +50,11 @@ class SuggestionProviderSpec extends ActorSpec {
   "CodeCompletionActor" should {
     "return a keyword completion" in {
       testRef ! simpleRequest("func")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "function", None)))
+      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "function", None, None)))
 
       testRef ! simpleRequest("im")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "import", None),
-                                CompletionResponse(CompletionType.Keyword, "impure", None)))
+      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "import", None, None),
+                                CompletionResponse(CompletionType.Keyword, "impure", None, None)))
 
       val erg = Set(
         "each",
@@ -67,50 +67,56 @@ class SuggestionProviderSpec extends ActorSpec {
         "equation",
         "expandable",
         "extends",
-        "external").map(CompletionResponse(CompletionType.Keyword, _, None))
+        "external").map(CompletionResponse(CompletionType.Keyword, _, None, None))
       testRef ! simpleRequest("e")
       expectMsg(5 seconds, erg)
     }
     "return a type completion" in {
       testRef ! simpleRequest("B")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Boolean", None)))
+      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Boolean", None, None)))
 
       testRef ! simpleRequest("In")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Integer", None)))
+      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Integer", None, None)))
     }
 
     "return package-names" in {
       testRef ! simpleRequest("Modelica.Electrical.")
-      val names = Set(
-      "Modelica.Electrical.Analog",
-      "Modelica.Electrical.Digital",
-      "Modelica.Electrical.Machines",
-      "Modelica.Electrical.MultiPhase",
-      "Modelica.Electrical.QuasiStationary",
-      "Modelica.Electrical.Spice3")
+      val exp = Set(
+      "Modelica.Electrical.Analog" -> "Library for analog electrical models",
+      "Modelica.Electrical.Digital" -> "Library for digital electrical components based on the VHDL standard with 9-valued logic and conversion to 2-,3-,4-valued logic",
+      "Modelica.Electrical.Machines" -> "Library for electric machines",
+      "Modelica.Electrical.MultiPhase" -> "Library for electrical components with 2, 3 or more phases",
+      "Modelica.Electrical.QuasiStationary" -> "Library for quasi-stationary electrical singlephase and multiphase AC simulation",
+      "Modelica.Electrical.Spice3" -> "Library for components of the Berkeley SPICE3 simulator").
+      map {
+        case (name, classComment) => CompletionResponse(CompletionType.Package, name, None, Some(classComment))
+      }
 
-      expectMsg(10 seconds, names.map(CompletionResponse(CompletionType.Package, _ , None)))
+      expectMsg(10 seconds, exp)
 
-      val names2 = Set(
-        "Modelica.UsersGuide",
-        "Modelica.Blocks",
-        "Modelica.ComplexBlocks",
-        "Modelica.StateGraph",
-        "Modelica.Electrical",
-        "Modelica.Magnetic",
-        "Modelica.Mechanics",
-        "Modelica.Fluid",
-        "Modelica.Media",
-        "Modelica.Thermal",
-        "Modelica.Math",
-        "Modelica.ComplexMath",
-        "Modelica.Utilities",
-        "Modelica.Constants",
-        "Modelica.Icons",
-        "Modelica.SIunits")
+      val exp2 = Set(
+        "Modelica.UsersGuide" -> "User's Guide",
+        "Modelica.Blocks"-> "Library of basic input/output control blocks (continuous, discrete, logical, table blocks)",
+        "Modelica.ComplexBlocks" -> "Library of basic input/output control blocks with Complex signals",
+        "Modelica.StateGraph" -> "Library of hierarchical state machine components to model discrete event and reactive systems",
+        "Modelica.Electrical" -> "Library of electrical models (analog, digital, machines, multi-phase)",
+        "Modelica.Magnetic" -> "Library of magnetic models",
+        "Modelica.Mechanics" -> "Library of 1-dim. and 3-dim. mechanical components (multi-body, rotational, translational)",
+        "Modelica.Fluid" -> "Library of 1-dim. thermo-fluid flow models using the Modelica.Media media description",
+        "Modelica.Media" -> "Library of media property models",
+        "Modelica.Thermal" -> "Library of thermal system components to model heat transfer and simple thermo-fluid pipe flow",
+        "Modelica.Math" -> "Library of mathematical functions (e.g., sin, cos) and of functions operating on vectors and matrices",
+        "Modelica.ComplexMath" -> "Library of complex mathematical functions (e.g., sin, cos) and of functions operating on complex vectors and matrices",
+        "Modelica.Utilities" -> "Library of utility functions dedicated to scripting (operating on files, streams, strings, system)",
+        "Modelica.Constants" -> "Library of mathematical constants and constants of nature (e.g., pi, eps, R, sigma)",
+        "Modelica.Icons" -> "Library of icons",
+        "Modelica.SIunits" -> "Library of type and unit definitions based on SI units according to ISO 31-1992").
+      map {
+        case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+      }
 
       testRef ! simpleRequest("Modelica.")
-      expectMsg(10 seconds, names2.map(CompletionResponse(CompletionType.Package, _ , None)))
+      expectMsg(10 seconds, exp2)
     }
   }
 }

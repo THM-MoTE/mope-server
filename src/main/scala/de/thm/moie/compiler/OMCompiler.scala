@@ -133,6 +133,13 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     } else Nil
   }
 
+  override def getClassDocumentation(className:String): Option[String] = {
+    val res = omc.call("getClassComment", className)
+    val comment = killTrailingHyphens(res.result)
+    if(comment.isEmpty) None
+    else Some(comment)
+  }
+
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))

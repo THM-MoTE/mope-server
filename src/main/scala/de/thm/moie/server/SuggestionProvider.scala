@@ -38,20 +38,21 @@ class SuggestionProvider(compiler:CompletionLike)
             case (name, Some(tpe)) => tpe+", "+name
             case (name, None) => name
           }
-          log.debug("params for {} are {}", name, parameters)
           val paramOpt = if(parameters.isEmpty) None else Some(parameters)
-          CompletionResponse(tpe, name, paramOpt)
+          val classComment = compiler.getClassDocumentation(name)
+          log.debug("{} params: {}, comment: {}", name, parameters, classComment)
+          CompletionResponse(tpe, name, paramOpt, classComment)
         }
       } pipeTo sender
     case CompletionRequest(_,_,word) =>
       findClosestMatch(word, keywords ++ types).map { set =>
         set.map { x =>
           if(keywords.contains(x))
-            CompletionResponse(CompletionType.Keyword, x, None)
+            CompletionResponse(CompletionType.Keyword, x, None, None)
           else if(types.contains(x))
-            CompletionResponse(CompletionType.Type, x, None)
+            CompletionResponse(CompletionType.Type, x, None, None)
           else {
-            CompletionResponse(CompletionType.Keyword, x, None)
+            CompletionResponse(CompletionType.Keyword, x, None, None)
             log.warning("Couldn't find CompletionType for {}", x)
           }
         }

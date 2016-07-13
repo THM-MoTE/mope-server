@@ -23,5 +23,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
       case _ => throw new DeserializationException("CompletionType.Value expected")
     }
   }
-  implicit val completionResponseFormat:RootJsonFormat[CompletionResponse] = jsonFormat3(CompletionResponse.apply)
+  implicit val completionResponseFormat:RootJsonFormat[CompletionResponse] = jsonFormat4(CompletionResponse.apply)
 }
