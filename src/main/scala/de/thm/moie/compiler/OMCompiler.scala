@@ -113,7 +113,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       java.lang.Boolean.valueOf(false),
       java.lang.Boolean.valueOf(true)).asScala
 
-    log.debug("classNames {}", classNames)
     val xs = classNames.map { x =>
       if(omc.is_("Function", x)) x -> CompletionType.Function
       else if(omc.is_("Package", x)) x -> CompletionType.Package
@@ -121,7 +120,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       else if(omc.is_("Model", x)) x -> CompletionType.Model
       else x -> CompletionType.Class
     }.toSet
-    log.debug("is* {}", xs)
+    log.debug("suggestions: {}", xs)
     xs
   }
 

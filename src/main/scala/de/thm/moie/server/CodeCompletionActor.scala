@@ -31,7 +31,6 @@ class CodeCompletionActor(compiler:CompletionLike)
 
   override def handleMsg: Receive = {
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
-      log.debug("word {}", word)
       compiler.getClassesAsync(word.dropRight(1)).
       map { set =>
         set.map { case (name, tpe) =>
