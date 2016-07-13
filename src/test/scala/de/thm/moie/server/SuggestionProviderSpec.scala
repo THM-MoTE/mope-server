@@ -9,10 +9,10 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.concurrent.Await
 
-class CodeCompletionActorSpec extends ActorSpec {
+class SuggestionProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")
   val compiler = new OMCompiler(Nil, "omc", path.resolve("target"))
-  val testRef = TestActorRef[CodeCompletionActor](new CodeCompletionActor(compiler))
+  val testRef = TestActorRef[SuggestionProvider](new SuggestionProvider(compiler))
   val completionActor = testRef.underlyingActor
 
   def simpleRequest(word:String) = CompletionRequest("unknown", FilePosition(0,0), word)

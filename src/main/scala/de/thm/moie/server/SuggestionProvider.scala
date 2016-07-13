@@ -13,7 +13,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 import scala.collection.Seq
 import scala.concurrent.Future
 
-class CodeCompletionActor(compiler:CompletionLike)
+class SuggestionProvider(compiler:CompletionLike)
   extends Actor
     with UnhandledReceiver
     with LogMessages {
