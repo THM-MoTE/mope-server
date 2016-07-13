@@ -40,7 +40,7 @@ class ProjectManagerActor(description:ProjectDescription,
   implicit val projConfig = InternalProjectConfig(executor, timeout)
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
-  val completionActor = context.actorOf(Props[CodeCompletionActor])
+  val completionActor = context.actorOf(Props(new CodeCompletionActor(compiler)))
 
   private var projectFiles = List[Path]()
   private var compileErrors = Seq[CompilerError]()
