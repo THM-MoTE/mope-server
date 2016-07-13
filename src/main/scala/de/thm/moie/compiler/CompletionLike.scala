@@ -12,4 +12,6 @@ trait CompletionLike {
   def getClassesAsync(className:String)(
     implicit context:ExecutionContext): Future[Set[(String, CompletionType.Value)]] =
       Future(getClasses(className))
+
+  def getParameters(className:String): List[(String, Option[String])]
 }

@@ -124,6 +124,15 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     xs
   }
 
+  override def getParameters(className: String): List[(String, Option[String])] = {
+    if(omc.is_("Model", className) || omc.is_("Class", className)) {
+      val xs = omc.getList("getParameterNames", className)
+      xs.asScala.
+        map(killTrailingHyphens).
+        map(_ -> None).toList
+    } else Nil
+  }
+
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))

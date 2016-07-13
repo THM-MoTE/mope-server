@@ -34,7 +34,13 @@ class SuggestionProvider(compiler:CompletionLike)
       compiler.getClassesAsync(word.dropRight(1)).
       map { set =>
         set.map { case (name, tpe) =>
-          CompletionResponse(tpe, name, None)
+          val parameters = compiler.getParameters(name).map {
+            case (name, Some(tpe)) => tpe+", "+name
+            case (name, None) => name
+          }
+          log.debug("params for {} are {}", name, parameters)
+          val paramOpt = if(parameters.isEmpty) None else Some(parameters)
+          CompletionResponse(tpe, name, paramOpt)
         }
       } pipeTo sender
     case CompletionRequest(_,_,word) =>
