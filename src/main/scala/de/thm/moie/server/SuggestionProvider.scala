@@ -66,10 +66,9 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def findMatchingClasses(word:String): Future[Set[CompletionResponse]] = {
     val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1) Future(Set())
+    if(pointIdx == -1) Future.successful(Set())
     else {
       val parentPackage = word.substring(0, pointIdx)
-      val searchingWord = word.substring(pointIdx+1)
       compiler.getClassesAsync(parentPackage).flatMap { clazzes =>
         val classMap = clazzes.toMap
         val classNames = clazzes.map(_._1)
