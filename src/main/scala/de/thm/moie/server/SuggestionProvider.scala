@@ -1,6 +1,6 @@
 package de.thm.moie.server
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompletionLike
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 class SuggestionProvider(compiler:CompletionLike)
   extends Actor
     with UnhandledReceiver
-    with LogMessages {
+    with ActorLogging {
 
   import context.dispatcher
 
@@ -25,6 +25,10 @@ class SuggestionProvider(compiler:CompletionLike)
   val types =
     Global.readValuesFromResource(
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
+
+  override def preStart(): Unit = {
+    log.debug("started")
+  }
 
   override def handleMsg: Receive = {
     case CompletionRequest(_,_,word) if word.isEmpty =>

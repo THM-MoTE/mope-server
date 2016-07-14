@@ -4,11 +4,10 @@
 
 package de.thm.moie.utils.actors
 
-import akka.actor.Actor
-import de.thm.moie.server.LogMessages
+import akka.actor.{Actor, ActorLogging}
 
 trait UnhandledReceiver {
-  this: Actor with LogMessages =>
+  this: Actor with ActorLogging =>
 
   private val actorName = this.self.path.name
 

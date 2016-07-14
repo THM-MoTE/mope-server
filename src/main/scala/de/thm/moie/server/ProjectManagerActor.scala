@@ -7,7 +7,7 @@ package de.thm.moie.server
 import java.nio.file._
 import java.util.concurrent.{Executors, TimeUnit}
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import de.thm.moie.Global
@@ -29,7 +29,7 @@ class ProjectManagerActor(description:ProjectDescription,
                           indexFiles:Boolean = true)
   extends Actor
   with UnhandledReceiver
-  with LogMessages {
+  with ActorLogging {
 
   import ProjectManagerActor._
   import context.dispatcher

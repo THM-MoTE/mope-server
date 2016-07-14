@@ -5,7 +5,9 @@
 package de.thm.moie.server
 
 import java.nio.file.{Path, Paths}
-import akka.actor.{Actor, ActorRef, PoisonPill, Props}
+
+import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import akka.event.Logging
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectRegister._
@@ -14,7 +16,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 class ProjectsManagerActor
   extends Actor
   with UnhandledReceiver
-  with LogMessages {
+  with ActorLogging {
 
   import ProjectsManagerActor._
 
