@@ -28,7 +28,18 @@ class SuggestionProvider(compiler:CompletionLike)
 
   override def handleMsg: Receive = {
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
-      compiler.getClassesAsync(word.dropRight(1)).
+      containingPackages(word.dropRight(1)) pipeTo sender
+    case CompletionRequest(_,_,word) =>
+      val future1 = closestKeyWordType(word)
+      val future2 = findMatchingClasses(word)
+      (for {
+        closestKeywordsTypes <- future1
+        closestClasses <- future2
+      } yield closestKeywordsTypes ++ closestClasses) pipeTo sender
+  }
+
+  private def containingPackages(word:String): Future[Set[CompletionResponse]] = {
+    compiler.getClassesAsync(word).
       map { set =>
         set.map { case (name, tpe) =>
           val parameters = compiler.getParameters(name).map {
@@ -40,14 +51,7 @@ class SuggestionProvider(compiler:CompletionLike)
           log.debug("{} params: {}, comment: {}", name, parameters, classComment)
           CompletionResponse(tpe, name, paramOpt, classComment)
         }
-      } pipeTo sender
-    case CompletionRequest(_,_,word) =>
-      val future1 = closestKeyWordType(word)
-      val future2 = findMatchingClasses(word)
-      (for {
-        closestKeywordsTypes <- future1
-        closestClasses <- future2
-      } yield closestKeywordsTypes ++ closestClasses) pipeTo sender
+      }
   }
 
   private def closestKeyWordType(word:String): Future[Set[CompletionResponse]] =
