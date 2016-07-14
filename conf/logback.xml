@@ -26,6 +26,9 @@
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
    </logger>
+   <!-- typesafe classes -->
+   <logger name="com.typesafe" level="INFO">
+   </logger>
 
    <root level="DEBUG">
        <appender-ref ref="FILE"/>
