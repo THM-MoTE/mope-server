@@ -5,6 +5,7 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path}
 
+import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.server.NotFoundException
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
@@ -104,6 +105,47 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         map(omc.checkModel(_)).
         map(killTrailingHyphens).
         getOrElse("")
+    }
+  }
+
+  override def getClasses(className: String): Set[(String, CompletionType.Value)] = {
+    val classNames = omc.getList("getClassNames", className,
+      java.lang.Boolean.valueOf(false),
+      java.lang.Boolean.valueOf(true)).asScala
+
+    val xs = classNames.zip(getCompletionType(classNames)).toSet
+    log.debug("suggestions: {}", xs)
+    xs
+  }
+
+  override def getGlobalScope(): Set[(String, CompletionType.Value)] = {
+    val classNames = omc.getList("getClassNames").asScala
+    classNames.zip(getCompletionType(classNames)).toSet
+  }
+
+  override def getParameters(className: String): List[(String, Option[String])] = {
+    if(omc.is_("Model", className) || omc.is_("Class", className)) {
+      val xs = omc.getList("getParameterNames", className)
+      xs.asScala.
+        map(killTrailingHyphens).
+        map(_ -> None).toList
+    } else Nil
+  }
+
+  override def getClassDocumentation(className:String): Option[String] = {
+    val res = omc.call("getClassComment", className)
+    val comment = killTrailingHyphens(res.result)
+    if(comment.isEmpty) None
+    else Some(comment)
+  }
+
+  private def getCompletionType(classNames:Seq[String]): Seq[CompletionType.Value] = {
+    classNames.map { x =>
+      if(omc.is_("Function", x)) CompletionType.Function
+      else if(omc.is_("Package", x)) CompletionType.Package
+      else if(omc.is_("Type", x)) CompletionType.Type
+      else if(omc.is_("Model", x)) CompletionType.Model
+      else CompletionType.Class
     }
   }
 

@@ -13,8 +13,9 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.thm.moie._
-import de.thm.moie.compiler.CompilerError
-import de.thm.moie.project.FilePath
+import de.thm.moie.compiler.{CompilerError, FilePosition}
+import de.thm.moie.project.CompletionResponse.CompletionType
+import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -128,59 +129,109 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
-    "return errors for /compile" in {
-      val invalidFile = createInvalidFile(projPath)
-      val compileRequest = HttpRequest(
+    "return keyword completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "an")
+      val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None, None))
+      val completionRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/compile",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
-      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
-      compileRequest ~> service.routes ~> check {
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]].size should be >= (1)
-      }
-
-      Files.delete(invalidFile)
-      val validFile = createValidFile(projPath)
-
-      val compileRequest2 = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compile",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
-
-      compileRequest2 ~> service.routes ~> check {
-        Thread.sleep(5000)
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]] shouldBe empty
+        responseAs[Set[CompletionResponse]] shouldBe exp
       }
     }
 
-    "return errors for /compileScript" in {
-      val invalidScript = createInvalidScript(projPath)
-      val compileRequest = HttpRequest(
+    "return type completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "Int")
+      val exp = Set("Integer").map(CompletionResponse(CompletionType.Type, _, None, None))
+      val completionRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
-      Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
-      compileRequest ~> service.routes ~> check {
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]].size should be >= (1)
-      }
-
-      Files.delete(invalidScript)
-      val validFile = createValidScript(projPath)
-
-      val compileRequest2 = HttpRequest(
-        HttpMethods.POST,
-        uri = "/moie/project/0/compileScript",
-        entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
-
-      compileRequest2 ~> service.routes ~> check {
-        Thread.sleep(5000)
-        status shouldEqual StatusCodes.OK
-        responseAs[List[CompilerError]] shouldBe empty
+        responseAs[Set[CompletionResponse]] shouldBe exp
       }
     }
+
+    "return package completions for /completion" in {
+      val complReq = CompletionRequest("unknown", FilePosition(0,0), "Modelica.Electrical.")
+      val exp = Set(
+        "Modelica.Electrical.Analog" -> "Library for analog electrical models",
+        "Modelica.Electrical.Digital" -> "Library for digital electrical components based on the VHDL standard with 9-valued logic and conversion to 2-,3-,4-valued logic",
+        "Modelica.Electrical.Machines" -> "Library for electric machines",
+        "Modelica.Electrical.MultiPhase" -> "Library for electrical components with 2, 3 or more phases",
+        "Modelica.Electrical.QuasiStationary" -> "Library for quasi-stationary electrical singlephase and multiphase AC simulation",
+        "Modelica.Electrical.Spice3" -> "Library for components of the Berkeley SPICE3 simulator").
+        map {
+          case (name, classComment) => CompletionResponse(CompletionType.Package, name, None, Some(classComment))
+        }
+
+      val completionRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/completion",
+        entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
+      completionRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Set[CompletionResponse]] shouldBe exp
+      }
+    }
+
+
+        "return errors for /compile" in {
+          val invalidFile = createInvalidFile(projPath)
+          val compileRequest = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compile",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
+          Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+          compileRequest ~> service.routes ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]].size should be >= (1)
+          }
+
+          Files.delete(invalidFile)
+          val validFile = createValidFile(projPath)
+
+          val compileRequest2 = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compile",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
+
+          compileRequest2 ~> service.routes ~> check {
+            Thread.sleep(5000)
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]] shouldBe empty
+          }
+        }
+
+        "return errors for /compileScript" in {
+          val invalidScript = createInvalidScript(projPath)
+          val compileRequest = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compileScript",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
+          Thread.sleep(10000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+          compileRequest ~> service.routes ~> check {
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]].size should be >= (1)
+          }
+
+          Files.delete(invalidScript)
+          val validFile = createValidScript(projPath)
+
+          val compileRequest2 = HttpRequest(
+            HttpMethods.POST,
+            uri = "/moie/project/0/compileScript",
+            entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
+
+          compileRequest2 ~> service.routes ~> check {
+            Thread.sleep(5000)
+            status shouldEqual StatusCodes.OK
+            responseAs[List[CompilerError]] shouldBe empty
+          }
+        }
 
     "shutdown when calling /stop-server" in {
       Post("/moie/stop-server") ~> service.routes ~> check {
