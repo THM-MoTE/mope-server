@@ -15,6 +15,9 @@ class SuggestionProviderSpec extends ActorSpec {
   val testRef = TestActorRef[SuggestionProvider](new SuggestionProvider(compiler))
   val completionActor = testRef.underlyingActor
 
+  override def afterAll: Unit = {
+    de.thm.moie.removeDirectoryTree(path)
+  }
   def simpleRequest(word:String) = CompletionRequest("unknown", FilePosition(0,0), word)
 
   "`findClosestMatch`" should {

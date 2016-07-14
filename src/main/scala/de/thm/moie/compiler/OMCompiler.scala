@@ -149,6 +149,12 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
   }
 
+  override def getSrcFile(className:String): Option[String] = {
+    val classOpt:Option[String] = omc.getClassInformation(className)
+    log.debug("classInformations from {}: {}", className:Any, classOpt)
+    classOpt.flatMap(extractPath)
+  }
+
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
