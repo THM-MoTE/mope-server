@@ -15,4 +15,5 @@ trait CompletionLike {
 
   def getParameters(className:String): List[(String, Option[String])]
   def getClassDocumentation(className:String): Option[String]
+  def getGlobalScope(): Set[(String, CompletionType.Value)]
 }

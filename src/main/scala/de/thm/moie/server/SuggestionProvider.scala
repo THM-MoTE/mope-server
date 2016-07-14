@@ -27,6 +27,9 @@ class SuggestionProvider(compiler:CompletionLike)
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
 
   override def handleMsg: Receive = {
+    case CompletionRequest(_,_,word) if word.isEmpty =>
+      //ignore empty strings
+      sender ! Set.empty[CompletionResponse]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
       containingPackages(word.dropRight(1)) pipeTo sender
     case CompletionRequest(_,_,word) =>
@@ -70,23 +73,26 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def findMatchingClasses(word:String): Future[Set[CompletionResponse]] = {
     val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1) Future.successful(Set())
+    if(pointIdx == -1) toCompletionResponse(word, Future(compiler.getGlobalScope()))
     else {
       val parentPackage = word.substring(0, pointIdx)
-      compiler.getClassesAsync(parentPackage).flatMap { clazzes =>
-        val classMap = clazzes.toMap
-        val classNames = clazzes.map(_._1)
-        findClosestMatch(word, classNames).map { set =>
-          val xs = set.map { clazz =>
-            val classComment = compiler.getClassDocumentation(clazz)
-            CompletionResponse(classMap(clazz), clazz, None, classComment)
-          }
-          log.debug("final suggestions: {}", xs)
-          xs
-        }
-      }
+      toCompletionResponse(word, compiler.getClassesAsync(parentPackage))
     }
   }
+
+  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Future[Set[CompletionResponse]] =
+    xs flatMap { clazzes =>
+      val classMap = clazzes.toMap
+      val classNames = clazzes.map(_._1)
+      findClosestMatch(word, classNames).map { set =>
+        val xs = set.map { clazz =>
+          val classComment = compiler.getClassDocumentation(clazz)
+          CompletionResponse(classMap(clazz), clazz, None, classComment)
+        }
+        log.debug("final suggestions: {}", xs)
+        xs
+      }
+    }
 
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
     @annotation.tailrec

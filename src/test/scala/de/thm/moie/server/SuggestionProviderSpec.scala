@@ -119,6 +119,25 @@ class SuggestionProviderSpec extends ActorSpec {
       expectMsg(10 seconds, exp2)
     }
 
+    "return <global-scope> package-names" in {
+      val exp = Set(
+        "Modelica" -> "Modelica Standard Library - Version 3.2.1 (Build 4)",
+        "ModelicaServices" -> "ModelicaServices (OpenModelica implementation) - Models and functions used in the Modelica Standard Library requiring a tool specific implementation").
+        map {
+          case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+        }
+
+      testRef ! simpleRequest("Mod")
+      expectMsg(10 seconds, exp)
+      testRef ! simpleRequest("M")
+      expectMsg(10 seconds, exp)
+    }
+
+    "return empty-set for empty string" in {
+      testRef ! simpleRequest("")
+      expectMsg(10 seconds, Set.empty[CompletionResponse])
+    }
+
     "return names for started classes" in {
       val exp = Set(CompletionResponse(CompletionType.Package, "Modelica.Electrical",
         None,
