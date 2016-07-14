@@ -15,7 +15,7 @@ import akka.http.scaladsl.server.ExceptionHandler
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
-import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath, ProjectDescription}
+import de.thm.moie.project._
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
@@ -132,6 +132,19 @@ trait Routes extends JsonSupport with ErrorHandling {
                 (for {
                   possibleCompletions <- (projectManager ? completion).mapTo[Set[CompletionResponse]]
                 } yield possibleCompletions)
+            }
+          }
+        }
+      } ~
+      path("declaration") {
+        post {
+          entity(as[DeclarationRequest]) { declReq =>
+            withIdExists(id) { projectManager =>
+              (projectManager ? declReq).mapTo[Option[FilePath]].
+                flatMap {
+                  case Some(path) => Future.successful(path)
+                  case None => Future.failed(new NotFoundException(s"class ${declReq.className} not found"))
+                }
             }
           }
         }

@@ -27,5 +27,13 @@ class JumpToProviderSpec extends ActorSpec {
       testRef ! DeclarationRequest("Modelica.Electrical.Analog")
       expectMsg(10 seconds, Some(FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo")))
     }
+
+    "return no file to a unknown class" in {
+      testRef ! DeclarationRequest("nico")
+      expectMsg(10 seconds, None)
+
+      testRef ! DeclarationRequest("Modelica.none")
+      expectMsg(10 seconds, None)
+    }
   }
 }

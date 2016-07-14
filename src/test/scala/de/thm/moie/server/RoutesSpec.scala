@@ -15,7 +15,7 @@ import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.{CompilerError, FilePosition}
 import de.thm.moie.project.CompletionResponse.CompletionType
-import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath}
+import de.thm.moie.project.{CompletionRequest, CompletionResponse, DeclarationRequest, FilePath}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -175,6 +175,41 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Set[CompletionResponse]] shouldBe exp
+      }
+    }
+
+    "return corresponding file for a classname" in {
+      val request = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/declaration",
+        entity = HttpEntity(MediaTypes.`application/json`,
+          declarationRequestFormat.write(DeclarationRequest("Modelica.Electrical")).compactPrint))
+
+      request ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[FilePath] shouldBe FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo")
+      }
+
+      val request2 = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/declaration",
+        entity = HttpEntity(MediaTypes.`application/json`,
+          declarationRequestFormat.write(DeclarationRequest("Modelica.Electrical.Analog")).compactPrint))
+
+      request2 ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[FilePath] shouldBe FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo")
+      }
+
+      val faultyRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/moie/project/0/declaration",
+        entity = HttpEntity(MediaTypes.`application/json`,
+          declarationRequestFormat.write(DeclarationRequest("Modelica.nico")).compactPrint))
+
+      faultyRequest ~> service.routes ~> check {
+        status shouldEqual StatusCodes.NotFound
+        responseAs[String] shouldBe "class Modelica.nico not found"
       }
     }
 
