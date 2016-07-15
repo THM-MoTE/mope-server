@@ -1,7 +1,7 @@
 \subsection{Retrieving code completions}
-\notimlpemented\newline
 Returns possible code completions for the given word/symbol.
-
+Currently only models, classes and functions with full-qualified names are supported.
+All other requests result in an empty list of completions.
 \begin{itemize}
 \item \textbf{URL} \code{/moie/project/:id/completion}
 \item \textbf{Method} \code{POST}

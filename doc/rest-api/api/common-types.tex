@@ -36,18 +36,19 @@ line and a column.
   \end{lstlisting}
 
   \subsubsection{Completion-Object}
-  \notimlpemented\newline
   Describes possible code completions.
   \begin{lstlisting}[basicstyle=\small,language=json]
     {
       //type of completion; 1 of the listed strings
-      "completionType": "type" | "variable" | "function" | "keyword",
+      "completionType": "Type" | "Variable" | "Function" | "Keyword" | "Package" | "Model" | "Class",
       "name": <String>, //the completion for the given word
       //OPTIONAL: list containing names of parameters if completionType=function
       "parameters": [
         <String>,
         <String>,
         ...
-      ]
+      ],
+      //OPTIONAL: the class comment describing the name attribute
+      classComment: <String>
     }
   \end{lstlisting}
