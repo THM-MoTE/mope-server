@@ -4,14 +4,13 @@
 
 package de.thm.moie.server
 
-import java.nio.file.Paths
 import java.util.NoSuchElementException
 
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.ExceptionHandler
+import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
@@ -20,7 +19,6 @@ import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript,
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 trait Routes extends JsonSupport with ErrorHandling {
   this: ServerSetup =>
@@ -52,18 +50,26 @@ trait Routes extends JsonSupport with ErrorHandling {
       complete(future)
     }
 
+  private def postEntity[T](tpe: unmarshalling.FromRequestUnmarshaller[T]):server.Directive1[T] =
+    post & entity(tpe)
+
+  private def postEntityWithId[T,Z : ToEntityMarshaller](tpe: unmarshalling.FromRequestUnmarshaller[T], id:Int)(fn: (T, ActorRef) => Future[Z]) =
+    postEntity(tpe) { t =>
+      withIdExists(id) { ref =>
+        fn(t,ref)
+      }
+    }
+
   def routes =
     handleExceptions(exceptionHandler) {
       pathPrefix("moie") {
         path("connect") {
-          post {
-            entity(as[ProjectDescription]) { description =>
-              onSuccess(for {
-                eitherId <- (projectsManager ? description).mapTo[Either[List[String], ProjectId]]
-              } yield eitherId) {
-                case Left(errors) => complete(StatusCodes.BadRequest, errors)
-                case Right(projId) => complete(IntJsonFormat.write(projId.id))
-              }
+          postEntity(as[ProjectDescription]) { description =>
+            onSuccess(for {
+              eitherId <- (projectsManager ? description).mapTo[Either[List[String], ProjectId]]
+            } yield eitherId) {
+              case Left(errors) => complete(StatusCodes.BadRequest, errors)
+              case Right(projId) => complete(IntJsonFormat.write(projId.id))
             }
           }
         } ~
@@ -86,57 +92,39 @@ trait Routes extends JsonSupport with ErrorHandling {
           complete(StatusCodes.NoContent)
         }
       } ~
-        path("compile") {
-          post {
-            entity(as[FilePath]) { filepath =>
-              withIdExists(id) { projectManager =>
-                (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
-              }
-            }
-          }
+      path("compile") {
+        postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
+          (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
+        }
+      } ~
+      path("compileScript") {
+        postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
+          (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
+
         } ~
-        path("compileScript") {
-          post {
-            entity(as[FilePath]) { filepath =>
-              withIdExists(id) { projectManager =>
-                (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
-              }
-            }
-          } ~ get {
-            withIdExists(id) { projectManager =>
-              (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
-            }
-          }
-        } ~
-        path("checkModel") {
-          post {
-            entity(as[FilePath]) { filepath =>
-              withIdExists(id) { projectManager =>
-                (projectManager ? CheckModel(filepath)).mapTo[String]
-              }
-            }
-          }
-        } ~
-        path("completion") {
-          post {
-            entity(as[CompletionRequest]) { completion =>
-              withIdExists(id) { projectManager =>
-                (projectManager ? completion).mapTo[Set[CompletionResponse]]
-            }
+        get {
+          withIdExists(id) { projectManager =>
+            (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
           }
         }
       } ~
+      path("checkModel") {
+        postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
+          (projectManager ? CheckModel(filepath)).mapTo[String]
+        }
+      } ~
+      path("completion") {
+        postEntityWithId(as[CompletionRequest], id) { (completion, projectManager) =>
+          (projectManager ? completion).mapTo[Set[CompletionResponse]]
+        }
+      } ~
       path("declaration") {
-        post {
-          entity(as[DeclarationRequest]) { declReq =>
-            withIdExists(id) { projectManager =>
-              (projectManager ? declReq).mapTo[Option[FilePath]].
-                flatMap {
-                  case Some(path) => Future.successful(path)
-                  case None => Future.failed(new NotFoundException(s"class ${declReq.className} not found"))
-                }
+        postEntityWithId(as[DeclarationRequest], id) { (declReq, projectManager) =>
+          (projectManager ? declReq).mapTo[Option[FilePath]].
+            flatMap {
+              case Some(path) => Future.successful(path)
+              case None => Future.failed(new NotFoundException(s"class ${declReq.className} not found"))
             }
-          }
         }
       }
     }
