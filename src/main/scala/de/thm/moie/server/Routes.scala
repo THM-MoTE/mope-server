@@ -90,9 +90,7 @@ trait Routes extends JsonSupport with ErrorHandling {
           post {
             entity(as[FilePath]) { filepath =>
               withIdExists(id) { projectManager =>
-                for {
-                  errors <- (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
-                } yield errors.toList
+                (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
               }
             }
           }
@@ -101,16 +99,12 @@ trait Routes extends JsonSupport with ErrorHandling {
           post {
             entity(as[FilePath]) { filepath =>
               withIdExists(id) { projectManager =>
-                for {
-                  errors <- (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
-                } yield errors.toList
+                (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
               }
             }
           } ~ get {
             withIdExists(id) { projectManager =>
-              for {
-                errors <- (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
-              } yield errors.toList
+              (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
             }
           }
         } ~
@@ -118,9 +112,7 @@ trait Routes extends JsonSupport with ErrorHandling {
           post {
             entity(as[FilePath]) { filepath =>
               withIdExists(id) { projectManager =>
-                for {
-                  msg <- (projectManager ? CheckModel(filepath)).mapTo[String]
-                } yield msg
+                (projectManager ? CheckModel(filepath)).mapTo[String]
               }
             }
           }
@@ -129,9 +121,7 @@ trait Routes extends JsonSupport with ErrorHandling {
           post {
             entity(as[CompletionRequest]) { completion =>
               withIdExists(id) { projectManager =>
-                (for {
-                  possibleCompletions <- (projectManager ? completion).mapTo[Set[CompletionResponse]]
-                } yield possibleCompletions)
+                (projectManager ? completion).mapTo[Set[CompletionResponse]]
             }
           }
         }
