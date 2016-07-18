@@ -30,11 +30,8 @@ class ProjectsManagerActor
     }
 
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
-    val executableString = Global.getCompilerExecutable
-    val compilerClazz = Global.getCompilerClass
-    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
-    val compiler = constructor.newInstance(description.compilerFlags, executableString, outputPath)
+    val compiler = Global.newCompilerInstance(description.compilerFlags, outputPath)
     log.debug("new manager for id:{}", id)
     context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
   }

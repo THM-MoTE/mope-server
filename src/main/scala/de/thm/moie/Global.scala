@@ -56,20 +56,26 @@ object Global {
       filePath.toUri.toURL
     }
 
-  def getCompilerClass: Class[ModelicaCompiler] = {
+  private def getCompilerClass: Class[ModelicaCompiler] = {
     val compilerKey = config.getString("compiler").
       getOrElse(throw new IllegalStateException("Can't run without a defined compiler"))
 
-    val compilerClazz = compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
-    compilerClazz
+    compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
   }
 
-  def getCompilerExecutable: String = {
+  private def getCompilerExecutable: String = {
     config.getString("compiler-executable").
       orElse(config.getString("compiler")).
       getOrElse(throw new IllegalStateException("Can't run without a defined compiler-executable"))
   }
 
+  def newCompilerInstance(compilerFlags:List[String],
+                          outputDir:Path): ModelicaCompiler = {
+    val executableString = Global.getCompilerExecutable
+    val compilerClazz = Global.getCompilerClass
+    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
+    constructor.newInstance(compilerFlags, executableString, outputDir)
+  }
 
   def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {
     Source.fromURL(path, encoding.displayName).getLines.flatMap {
