@@ -129,7 +129,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       xs.asScala.
         map(killTrailingHyphens).
         map(_ -> None).toList
-    } else Nil
+    } else Nil //TODO parse file/class and search for (input TYPE NAME)
   }
 
   override def getClassDocumentation(className:String): Option[String] = {

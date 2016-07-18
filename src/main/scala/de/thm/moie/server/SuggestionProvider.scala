@@ -112,6 +112,8 @@ class SuggestionProvider(compiler:CompletionLike)
         findClosestMatch(word, classNames).map { set =>
           val xs = set.map { clazz =>
             val classComment = compiler.getClassDocumentation(clazz)
+            //TODO find parameters
+            //rewrite using withParameters
             CompletionResponse(classMap(clazz), clazz, None, classComment)
           }
           log.debug("final suggestions: {}", xs)
