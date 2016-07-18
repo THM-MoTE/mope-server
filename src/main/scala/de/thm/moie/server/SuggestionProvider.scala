@@ -41,12 +41,11 @@ class SuggestionProvider(compiler:CompletionLike)
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
       containingPackages(word.dropRight(1)).run() pipeTo sender
     case CompletionRequest(_,_,word) =>
-      val future1 = closestKeyWordType(word)
-      val future2 = findMatchingClasses(word)
-      (for {
-        closestKeywordsTypes <- future1
-        closestClasses <- future2
-      } yield closestKeywordsTypes ++ closestClasses) pipeTo sender
+      closestKeyWordType(word).
+        mapConcat(x => x).
+        merge(findMatchingClasses(word).mapConcat(x => x)).
+        via(toSet).
+        toMat(Sink.head)(Keep.right).run() pipeTo sender
   }
 
   private def toSet[A]: Flow[A, Set[A], NotUsed] =
@@ -81,9 +80,10 @@ class SuggestionProvider(compiler:CompletionLike)
       via(toSet).
       toMat(Sink.head)(Keep.right)
 
-  private def closestKeyWordType(word:String): Future[Set[CompletionResponse]] =
-    findClosestMatch(word, keywords ++ types).map { set =>
-      set.map { x =>
+  private def closestKeyWordType(word:String): Source[Set[CompletionResponse], NotUsed] =
+    Source.fromFuture(findClosestMatch(word, keywords ++ types)).
+      mapConcat(x => x).
+      map { x =>
         if (keywords.contains(x))
           CompletionResponse(CompletionType.Keyword, x, None, None)
         else if (types.contains(x))
@@ -92,10 +92,10 @@ class SuggestionProvider(compiler:CompletionLike)
           log.warning("Couldn't find CompletionType for {}", x)
           CompletionResponse(CompletionType.Keyword, x, None, None)
         }
-      }
-    }
+      }.
+      via(toSet)
 
-  private def findMatchingClasses(word:String): Future[Set[CompletionResponse]] = {
+  private def findMatchingClasses(word:String): Source[Set[CompletionResponse], NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
     if(pointIdx == -1) toCompletionResponse(word, Future(compiler.getGlobalScope()))
     else {
@@ -104,19 +104,20 @@ class SuggestionProvider(compiler:CompletionLike)
     }
   }
 
-  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Future[Set[CompletionResponse]] =
-    xs flatMap { clazzes =>
-      val classMap = clazzes.toMap
-      val classNames = clazzes.map(_._1)
-      findClosestMatch(word, classNames).map { set =>
-        val xs = set.map { clazz =>
-          val classComment = compiler.getClassDocumentation(clazz)
-          CompletionResponse(classMap(clazz), clazz, None, classComment)
+  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Source[Set[CompletionResponse], NotUsed] =
+    Source.fromFuture(xs).
+      mapAsync(2) { clazzes =>
+        val classMap = clazzes.toMap
+        val classNames = clazzes.map(_._1)
+        findClosestMatch(word, classNames).map { set =>
+          val xs = set.map { clazz =>
+            val classComment = compiler.getClassDocumentation(clazz)
+            CompletionResponse(classMap(clazz), clazz, None, classComment)
+          }
+          log.debug("final suggestions: {}", xs)
+          xs
         }
-        log.debug("final suggestions: {}", xs)
-        xs
       }
-    }
 
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
     @annotation.tailrec
