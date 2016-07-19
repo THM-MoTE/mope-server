@@ -1,0 +1,40 @@
+* {
+    font-family: sans-serif;
+    font-size: 11pt;
+}
+.bold {
+    font-weight:bold;
+}
+#main-wrapper {
+    margin: auto;
+    width: 60%;
+}
+#content {
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 20px;
+}
+#footer {
+}
+#header {
+}
+.horizontal-bar {
+    padding: 10px;
+    padding-bottom: 15px;
+    text-align: center;
+}
+.moie-colors {
+    background-color: green;
+    color: white;
+}
+.moie-color {
+  color: green;
+}
+.tabbed {
+  padding-left: 2em;
+}
+
+.highlighted-box {
+  box-shadow: 10px 10px 8px #bfbfbf;
+}
