@@ -25,16 +25,17 @@
     text-align: center;
 }
 .moie-colors {
-    background-color: green;
+    background-color: #80ba24;
     color: white;
 }
 .moie-color {
-  color: green;
+  color: #80ba24;
 }
 .tabbed {
   padding-left: 2em;
 }
 
 .highlighted-box {
-  box-shadow: 10px 10px 8px #bfbfbf;
+  padding: 5px;
+  box-shadow: 10px 10px 20px #4a5c66;
 }
