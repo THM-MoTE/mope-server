@@ -103,7 +103,7 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
       log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
       modelnameOpt.
         map(omc.checkModel(_)).
-        map(killTrailingHyphens).
+        map(killTrailingQuotes).
         getOrElse("")
     }
   }
@@ -127,14 +127,14 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     if(omc.is_("Model", className) || omc.is_("Class", className)) {
       val xs = omc.getList("getParameterNames", className)
       xs.asScala.
-        map(killTrailingHyphens).
+        map(killTrailingQuotes).
         map(_ -> None).toList
     } else Nil //TODO parse file/class and search for (input TYPE NAME)
   }
 
   override def getClassDocumentation(className:String): Option[String] = {
     val res = omc.call("getClassComment", className)
-    val comment = killTrailingHyphens(res.result)
+    val comment = killTrailingQuotes(res.result)
     if(comment.isEmpty) None
     else Some(comment)
   }
