@@ -9,7 +9,10 @@ import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ModelicaCompiler extends CompletionLike with JumpToLike {
+trait ModelicaCompiler
+  extends CompletionLike
+    with JumpToLike
+    with DocumentationLike {
   def stop(): Unit
   def compile(files:List[Path], openedFile:Path): Seq[CompilerError]
   def compileAsync(files:List[Path], openedFile:Path)(
