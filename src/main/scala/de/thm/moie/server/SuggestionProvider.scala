@@ -63,8 +63,8 @@ class SuggestionProvider(compiler:CompletionLike)
         (name, tpe, params)
     }
 
-  private def toCompletionResponse: Flow[(String, CompletionResponse.CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
-    Flow[(String, CompletionResponse.CompletionType.Value, List[String])].map {
+  private def toCompletionResponse: Flow[(String, CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
+    Flow[(String, CompletionType.Value, List[String])].map {
       case (name, tpe, parameters) =>
         val paramOpt = if(parameters.isEmpty) None else Some(parameters)
         val classComment = compiler.getClassDocumentation(name)
@@ -110,16 +110,14 @@ class SuggestionProvider(compiler:CompletionLike)
         val classMap = clazzes.toMap
         val classNames = clazzes.map(_._1)
         findClosestMatch(word, classNames).map { set =>
-          val xs = set.map { clazz =>
-            val classComment = compiler.getClassDocumentation(clazz)
-            //TODO find parameters
-            //rewrite using withParameters
-            CompletionResponse(classMap(clazz), clazz, None, classComment)
+          set.map { clazz => clazz -> classMap(clazz)
           }
-          log.debug("final suggestions: {}", xs)
-          xs
         }
-      }
+      }.
+      mapConcat[(String,CompletionType.Value)](x => x).
+      via(withParameters).
+      via(toCompletionResponse).
+      via(toSet)
 
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
     @annotation.tailrec
