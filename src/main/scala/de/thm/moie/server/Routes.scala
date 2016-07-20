@@ -8,15 +8,20 @@ import java.util.NoSuchElementException
 
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.HttpEncoding
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project._
+import de.thm.moie.server.DocumentationProvider.GetDocumentation
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
+import de.thm.moie.templates.TemplateEngine
+import de.thm.moie.templates.TemplateEngine._
+import de.thm.moie.utils.IOUtils
 
 import scala.concurrent.Future
 
@@ -27,6 +32,11 @@ trait Routes extends JsonSupport with ErrorHandling {
 
   private val exitOnLastDisconnect =
     Global.config.getBoolean("exitOnLastDisconnect").getOrElse(false)
+
+  private val cssStream = getClass.getResourceAsStream("/templates/style.css")
+  private val docStream = getClass.getResourceAsStream("/templates/documentation.html")
+  private val styleEngine = new TemplateEngine(IOUtils.toString(cssStream))
+  private val docEngine = new TemplateEngine(IOUtils.toString(docStream)).merge(styleEngine, "styles")
 
   private def shutdown(cause:String="unkown cause"): Unit = {
     actorSystem.terminate()
@@ -125,6 +135,28 @@ trait Routes extends JsonSupport with ErrorHandling {
               case Some(path) => Future.successful(path)
               case None => Future.failed(new NotFoundException(s"class ${declReq.className} not found"))
             }
+        }
+      } ~
+      path("doc") {
+        parameters("class") { clazz =>
+          get {
+            serverlog.info("doc segment {}", clazz)
+            val future = (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]].map(_.get).flatMap { projectManager =>
+              (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
+                case Some(DocInfo(info, rev, header)) =>
+                  val content = docEngine.insert(Map(
+                    "className" -> clazz,
+                    "subcomponents" -> "",
+                    "info-header" -> header,
+                    "info-string" -> info,
+                    "revisions" -> rev
+                  )).getContent
+                  HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
+                case None => HttpEntity(ContentTypes.`text/plain(UTF-8)`, "no doc found")
+              }
+            }
+            complete(future)
+          }
         }
       }
     }
