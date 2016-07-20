@@ -7,7 +7,7 @@ object IOUtils {
   def toString(is:InputStream): String = {
     val bf = new BufferedReader(new InputStreamReader(is))
     bf.lines().reduce("", new BinaryOperator[String]() {
-      override def apply(t: String, u: String): String = t+u
+      override def apply(t: String, u: String): String = t+"\n"+u
     })
   }
 }
