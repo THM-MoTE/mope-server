@@ -35,8 +35,10 @@ trait Routes extends JsonSupport with ErrorHandling {
 
   private val cssStream = getClass.getResourceAsStream("/templates/style.css")
   private val docStream = getClass.getResourceAsStream("/templates/documentation.html")
+  private val missingDocStream = getClass.getResourceAsStream("/templates/missing-doc.html")
   private val styleEngine = new TemplateEngine(IOUtils.toString(cssStream))
   private val docEngine = new TemplateEngine(IOUtils.toString(docStream)).merge(styleEngine, "styles")
+  private val missingDocEngine = new TemplateEngine(IOUtils.toString(missingDocStream)).merge(styleEngine, "styles")
 
   private def shutdown(cause:String="unkown cause"): Unit = {
     actorSystem.terminate()
@@ -152,7 +154,11 @@ trait Routes extends JsonSupport with ErrorHandling {
                     "revisions" -> rev
                   )).getContent
                   HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
-                case None => HttpEntity(ContentTypes.`text/plain(UTF-8)`, "no doc found")
+                case None =>
+                  val docMissing = missingDocEngine.insert(Map(
+                    "className" -> clazz
+                  )).getContent
+                  HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
               }
             }
           }

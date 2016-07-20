@@ -5,6 +5,12 @@
 .bold {
     font-weight:bold;
 }
+.red {
+  color: red;
+}
+.centered-text {
+  text-align: center;
+}
 #main-wrapper {
     margin: auto;
     width: 60%;
