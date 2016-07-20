@@ -141,7 +141,7 @@ trait Routes extends JsonSupport with ErrorHandling {
         parameters("class") { clazz =>
           get {
             serverlog.info("doc segment {}", clazz)
-            val future = (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]].map(_.get).flatMap { projectManager =>
+            withIdExists(id) { projectManager =>
               (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
                 case Some(DocInfo(info, rev, header)) =>
                   val content = docEngine.insert(Map(
@@ -155,7 +155,6 @@ trait Routes extends JsonSupport with ErrorHandling {
                 case None => HttpEntity(ContentTypes.`text/plain(UTF-8)`, "no doc found")
               }
             }
-            complete(future)
           }
         }
       }
