@@ -1,6 +1,7 @@
 package de.thm.moie.templates
 
 import TemplateEngine._
+import scala.language.implicitConversions
 
 class TemplateEngine(fileContent:String) {
   def insert(m:Map[String, _ <: TemplateValue]): TemplateEngine = {
@@ -26,4 +27,7 @@ object TemplateEngine {
   sealed trait TemplateValue
   case class SimpleValue(v:String) extends TemplateValue
   case class ListValue[A](v:List[A]) extends TemplateValue
+
+  implicit def stringToValue(s:String): SimpleValue = SimpleValue(s)
+  implicit def listToValue[A](xs:List[A]): ListValue[A] = ListValue(xs)
 }
