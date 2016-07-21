@@ -81,7 +81,7 @@ class ProjectManagerActor(description:ProjectDescription,
     case InitialInfos(files, errors) =>
       projectFiles = files.toList.sorted
       compileErrors = errors
-      log.debug("initialized")
+      log.debug("init files {}", projectFiles)
       context become initialized
   }
 
@@ -104,7 +104,6 @@ class ProjectManagerActor(description:ProjectDescription,
     case NewPath(p) =>
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
-      log.debug("Deleted {}", p)
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
     case x:CompletionRequest => completionActor forward x
     case x:DeclarationRequest => jumpProvider forward x

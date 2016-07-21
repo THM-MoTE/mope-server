@@ -63,7 +63,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
         try {
           setupProject(files) { xs =>
             val modelnameOpt: Option[String] = ScriptingHelper.getModelName(openedFile)
-            log.debug(s"modelname in {} {}", openedFile, modelnameOpt: Any)
             modelnameOpt.
               map(typecheckIfEmpty(xs, _)).
               getOrElse(xs)
@@ -101,7 +100,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
   override def checkModel(files:List[Path], path: Path): String = {
     setupProject(files) { _ =>
       val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
-      log.debug(s"modelname in {} {}", path, modelnameOpt:Any)
       modelnameOpt.
         map(omc.checkModel(_)).
         map(killTrailingQuotes).
@@ -165,7 +163,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
 
   override def getSrcFile(className:String): Option[String] = {
     val classOpt:Option[String] = omc.getClassInformation(className)
-    log.debug("classInformations from {}: {}", className:Any, classOpt)
     classOpt.flatMap(extractPath)
   }
 
@@ -189,7 +186,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     def typecheckTillError(xs:List[String]): Seq[CompilerError] = xs match {
       case hd::tl =>
         val erg = omc.checkAllModelsRecursive(hd)
-        log.debug("checkModel returned {}", erg)
         val errors = parseErrorMsg(erg)
         if(errors.nonEmpty) errors
         else typecheckTillError(tl)
@@ -197,7 +193,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     }
 
     val modelResult = omc.call("getClassNames", "qualified=true")
-    log.debug("getClassNames returned {}", modelResult)
       //get all classes & filter stdLib
     val models = fromArray(modelResult.result).asScala.diff(stdLibClasses).toList
     typecheckTillError(models)

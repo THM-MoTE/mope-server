@@ -30,8 +30,9 @@ class SuggestionProvider(compiler:CompletionLike)
     Global.readValuesFromResource(
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
 
-  override def preStart(): Unit = {
-    log.debug("started")
+  val logSuggestions: String => Set[CompletionResponse] => Set[CompletionResponse] = { word => suggestions =>
+    log.debug("suggestions for {} are {}", word, suggestions)
+    suggestions
   }
 
   override def handleMsg: Receive = {
@@ -39,13 +40,15 @@ class SuggestionProvider(compiler:CompletionLike)
       //ignore empty strings
       sender ! Set.empty[CompletionResponse]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
-      containingPackages(word.dropRight(1)).run() pipeTo sender
+      containingPackages(word.dropRight(1)).run().
+      map(logSuggestions(word)) pipeTo sender
     case CompletionRequest(_,_,word) =>
       closestKeyWordType(word).
         mapConcat(x => x).
         merge(findMatchingClasses(word).mapConcat(x => x)).
         via(toSet).
-        toMat(Sink.head)(Keep.right).run() pipeTo sender
+        toMat(Sink.head)(Keep.right).run().
+        map(logSuggestions(word)) pipeTo sender
   }
 
   private def toSet[A]: Flow[A, Set[A], NotUsed] =
@@ -68,7 +71,6 @@ class SuggestionProvider(compiler:CompletionLike)
       case (name, tpe, parameters) =>
         val paramOpt = if(parameters.isEmpty) None else Some(parameters)
         val classComment = compiler.getClassDocumentation(name)
-        log.debug("{} params: {}, comment: {}", name, parameters, classComment)
         CompletionResponse(tpe, name, paramOpt, classComment)
     }
 

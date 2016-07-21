@@ -19,8 +19,7 @@ class Server() extends Routes with ServerSetup {
   override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
 
   val bindingFuture = Http().bindAndHandle(routes, interface, port)
-  serverlog.debug("I'M ALIVE!")
-  serverlog.info("Server running at localhost:{}", port)
+  serverlog.info("Server running at {}:{}", interface, port)
   if(applicationMode == ApplicationMode.Development) {
     Future {
       blocking {

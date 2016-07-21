@@ -18,8 +18,9 @@ class JumpToProvider(jumpLike:JumpToLike)
   override def handleMsg: Receive = {
     case DeclarationRequest(className) =>
       Future {
-        jumpLike.getSrcFile(className).map(FilePath.apply)
+        val file = jumpLike.getSrcFile(className).map(FilePath.apply)
+        log.debug("src file {}", file)
+        file
       } pipeTo sender
-    case _ => log.warning("not implemented yet!")
   }
 }
