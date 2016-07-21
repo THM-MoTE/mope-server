@@ -6,6 +6,7 @@ package de.thm.moie.compiler
 import java.nio.file.{Files, Path}
 
 import de.thm.moie.project.CompletionResponse.CompletionType
+import de.thm.moie.project.DocInfo
 import de.thm.moie.server.NotFoundException
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
@@ -137,6 +138,19 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     val comment = killTrailingQuotes(res.result)
     if(comment.isEmpty) None
     else Some(comment)
+  }
+
+  override def getDocumentation(className:String): Option[DocInfo] = {
+    val res = omc.call("getDocumentationAnnotation", className)
+    if(res.error.isPresent) None
+    else {
+      val lst = fromArray(res.result).asScala.map(killTrailingQuotes).toList
+      lst match {
+        case info :: rev :: header :: _ if info.nonEmpty =>
+          Some(DocInfo(info, rev, header))
+        case _ => None
+      }
+    }
   }
 
   private def getCompletionType(classNames:Seq[String]): Seq[CompletionType.Value] = {

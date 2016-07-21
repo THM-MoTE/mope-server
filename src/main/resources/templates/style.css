@@ -1,0 +1,47 @@
+* {
+    font-family: sans-serif;
+    font-size: 11pt;
+}
+.bold {
+    font-weight:bold;
+}
+.red {
+  color: red;
+}
+.centered-text {
+  text-align: center;
+}
+#main-wrapper {
+    margin: auto;
+    width: 60%;
+}
+#content {
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 20px;
+}
+#footer {
+}
+#header {
+}
+.horizontal-bar {
+    padding: 10px;
+    padding-bottom: 15px;
+    text-align: center;
+}
+.moie-colors {
+    background-color: #80ba24;
+    color: white;
+}
+.moie-color {
+  color: #80ba24;
+}
+.tabbed {
+  padding-left: 2em;
+}
+
+.highlighted-box {
+  padding: 10px;
+  box-shadow: 10px 10px 20px #4a5c66;
+}
