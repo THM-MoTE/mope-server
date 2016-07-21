@@ -1,5 +1,8 @@
 package de.thm.moie.server
 
+import akka.NotUsed
+import akka.stream._
+import akka.stream.scaladsl._
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import de.thm.moie.Global
@@ -16,6 +19,7 @@ class SuggestionProvider(compiler:CompletionLike)
     with ActorLogging {
 
   import context.dispatcher
+  implicit val mat = ActorMaterializer(namePrefix = Some("suggestion-stream"))
 
   def filterLines(line:String):Boolean = !line.isEmpty
 
@@ -35,35 +39,51 @@ class SuggestionProvider(compiler:CompletionLike)
       //ignore empty strings
       sender ! Set.empty[CompletionResponse]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
-      containingPackages(word.dropRight(1)) pipeTo sender
+      containingPackages(word.dropRight(1)).run() pipeTo sender
     case CompletionRequest(_,_,word) =>
-      val future1 = closestKeyWordType(word)
-      val future2 = findMatchingClasses(word)
-      (for {
-        closestKeywordsTypes <- future1
-        closestClasses <- future2
-      } yield closestKeywordsTypes ++ closestClasses) pipeTo sender
+      closestKeyWordType(word).
+        mapConcat(x => x).
+        merge(findMatchingClasses(word).mapConcat(x => x)).
+        via(toSet).
+        toMat(Sink.head)(Keep.right).run() pipeTo sender
   }
 
-  private def containingPackages(word:String): Future[Set[CompletionResponse]] = {
-    compiler.getClassesAsync(word).
-      map { set =>
-        set.map { case (name, tpe) =>
-          val parameters = compiler.getParameters(name).map {
-            case (name, Some(tpe)) => tpe+", "+name
-            case (name, None) => name
-          }
-          val paramOpt = if(parameters.isEmpty) None else Some(parameters)
-          val classComment = compiler.getClassDocumentation(name)
-          log.debug("{} params: {}, comment: {}", name, parameters, classComment)
-          CompletionResponse(tpe, name, paramOpt, classComment)
+  private def toSet[A]: Flow[A, Set[A], NotUsed] =
+    Flow[A].fold(Set.empty[A]) {
+      case (acc, elem) => acc + elem
+    }
+
+  private def withParameters: Flow[(String, CompletionResponse.CompletionType.Value), (String, CompletionResponse.CompletionType.Value, List[String]), NotUsed] =
+    Flow[(String, CompletionResponse.CompletionType.Value)].map {
+      case (name, tpe) =>
+        val params = compiler.getParameters(name).map {
+          case (name, Some(tpe)) => tpe+", "+name
+          case (name, None) => name
         }
-      }
-  }
+        (name, tpe, params)
+    }
 
-  private def closestKeyWordType(word:String): Future[Set[CompletionResponse]] =
-    findClosestMatch(word, keywords ++ types).map { set =>
-      set.map { x =>
+  private def toCompletionResponse: Flow[(String, CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
+    Flow[(String, CompletionType.Value, List[String])].map {
+      case (name, tpe, parameters) =>
+        val paramOpt = if(parameters.isEmpty) None else Some(parameters)
+        val classComment = compiler.getClassDocumentation(name)
+        log.debug("{} params: {}, comment: {}", name, parameters, classComment)
+        CompletionResponse(tpe, name, paramOpt, classComment)
+    }
+
+  private def containingPackages(word:String): RunnableGraph[Future[Set[CompletionResponse]]] =
+    Source.fromFuture(compiler.getClassesAsync(word)).
+      mapConcat[(String, CompletionResponse.CompletionType.Value)](x => x).
+      via(withParameters).
+      via(toCompletionResponse).
+      via(toSet).
+      toMat(Sink.head)(Keep.right)
+
+  private def closestKeyWordType(word:String): Source[Set[CompletionResponse], NotUsed] =
+    Source.fromFuture(findClosestMatch(word, keywords ++ types)).
+      mapConcat(x => x).
+      map { x =>
         if (keywords.contains(x))
           CompletionResponse(CompletionType.Keyword, x, None, None)
         else if (types.contains(x))
@@ -72,10 +92,10 @@ class SuggestionProvider(compiler:CompletionLike)
           log.warning("Couldn't find CompletionType for {}", x)
           CompletionResponse(CompletionType.Keyword, x, None, None)
         }
-      }
-    }
+      }.
+      via(toSet)
 
-  private def findMatchingClasses(word:String): Future[Set[CompletionResponse]] = {
+  private def findMatchingClasses(word:String): Source[Set[CompletionResponse], NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
     if(pointIdx == -1) toCompletionResponse(word, Future(compiler.getGlobalScope()))
     else {
@@ -84,19 +104,20 @@ class SuggestionProvider(compiler:CompletionLike)
     }
   }
 
-  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Future[Set[CompletionResponse]] =
-    xs flatMap { clazzes =>
-      val classMap = clazzes.toMap
-      val classNames = clazzes.map(_._1)
-      findClosestMatch(word, classNames).map { set =>
-        val xs = set.map { clazz =>
-          val classComment = compiler.getClassDocumentation(clazz)
-          CompletionResponse(classMap(clazz), clazz, None, classComment)
+  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Source[Set[CompletionResponse], NotUsed] =
+    Source.fromFuture(xs).
+      mapAsync(2) { clazzes =>
+        val classMap = clazzes.toMap
+        val classNames = clazzes.map(_._1)
+        findClosestMatch(word, classNames).map { set =>
+          set.map { clazz => clazz -> classMap(clazz)
+          }
         }
-        log.debug("final suggestions: {}", xs)
-        xs
-      }
-    }
+      }.
+      mapConcat[(String,CompletionType.Value)](x => x).
+      via(withParameters).
+      via(toCompletionResponse).
+      via(toSet)
 
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
     @annotation.tailrec
