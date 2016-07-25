@@ -181,23 +181,6 @@ class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Pa
     parseErrorMsg(res)
   }
 
-  private def typecheckModels(): Seq[CompilerError] = {
-    @scala.annotation.tailrec
-    def typecheckTillError(xs:List[String]): Seq[CompilerError] = xs match {
-      case hd::tl =>
-        val erg = omc.checkAllModelsRecursive(hd)
-        val errors = parseErrorMsg(erg)
-        if(errors.nonEmpty) errors
-        else typecheckTillError(tl)
-      case Nil => Seq[CompilerError]()
-    }
-
-    val modelResult = omc.call("getClassNames", "qualified=true")
-      //get all classes & filter stdLib
-    val models = fromArray(modelResult.result).asScala.diff(stdLibClasses).toList
-    typecheckTillError(models)
-  }
-
   def parseErrorMsg(msg:String): Seq[CompilerError] =
     msgParser.parse(msg) match {
       case Success(v) => v
