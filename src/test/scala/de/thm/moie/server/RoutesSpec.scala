@@ -213,6 +213,18 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
+    "return documentation for a classname" in {
+      Get("/moie/project/0/doc?class=Modelica.Electrical") ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[String].contains("Documentation for Modelica.Electrical") shouldBe true
+      }
+
+      Get("/moie/project/0/doc?class=nico") ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[String].contains("The documentation for nico is missing.") shouldBe true
+      }
+    }
+
 
         "return errors for /compile" in {
           val invalidFile = createInvalidFile(projPath)
