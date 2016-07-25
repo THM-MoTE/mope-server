@@ -4,11 +4,11 @@ import java.nio.file.Files
 
 import akka.testkit.TestActorRef
 import de.thm.moie.compiler.OMCompiler
-import de.thm.moie.server.ActorSpec
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import DocumentationProvider.GetDocumentation
+import de.thm.moie.ActorSpec
 
 class DocumentationProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")

@@ -10,7 +10,8 @@ import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Actor
 import akka.actor.Props
-import akka.testkit.{ TestActors, TestKit, ImplicitSender, TestProbe }
+import akka.testkit.{ImplicitSender, TestActors, TestKit, TestProbe}
+import de.thm.moie.ActorSpec
 import de.thm.moie.project.ProjectDescription
 
 class ProjectRegisterSpec
