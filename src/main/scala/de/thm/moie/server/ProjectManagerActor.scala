@@ -85,7 +85,25 @@ class ProjectManagerActor(description:ProjectDescription,
       context become initialized
   }
 
-  private def initialized: Receive = {
+  private def initialized: Receive =
+    forward.orElse(compile).
+    orElse(updateFileIndex).
+    orElse({
+    case CheckModel(file) =>
+      withExists(file)(for {
+        files <- getProjectFiles
+        msg <- compiler.checkModelAsync(files, file)
+        _ = log.debug("Checked model from {} with {}", file, msg:Any)
+      } yield msg) pipeTo sender
+    })
+
+  private def forward: Receive = {
+    case x:CompletionRequest => completionActor forward x
+    case x:DeclarationRequest => jumpProvider forward x
+    case x:GetDocumentation => docProvider forward x
+  }
+
+  private def compile: Receive = {
     case CompileProject(file) =>
       withExists(file) {
         for {
@@ -95,25 +113,6 @@ class ProjectManagerActor(description:ProjectDescription,
           _ = printDebug(filteredErrors)
         } yield filteredErrors
       } pipeTo sender
-    case NewFiles(files) =>
-      projectFiles = (files ++ projectFiles).toList.sorted
-    case NewPath(p) if Files.isDirectory(p) =>
-      for {
-        files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
-      } yield self ! NewFiles(files)
-    case NewPath(p) =>
-      projectFiles = (p :: projectFiles).sorted
-    case DeletedPath(p) =>
-      projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
-    case x:CompletionRequest => completionActor forward x
-    case x:DeclarationRequest => jumpProvider forward x
-    case x:GetDocumentation => docProvider forward x
-    case CheckModel(file) =>
-      withExists(file)(for {
-        files <- getProjectFiles
-        msg <- compiler.checkModelAsync(files, file)
-        _ = log.debug("Checked model from {} with {}", file, msg:Any)
-      } yield msg) pipeTo sender
     case CompileScript(path) =>
       withExists(path) {
         for {
@@ -129,6 +128,19 @@ class ProjectManagerActor(description:ProjectDescription,
         filteredErrors = errors.filter(errorInProjectFile)
         _ = printDebug(filteredErrors)
       } yield filteredErrors) pipeTo sender
+  }
+
+  private def updateFileIndex: Receive = {
+    case NewFiles(files) =>
+      projectFiles = (files ++ projectFiles).toList.sorted
+    case NewPath(p) if Files.isDirectory(p) =>
+      for {
+        files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
+      } yield self ! NewFiles(files)
+    case NewPath(p) =>
+      projectFiles = (p :: projectFiles).sorted
+    case DeletedPath(p) =>
+      projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
