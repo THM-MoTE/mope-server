@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 import akka.testkit.TestActorRef
 import de.thm.moie.compiler.OMCompiler
-import de.thm.moie.project.FilePath
+import de.thm.moie.position.FilePath
 import de.thm.moie.server.ActorSpec
 
 import scala.concurrent.duration._

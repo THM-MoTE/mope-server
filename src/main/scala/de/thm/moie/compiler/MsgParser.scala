@@ -4,6 +4,8 @@
 
 package de.thm.moie.compiler
 
+import de.thm.moie.position.FilePosition
+
 import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 

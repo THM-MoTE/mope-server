@@ -13,6 +13,8 @@ import de.thm.moie.compiler._
 import java.nio.file._
 import java.nio.charset.StandardCharsets
 
+import de.thm.moie.position.FilePosition
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps

@@ -7,7 +7,8 @@ package de.thm
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import de.thm.moie.compiler.{CompilerError, FilePosition}
+import de.thm.moie.compiler.CompilerError
+import de.thm.moie.position.FilePosition
 
 package object moie {
 

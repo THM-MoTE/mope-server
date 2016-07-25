@@ -13,9 +13,9 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.thm.moie._
-import de.thm.moie.compiler.{CompilerError, FilePosition}
+import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
-import de.thm.moie.project.FilePath
+import de.thm.moie.position.{FilePath, FilePosition}
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import org.scalatest.{Matchers, WordSpec}

@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
  */
 
-package de.thm.moie.project
+package de.thm.moie.position
 
 import java.nio.file.{Path, Paths}
 

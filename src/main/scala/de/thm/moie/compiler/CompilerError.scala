@@ -4,6 +4,8 @@
 
 package de.thm.moie.compiler
 
+import de.thm.moie.position.FilePosition
+
 case class CompilerError(`type`:String,
                         file:String,
                         start: FilePosition,

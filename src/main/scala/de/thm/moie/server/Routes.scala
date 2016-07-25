@@ -20,6 +20,7 @@ import de.thm.moie.doc.{DocInfo, DocumentationProvider}
 import de.thm.moie.project._
 import DocInfo._
 import DocumentationProvider.GetDocumentation
+import de.thm.moie.position.FilePath
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}

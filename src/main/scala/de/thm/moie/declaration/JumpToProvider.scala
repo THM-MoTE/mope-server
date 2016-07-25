@@ -2,7 +2,7 @@ package de.thm.moie.declaration
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
-import de.thm.moie.project.FilePath
+import de.thm.moie.position.FilePath
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future

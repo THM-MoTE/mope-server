@@ -4,7 +4,9 @@
 
 package de.thm.moie.compiler
 
-import java.nio.file.{Paths, Files}
+import java.nio.file.{Files, Paths}
+
+import de.thm.moie.position.FilePosition
 import org.scalatest._
 
 class MsgParserSpec extends FlatSpec with Matchers {
