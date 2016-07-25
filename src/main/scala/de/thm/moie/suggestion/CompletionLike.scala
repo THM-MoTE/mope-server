@@ -2,9 +2,10 @@
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
  */
 
-package de.thm.moie.compiler
+package de.thm.moie.suggestion
 
-import de.thm.moie.project.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.CompletionResponse.CompletionType
+
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CompletionLike {

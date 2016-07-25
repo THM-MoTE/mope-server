@@ -1,13 +1,14 @@
-package de.thm.moie.server
+package de.thm.moie.suggestion
 
 import java.nio.file.Files
+
 import akka.testkit.TestActorRef
-import de.thm.moie.project.CompletionResponse.CompletionType
-import de.thm.moie.project.{CompletionRequest, CompletionResponse}
-import de.thm.moie.compiler.{OMCompiler, FilePosition}
+import de.thm.moie.compiler.{FilePosition, OMCompiler}
+import de.thm.moie.server.ActorSpec
+import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.concurrent.Await
 
 class SuggestionProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")

@@ -7,8 +7,9 @@ package de.thm.moie.server
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import de.thm.moie.compiler.{CompilerError, FilePosition}
 import de.thm.moie.declaration.DeclarationRequest
-import de.thm.moie.project.CompletionResponse.CompletionType
 import de.thm.moie.project._
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
+import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {

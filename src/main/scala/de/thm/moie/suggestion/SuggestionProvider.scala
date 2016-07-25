@@ -1,14 +1,12 @@
-package de.thm.moie.server
+package de.thm.moie.suggestion
 
 import akka.NotUsed
-import akka.stream._
-import akka.stream.scaladsl._
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
+import akka.stream._
+import akka.stream.scaladsl._
 import de.thm.moie.Global
-import de.thm.moie.compiler.CompletionLike
-import de.thm.moie.project.CompletionResponse.CompletionType
-import de.thm.moie.project.{CompletionRequest, CompletionResponse}
+import CompletionResponse.CompletionType
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future

@@ -13,9 +13,10 @@ import akka.util.Timeout
 import de.thm.moie.Global
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.moie.declaration.{DeclarationRequest, JumpToProvider}
-import de.thm.moie.project.{CompletionRequest, InternalProjectConfig, ProjectDescription}
+import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.DocumentationProvider.GetDocumentation
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
+import de.thm.moie.suggestion.{CompletionRequest, SuggestionProvider}
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.io.Source

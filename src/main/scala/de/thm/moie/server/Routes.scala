@@ -21,6 +21,7 @@ import de.thm.moie.project.DocInfo._
 import de.thm.moie.server.DocumentationProvider.GetDocumentation
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import de.thm.moie.templates.TemplateEngine
 import de.thm.moie.templates.TemplateEngine._
 import de.thm.moie.utils.IOUtils

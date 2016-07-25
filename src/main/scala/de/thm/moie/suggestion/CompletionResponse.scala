@@ -1,6 +1,6 @@
-package de.thm.moie.project
+package de.thm.moie.suggestion
 
-import CompletionResponse._
+import de.thm.moie.suggestion.CompletionResponse._
 case class CompletionResponse(completionType: CompletionType.Value,
                               name:String,
                               parameters:Option[Seq[String]],

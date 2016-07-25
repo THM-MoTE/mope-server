@@ -15,8 +15,9 @@ import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.{CompilerError, FilePosition}
 import de.thm.moie.declaration.DeclarationRequest
-import de.thm.moie.project.CompletionResponse.CompletionType
-import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath}
+import de.thm.moie.project.FilePath
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
+import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await

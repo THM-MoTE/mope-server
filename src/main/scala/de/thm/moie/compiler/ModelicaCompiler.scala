@@ -4,10 +4,10 @@
 
 package de.thm.moie.compiler
 
-import de.thm.moie.project.CompletionResponse.CompletionType
 import java.nio.file.Path
 
 import de.thm.moie.declaration.JumpToLike
+import de.thm.moie.suggestion.{CompletionLike, CompletionResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
