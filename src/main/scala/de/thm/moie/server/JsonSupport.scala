@@ -11,7 +11,7 @@ import de.thm.moie.project._
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val projectDescriptionFormat: RootJsonFormat[ProjectDescription] = jsonFormat4(ProjectDescription.apply)
+  implicit val projectDescriptionFormat: RootJsonFormat[ProjectDescription] = jsonFormat3(ProjectDescription.apply)
   implicit val filePositionFormat:RootJsonFormat[FilePosition] = jsonFormat2(FilePosition)
   implicit val compileErrorFormat:RootJsonFormat[CompilerError] = jsonFormat5(CompilerError)
   implicit val filePathFormat:RootJsonFormat[FilePath] = jsonFormat1(FilePath.apply)

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.util._
 
-class OMCompiler(compilerFlags:List[String], executableName:String, outputDir:Path) extends ModelicaCompiler {
+class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = new OMCClient(executableName)

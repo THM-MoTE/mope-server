@@ -69,12 +69,11 @@ object Global {
       getOrElse(throw new IllegalStateException("Can't run without a defined compiler-executable"))
   }
 
-  def newCompilerInstance(compilerFlags:List[String],
-                          outputDir:Path): ModelicaCompiler = {
+  def newCompilerInstance(outputDir:Path): ModelicaCompiler = {
     val executableString = Global.getCompilerExecutable
     val compilerClazz = Global.getCompilerClass
-    val constructor = compilerClazz.getDeclaredConstructor(classOf[List[String]], classOf[String], classOf[Path])
-    constructor.newInstance(compilerFlags, executableString, outputDir)
+    val constructor = compilerClazz.getDeclaredConstructor(classOf[String], classOf[Path])
+    constructor.newInstance(executableString, outputDir)
   }
 
   def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {

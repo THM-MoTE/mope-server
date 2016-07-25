@@ -10,7 +10,6 @@ import java.nio.file.Files
 case class ProjectDescription(
            path:String,
            outputDirectory:String,
-           compilerFlags: List[String],
            buildScript:Option[String])
 
 object ProjectDescription {
