@@ -7,6 +7,7 @@ package de.thm.moie.compiler
 import java.nio.file.Path
 
 import de.thm.moie.declaration.JumpToLike
+import de.thm.moie.doc.DocumentationLike
 import de.thm.moie.suggestion.{CompletionLike, CompletionResponse}
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -1,13 +1,14 @@
-package de.thm.moie.server
+package de.thm.moie.doc
 
 import java.nio.file.Files
 
 import akka.testkit.TestActorRef
 import de.thm.moie.compiler.OMCompiler
-import de.thm.moie.project.DocInfo
-import de.thm.moie.server.DocumentationProvider.GetDocumentation
+import de.thm.moie.server.ActorSpec
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import DocumentationProvider.GetDocumentation
 
 class DocumentationProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")

@@ -1,6 +1,6 @@
-package de.thm.moie.project
+package de.thm.moie.doc
 
-import DocInfo._
+import de.thm.moie.doc.DocInfo._
 
 case class DocInfo(info:String,
                    revisions:String,

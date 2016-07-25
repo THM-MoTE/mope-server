@@ -16,9 +16,10 @@ import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
+import de.thm.moie.doc.{DocInfo, DocumentationProvider}
 import de.thm.moie.project._
-import de.thm.moie.project.DocInfo._
-import de.thm.moie.server.DocumentationProvider.GetDocumentation
+import DocInfo._
+import DocumentationProvider.GetDocumentation
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}

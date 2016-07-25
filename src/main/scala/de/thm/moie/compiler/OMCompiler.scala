@@ -5,7 +5,7 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path}
 
-import de.thm.moie.project.DocInfo
+import de.thm.moie.doc.DocInfo
 import de.thm.moie.server.NotFoundException
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import de.thm.moie.utils.MonadImplicits._

@@ -1,8 +1,7 @@
-package de.thm.moie.server
+package de.thm.moie.doc
 
-import akka.pattern.pipe
 import akka.actor.{Actor, ActorLogging}
-import de.thm.moie.compiler.DocumentationLike
+import akka.pattern.pipe
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
@@ -12,8 +11,8 @@ class DocumentationProvider(docLike: DocumentationLike)
     with UnhandledReceiver
     with ActorLogging {
 
-  import context.dispatcher
   import DocumentationProvider._
+  import context.dispatcher
 
   override def handleMsg: Receive = {
     case GetDocumentation(className) =>

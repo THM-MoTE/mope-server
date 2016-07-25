@@ -1,6 +1,4 @@
-package de.thm.moie.compiler
-
-import de.thm.moie.project.DocInfo
+package de.thm.moie.doc
 
 trait DocumentationLike {
   def getDocumentation(className:String): Option[DocInfo]
