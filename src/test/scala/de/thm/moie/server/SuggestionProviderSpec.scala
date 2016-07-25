@@ -11,7 +11,7 @@ import scala.concurrent.Await
 
 class SuggestionProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")
-  val compiler = new OMCompiler(Nil, "omc", path.resolve("target"))
+  val compiler = new OMCompiler("omc", path.resolve("target"))
   val testRef = TestActorRef[SuggestionProvider](new SuggestionProvider(compiler))
   val completionActor = testRef.underlyingActor
 

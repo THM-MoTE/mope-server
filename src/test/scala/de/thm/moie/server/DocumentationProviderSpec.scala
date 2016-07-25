@@ -11,7 +11,7 @@ import scala.language.postfixOps
 
 class DocumentationProviderSpec extends ActorSpec {
   val path = Files.createTempDirectory("moie")
-  val compiler = new OMCompiler(Nil, "omc", path.resolve("target"))
+  val compiler = new OMCompiler("omc", path.resolve("target"))
   val testRef = TestActorRef[DocumentationProvider](new DocumentationProvider(compiler))
 
   override def afterAll: Unit = {

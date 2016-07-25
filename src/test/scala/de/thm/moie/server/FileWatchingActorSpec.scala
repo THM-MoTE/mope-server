@@ -24,7 +24,7 @@ class FileWatchingActorSpec() extends ActorSpec {
   val emptyPath = path.resolve("empty")
   val project = ProjectDescription(
     projectPath.toAbsolutePath().toString(),
-    "target", Nil, None)
+    "target", None)
 
   val files = List(
     projectPath.resolve("test.mo"),

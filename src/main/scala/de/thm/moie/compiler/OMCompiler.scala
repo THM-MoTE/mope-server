@@ -21,6 +21,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = new OMCClient(executableName)
 
+  require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
 
   private val stdLibClasses = List(

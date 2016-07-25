@@ -15,7 +15,7 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
   }
 
   "ProjectDescription.validate" should "return errors for undefined path" in {
-    val descr = ProjectDescription("unknown-path", "target", Nil, None)
+    val descr = ProjectDescription("unknown-path", "target", None)
 
     val errors = ProjectDescription.validate(descr)
     errors should have size 1
@@ -25,7 +25,6 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
   it should "return errors for undefined buildScript" in {
     val descr = ProjectDescription(path.toString,
                                     "target",
-                                    Nil,
                                     Some("unknownScript"))
 
     val errors = ProjectDescription.validate(descr)
@@ -34,7 +33,6 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     val descr2 = ProjectDescription(path.toString,
                                     "target",
-                                    Nil,
                                     None)
 
     val errors2 = ProjectDescription.validate(descr2)
@@ -44,7 +42,6 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
   it should "return no errors for valid description" in {
     val descr = ProjectDescription(System.getProperty("user.home"),
                                     "target",
-                                    Nil,
                                     None)
 
     val errors = ProjectDescription.validate(descr)
@@ -52,7 +49,6 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     val descr2 = ProjectDescription(path.toString,
                                     "target",
-                                    Nil,
                                     Some(scriptPath.getFileName.toString))
 
     val errors2 = ProjectDescription.validate(descr2)

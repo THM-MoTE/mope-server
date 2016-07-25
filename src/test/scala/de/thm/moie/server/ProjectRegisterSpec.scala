@@ -19,7 +19,7 @@ import ProjectRegister._
 
   private val projectPath = System.getProperty("java.io.tmpdir") + "/Downloads"
   private def stubDescription =
-    ProjectDescription(projectPath, "target", Nil, None)
+    ProjectDescription(projectPath, "target", None)
 
   private def dummyActor = new Actor {
     override def receive:Receive = { case _ => }
@@ -36,7 +36,7 @@ import ProjectRegister._
       register.get(id) shouldEqual Some(entry)
 
       val entry2 = ProjectEntry(
-        ProjectDescription(projectPath, "bin", Nil, None),
+        ProjectDescription(projectPath, "bin", None),
         system.actorOf(Props[ProjectsManagerActor]))
       val id2 = register.add(entry2)
       register.projectCount shouldEqual 2

@@ -48,8 +48,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         s"""
            |{
            |"path":"${projPath.toAbsolutePath()}",
-           |"outputDirectory": "target",
-           |"compilerFlags": []
+           |"outputDirectory": "target"
            |}
         """.stripMargin)
       val postRequest = HttpRequest(
@@ -77,8 +76,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
           s"""
              |{
              |"path":"derb",
-             |"outputDirectory": "target",
-             |"compilerFlags": []
+             |"outputDirectory": "target"
              |}
           """.stripMargin)
         val faultyPostRequest = HttpRequest(
