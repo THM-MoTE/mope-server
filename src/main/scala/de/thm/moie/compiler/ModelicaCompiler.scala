@@ -7,6 +7,8 @@ package de.thm.moie.compiler
 import de.thm.moie.project.CompletionResponse.CompletionType
 import java.nio.file.Path
 
+import de.thm.moie.declaration.JumpToLike
+
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ModelicaCompiler

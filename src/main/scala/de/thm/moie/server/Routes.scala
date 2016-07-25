@@ -15,6 +15,7 @@ import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
+import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.project._
 import de.thm.moie.project.DocInfo._
 import de.thm.moie.server.DocumentationProvider.GetDocumentation

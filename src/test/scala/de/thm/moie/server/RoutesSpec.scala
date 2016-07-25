@@ -14,8 +14,9 @@ import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.{CompilerError, FilePosition}
+import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.project.CompletionResponse.CompletionType
-import de.thm.moie.project.{CompletionRequest, CompletionResponse, DeclarationRequest, FilePath}
+import de.thm.moie.project.{CompletionRequest, CompletionResponse, FilePath}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await

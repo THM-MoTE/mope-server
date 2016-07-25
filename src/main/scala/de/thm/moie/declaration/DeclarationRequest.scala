@@ -1,3 +1,3 @@
-package de.thm.moie.project
+package de.thm.moie.declaration
 
 case class DeclarationRequest(className:String)
