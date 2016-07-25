@@ -17,6 +17,7 @@ class DocumentationProvider(docLike: DocumentationLike)
   override def handleMsg: Receive = {
     case GetDocumentation(className) =>
       Future {
+        log.info("searching doc for {}", className)
         docLike.getDocumentation(className)
       } pipeTo sender
   }

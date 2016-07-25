@@ -115,7 +115,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       java.lang.Boolean.valueOf(true)).asScala
 
     val xs = classNames.zip(getCompletionType(classNames)).toSet
-    log.debug("suggestions: {}", xs)
     xs
   }
 
@@ -185,7 +184,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   private def typecheckModel(model:String): Seq[CompilerError] = {
     val res = omc.checkAllModelsRecursive(model)
-    log.debug("checkModel returned {}", res)
     parseErrorMsg(res)
   }
 
