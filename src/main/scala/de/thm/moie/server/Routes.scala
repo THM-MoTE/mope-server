@@ -16,6 +16,7 @@ import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.project._
+import de.thm.moie.project.DocInfo._
 import de.thm.moie.server.DocumentationProvider.GetDocumentation
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
@@ -39,6 +40,11 @@ trait Routes extends JsonSupport with ErrorHandling {
   private val styleEngine = new TemplateEngine(IOUtils.toString(cssStream))
   private val docEngine = new TemplateEngine(IOUtils.toString(docStream)).merge(styleEngine, "styles")
   private val missingDocEngine = new TemplateEngine(IOUtils.toString(missingDocStream)).merge(styleEngine, "styles")
+
+  private def createSubcomponentLink(comp: DocInfo.Subcomponent, link:String): String =
+    s"""<li>
+    |  <a href="$link">${comp.className}</a> ${comp.classComment.map("- "+_).getOrElse("")}
+    |</li>""".stripMargin
 
   private def shutdown(cause:String="unkown cause"): Unit = {
     actorSystem.terminate()
@@ -142,23 +148,29 @@ trait Routes extends JsonSupport with ErrorHandling {
       path("doc") {
         parameters("class") { clazz =>
           get {
-            serverlog.info("doc segment {}", clazz)
-            withIdExists(id) { projectManager =>
-              (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
-                case Some(DocInfo(info, rev, header)) =>
-                  val content = docEngine.insert(Map(
-                    "className" -> clazz,
-                    "subcomponents" -> "",
-                    "info-header" -> header,
-                    "info-string" -> info,
-                    "revisions" -> rev
-                  )).getContent
-                  HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
-                case None =>
-                  val docMissing = missingDocEngine.insert(Map(
-                    "className" -> clazz
-                  )).getContent
-                  HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
+            extractUri { uri =>
+              withIdExists(id) { projectManager =>
+                (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
+                  case Some(DocInfo(info, rev, header, subcomponents)) =>
+                    val subcomponentEntries = subcomponents.toList.sorted.map { component =>
+                      val link = uri.withQuery(Uri.Query("class" -> component.className)).toString
+                      createSubcomponentLink(component, link)
+                    }
+                    val content = docEngine.insert(Map(
+                      "className" -> clazz,
+                      "subcomponents" -> "",
+                      "info-header" -> header,
+                      "info-string" -> info,
+                      "revisions" -> rev,
+                      "subcomponents" -> subcomponentEntries.mkString("\n")
+                    )).getContent
+                    HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
+                  case None =>
+                    val docMissing = missingDocEngine.insert(Map(
+                      "className" -> clazz
+                    )).getContent
+                    HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
+                }
               }
             }
           }

@@ -146,7 +146,13 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       val lst = fromArray(res.result).asScala.map(killTrailingQuotes).toList
       lst match {
         case info :: rev :: header :: _ if info.nonEmpty =>
-          Some(DocInfo(info, rev, header))
+          val classes = getClasses(className).map(_._1)
+          val classComments = classes.map(getClassDocumentation)
+          val subcomponents =
+            classes.
+            zip(classComments).
+            map { case (name, comment) => DocInfo.Subcomponent(name, comment) }
+          Some(DocInfo(info, rev, header, subcomponents))
         case _ => None
       }
     }
