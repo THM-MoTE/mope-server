@@ -58,7 +58,7 @@ class SuggestionProvider(compiler:CompletionLike)
     Flow[(String, CompletionResponse.CompletionType.Value)].map {
       case (name, tpe) =>
         val params = compiler.getParameters(name).map {
-          case (name, Some(tpe)) => tpe+", "+name
+          case (name, Some(tpe)) => tpe+" "+name
           case (name, None) => name
         }
         (name, tpe, params)
