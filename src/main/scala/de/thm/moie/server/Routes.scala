@@ -140,12 +140,12 @@ trait Routes extends JsonSupport with ErrorHandling {
           (projectManager ? completion).mapTo[Set[CompletionResponse]]
         }
       } ~
-      path("declaration") {
-        postEntityWithId(as[DeclarationRequest], id) { (declReq, projectManager) =>
-          (projectManager ? declReq).mapTo[Option[FilePath]].
+      (path("declaration")  & get & parameters("class")) { clazz =>
+        withIdExists(id) { projectManager =>
+          (projectManager ? DeclarationRequest(clazz)).mapTo[Option[FilePath]].
             flatMap {
               case Some(path) => Future.successful(path)
-              case None => Future.failed(new NotFoundException(s"class ${declReq.className} not found"))
+              case None => Future.failed(new NotFoundException(s"class ${clazz} not found"))
             }
         }
       } ~
