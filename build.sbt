@@ -19,7 +19,7 @@ lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
     organization := "thm",
     name := "Mo|E-server",
-    version := "0.1",
+    version := "0.4",
     scalaVersion := "2.11.8",
     javacOptions ++= Seq("-source", "1.8"),
     aggregate in Test := false
