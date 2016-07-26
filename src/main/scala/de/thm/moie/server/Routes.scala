@@ -149,34 +149,28 @@ trait Routes extends JsonSupport with ErrorHandling {
             }
         }
       } ~
-      path("doc") {
-        parameters("class") { clazz =>
-          get {
-            extractUri { uri =>
-              withIdExists(id) { projectManager =>
-                (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
-                  case Some(DocInfo(info, rev, header, subcomponents)) =>
-                    val subcomponentEntries = subcomponents.toList.sorted.map { component =>
-                      val link = uri.withQuery(Uri.Query("class" -> component.className)).toString
-                      createSubcomponentLink(component, link)
-                    }
-                    val content = docEngine.insert(Map(
-                      "className" -> clazz,
-                      "subcomponents" -> "",
-                      "info-header" -> header,
-                      "info-string" -> info,
-                      "revisions" -> rev,
-                      "subcomponents" -> subcomponentEntries.mkString("\n")
-                    )).getContent
-                    HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
-                  case None =>
-                    val docMissing = missingDocEngine.insert(Map(
-                      "className" -> clazz
-                    )).getContent
-                    HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
-                }
+      (path("doc") & get & parameters("class") & extractUri) { (clazz, uri) =>
+        withIdExists(id) { projectManager =>
+          (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
+            case Some(DocInfo(info, rev, header, subcomponents)) =>
+              val subcomponentEntries = subcomponents.toList.sorted.map { component =>
+                val link = uri.withQuery(Uri.Query("class" -> component.className)).toString
+                createSubcomponentLink(component, link)
               }
-            }
+              val content = docEngine.insert(Map(
+                "className" -> clazz,
+                "subcomponents" -> "",
+                "info-header" -> header,
+                "info-string" -> info,
+                "revisions" -> rev,
+                "subcomponents" -> subcomponentEntries.mkString("\n")
+              )).getContent
+              HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
+            case None =>
+              val docMissing = missingDocEngine.insert(Map(
+                "className" -> clazz
+              )).getContent
+              HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
           }
         }
       }
