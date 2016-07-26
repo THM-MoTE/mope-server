@@ -2,19 +2,14 @@
 Returns the source/path of the given type.
 Currently only models, classes, packages and functions with full-qualified names are supported.
 \begin{itemize}
-\item \textbf{URL} \code{/moie/project/:id/declaration}
-\item \textbf{Method} \code{POST}
+\item \textbf{URL} \code{/moie/project/:id/declaration?class=:className}
+\item \textbf{Method} \code{GET}
 
 \item \textbf{URL Params}
   \newline\textbf{Required} \code{id=[integer]}
+  \newline\textbf{Required} \code{className=[string]}
 
-\item \textbf{Data Params} An object which contains the type name.
-  \begin{lstlisting}[basicstyle=\small,language=json]
-    {
-      "className": <String>
-    }
-  \end{lstlisting}
-  \decodedAs{de.thm.moie.declaration.DeclarationRequest}
+\item \textbf{Data Params} Empty
 
 \item \textbf{Success Response}
   \newline\textbf{Code} 200 OK
@@ -24,6 +19,9 @@ Currently only models, classes, packages and functions with full-qualified names
   \newline\textbf{Cause} Given id is unknown.
   \newline\textbf{Code} 404 Not Found
   \newline\textbf{Content} \code{unknown project-id :id}
+  \newline\textbf{Cause} Parameter class is missing.
+  \newline\textbf{Code} 404 Not Found
+  \newline\textbf{Content} \code{Request is missing required query parameter 'class'}
   \newline\textbf{Cause} Given className can't be found
   \newline\textbf{Code} 404 Not Found
   \newline\textbf{Content} \code{class :className not found}
