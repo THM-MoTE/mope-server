@@ -4,8 +4,7 @@
 
 package de.thm.moie.project
 
-import java.nio.file.{Paths, Files}
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
 
 case class ProjectDescription(
            path:String,

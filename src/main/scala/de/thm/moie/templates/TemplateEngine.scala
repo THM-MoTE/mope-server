@@ -1,6 +1,7 @@
 package de.thm.moie.templates
 
-import TemplateEngine._
+import de.thm.moie.templates.TemplateEngine._
+
 import scala.language.implicitConversions
 
 class TemplateEngine(fileContent:String) {

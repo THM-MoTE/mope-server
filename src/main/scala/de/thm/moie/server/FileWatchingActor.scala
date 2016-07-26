@@ -7,16 +7,15 @@ package de.thm.moie.server
 import java.nio.file.WatchEvent.Kind
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.{Executors, TimeUnit}
 import java.util.function.{BiConsumer, Predicate}
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
 import de.thm.moie.project.InternalProjectConfig
 import de.thm.moie.utils.actors.UnhandledReceiver
+import ews.EnhancedWatchService
 
 import scala.concurrent.Future
-import ews.EnhancedWatchService
 
 class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)(implicit projConfig:InternalProjectConfig)
     extends Actor

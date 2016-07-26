@@ -4,9 +4,9 @@
 
 package de.thm.moie.server
 
-import akka.actor.{ActorSystem, ActorRef, Props}
-import akka.stream.ActorMaterializer
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
+import akka.stream.ActorMaterializer
 import de.thm.moie.Global.ApplicationMode
 
 import scala.concurrent.{Future, blocking}

@@ -4,8 +4,7 @@
 
 package  de.thm.moie.utils
 
-import java.util.concurrent.ThreadFactory
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, ThreadFactory}
 
 object ThreadUtils {
 

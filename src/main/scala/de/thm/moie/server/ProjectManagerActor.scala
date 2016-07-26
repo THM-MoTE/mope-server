@@ -10,18 +10,15 @@ import java.util.concurrent.{Executors, TimeUnit}
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import de.thm.moie.Global
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.moie.declaration.{DeclarationRequest, JumpToProvider}
 import de.thm.moie.doc.DocumentationProvider
+import de.thm.moie.doc.DocumentationProvider.GetDocumentation
 import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
-import DocumentationProvider.GetDocumentation
-import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, ModifiedPath, NewPath}
+import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, NewPath}
 import de.thm.moie.suggestion.{CompletionRequest, SuggestionProvider}
-import de.thm.moie.utils.actors.UnhandledReceiver
-
-import scala.io.Source
 import de.thm.moie.utils.ThreadUtils
+import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.collection._
 import scala.concurrent.Future

@@ -1,7 +1,8 @@
 package de.thm.moie
 
-import org.scalatest._
 import java.net.URL
+
+import org.scalatest._
 
 class GlobalSpec extends FlatSpec with Matchers {
   def rsc(path:String):URL =

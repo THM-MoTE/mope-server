@@ -1,8 +1,9 @@
 package de.thm.moie.project
 
+import java.nio.file._
+
 import de.thm.moie._
 import org.scalatest._
-import java.nio.file._
 
 class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
   val path = Files.createTempDirectory("moie")

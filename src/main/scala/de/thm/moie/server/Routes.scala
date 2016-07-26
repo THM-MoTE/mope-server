@@ -9,18 +9,17 @@ import java.util.NoSuchElementException
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.HttpEncoding
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
+import de.thm.moie.doc.DocInfo._
+import de.thm.moie.doc.DocumentationProvider.GetDocumentation
 import de.thm.moie.doc.{DocInfo, DocumentationProvider}
-import de.thm.moie.project._
-import DocInfo._
-import DocumentationProvider.GetDocumentation
 import de.thm.moie.position.FilePath
+import de.thm.moie.project._
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}

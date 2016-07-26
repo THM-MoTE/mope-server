@@ -8,7 +8,7 @@ import java.nio.file.Path
 
 import de.thm.moie.declaration.JumpToLike
 import de.thm.moie.doc.DocumentationLike
-import de.thm.moie.suggestion.{CompletionLike, CompletionResponse}
+import de.thm.moie.suggestion.CompletionLike
 
 import scala.concurrent.{ExecutionContext, Future}
 

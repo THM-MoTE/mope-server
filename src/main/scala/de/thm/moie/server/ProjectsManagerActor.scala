@@ -4,10 +4,9 @@
 
 package de.thm.moie.server
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
-import akka.event.Logging
 import de.thm.moie.Global
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectRegister._

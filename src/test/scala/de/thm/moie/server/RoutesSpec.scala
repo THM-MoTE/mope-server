@@ -16,8 +16,8 @@ import de.thm.moie._
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.position.{FilePath, FilePosition}
-import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await

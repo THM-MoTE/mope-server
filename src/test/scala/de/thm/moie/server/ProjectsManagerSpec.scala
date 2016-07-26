@@ -5,19 +5,14 @@
 package de.thm.moie.server
 
 import java.nio.file.Files
+
+import akka.actor.{ActorRef, Props}
+import akka.testkit.TestProbe
+import akka.util.Timeout
 import de.thm.moie._
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectsManagerActor._
-import akka.pattern.ask
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.util.Timeout
-import akka.testkit.{ TestActors, TestKit, ImplicitSender, TestProbe }
-import org.scalatest.WordSpecLike
-import org.scalatest.Matchers
-import org.scalatest.BeforeAndAfterAll
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
 

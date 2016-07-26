@@ -4,16 +4,14 @@
 
 package de.thm.moie.server
 
-import org.scalatest._
-import akka.testkit.TestActorRef
-import de.thm.moie.project.ProjectDescription
-import de.thm.moie._
-import de.thm.moie.server.ProjectManagerActor._
-import de.thm.moie.compiler._
 import java.nio.file._
-import java.nio.charset.StandardCharsets
 
+import akka.testkit.TestActorRef
+import de.thm.moie._
+import de.thm.moie.compiler._
 import de.thm.moie.position.FilePosition
+import de.thm.moie.project.ProjectDescription
+import de.thm.moie.server.ProjectManagerActor._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

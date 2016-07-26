@@ -8,10 +8,10 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 
-import scala.io.Source
-
 import de.thm.moie.compiler.ModelicaCompiler
 import de.thm.moie.config.{Config, ConfigLoader}
+
+import scala.io.Source
 
 object Global {
 

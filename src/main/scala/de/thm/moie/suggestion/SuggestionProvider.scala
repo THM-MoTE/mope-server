@@ -6,7 +6,7 @@ import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
 import de.thm.moie.Global
-import CompletionResponse.CompletionType
+import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future

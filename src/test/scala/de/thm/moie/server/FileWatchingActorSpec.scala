@@ -4,16 +4,16 @@
 
 package de.thm.moie.server
 
-import akka.util.Timeout
-import akka.actor.{Actor, Props}
-import akka.testkit.{TestActors, TestKit}
-import de.thm.moie.project.{ProjectDescription, InternalProjectConfig}
-import de.thm.moie.server.FileWatchingActor._
-import de.thm.moie.utils.ResourceUtils
 import java.nio.file._
 import java.util.concurrent.Executors
 
+import akka.actor.{Actor, Props}
+import akka.util.Timeout
 import de.thm.moie._
+import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
+import de.thm.moie.server.FileWatchingActor._
+import de.thm.moie.utils.ResourceUtils
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
 

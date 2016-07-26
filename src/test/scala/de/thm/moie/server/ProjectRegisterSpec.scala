@@ -4,13 +4,7 @@
 
 package de.thm.moie.server
 
-import org.scalatest._
-import akka.util.Timeout
-import akka.actor.ActorRef
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{ImplicitSender, TestActors, TestKit, TestProbe}
+import akka.actor.{Actor, Props}
 import de.thm.moie.ActorSpec
 import de.thm.moie.project.ProjectDescription
 
