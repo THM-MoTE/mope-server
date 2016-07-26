@@ -21,6 +21,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = new OMCClient(executableName)
+  private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
   require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
@@ -129,7 +130,19 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       xs.asScala.
         map(killTrailingQuotes).
         map(_ -> None).toList
-    } else Nil //TODO parse file/class and search for (input TYPE NAME)
+    } else if(omc.is_("Function", className)) {
+      val res = omc.call("list", className)
+      log.debug("list returned {}", res)
+      if(res.error.isPresent())
+        Nil
+      else {
+        val xs = getParametersFromFunction(res.result).map {
+          case (name, tpe) => name -> Some(tpe)
+        }
+        log.debug("resulting list {}", xs)
+        xs
+      }
+    } else Nil
   }
 
   override def getClassDocumentation(className:String): Option[String] = {
@@ -208,6 +221,12 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       log.error("Couldn't change working directory for omc into {}", dir)
       throw new IllegalStateException("cd() error")
     }
+  }
+
+  private def getParametersFromFunction(modelicaExpr: String): List[(String, String)] = {
+    paramRegex.findAllMatchIn(modelicaExpr).map { m =>
+      m.group(2) -> m.group(1)
+    }.toList
   }
 
   override def stop(): Unit = omc.disconnect()
