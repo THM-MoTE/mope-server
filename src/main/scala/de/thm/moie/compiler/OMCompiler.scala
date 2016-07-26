@@ -132,14 +132,12 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
         map(_ -> None).toList
     } else if(omc.is_("Function", className)) {
       val res = omc.call("list", className)
-      log.debug("list returned {}", res)
       if(res.error.isPresent())
         Nil
       else {
         val xs = getParametersFromFunction(res.result).map {
           case (name, tpe) => name -> Some(tpe)
         }
-        log.debug("resulting list {}", xs)
         xs
       }
     } else Nil
