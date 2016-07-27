@@ -49,7 +49,7 @@ trait Routes extends JsonSupport with ErrorHandling {
     |  <a href="$link">${comp.className}</a> ${comp.classComment.map("- "+_).getOrElse("")}
     |</li>""".stripMargin
 
-  private def shutdown(cause:String="unkown cause"): Unit = {
+  private def shutdown(cause:String): Unit = {
     actorSystem.terminate()
     serverlog.info("Shutdown because {}", cause)
   }
