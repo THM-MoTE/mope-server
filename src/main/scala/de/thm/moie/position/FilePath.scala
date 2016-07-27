@@ -8,6 +8,7 @@ import java.nio.file.{Path, Paths}
 
 import scala.language.implicitConversions
 
+/** A path to a file */
 case class FilePath(path:String)
 
 object FilePath {

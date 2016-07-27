@@ -9,6 +9,7 @@ import de.thm.moie.position.FilePosition
 import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 
+/** A (simple) parser for OMC's error messages */
 class MsgParser extends RegexParsers with CommonParsers with ImplicitConversions {
   def word = """[\w\.\+\-\*_,;:=<>?!\(\)\{\}\/\\"'äöü]+""".r
 

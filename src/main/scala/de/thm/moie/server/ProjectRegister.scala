@@ -9,6 +9,10 @@ import de.thm.moie.project.ProjectDescription
 
 import scala.collection.mutable
 
+/** A database for registered projects
+  * This class creates unique project ID's and maps this ID's to a
+  * `ProjectManagerActor`.
+  */
 class ProjectRegister() {
   import ProjectRegister._
 

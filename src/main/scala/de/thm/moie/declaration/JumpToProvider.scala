@@ -7,6 +7,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
 
+/*+ An Actor which finds the source (file) of a `className`. */
 class JumpToProvider(jumpLike:JumpToLike)
   extends Actor
     with UnhandledReceiver

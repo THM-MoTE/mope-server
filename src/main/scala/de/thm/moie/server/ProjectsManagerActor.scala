@@ -12,6 +12,7 @@ import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectRegister._
 import de.thm.moie.utils.actors.UnhandledReceiver
 
+/** Root actor for all registered projects. */
 class ProjectsManagerActor
   extends Actor
   with UnhandledReceiver

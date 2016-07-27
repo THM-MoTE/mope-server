@@ -6,6 +6,10 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.ExceptionHandler
 
+/** ErrorHandler for Mo|E routes.
+  * This interface is triggered if an exception is thrown while
+  * handling a HTTP Request.
+  */
 trait ErrorHandling {
   this: ServerSetup =>
 

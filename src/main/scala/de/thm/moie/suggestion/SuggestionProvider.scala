@@ -11,6 +11,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
 
+/** An Actor which provides suggestions (code completions) for a given word. */
 class SuggestionProvider(compiler:CompletionLike)
   extends Actor
     with UnhandledReceiver
@@ -38,9 +39,11 @@ class SuggestionProvider(compiler:CompletionLike)
       //ignore empty strings
       sender ! Set.empty[CompletionResponse]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
+      //searching for a class inside another class
       containingPackages(word.dropRight(1)).run().
       map(logSuggestions(word)) pipeTo sender
     case CompletionRequest(_,_,word) =>
+      //searching for a possible not-completed class
       closestKeyWordType(word).
         mapConcat(x => x).
         merge(findMatchingClasses(word).mapConcat(x => x)).
@@ -54,6 +57,7 @@ class SuggestionProvider(compiler:CompletionLike)
       case (acc, elem) => acc + elem
     }
 
+  /** Adds to the given tupel of (className, classType) a list of parameters. */
   private def withParameters: Flow[(String, CompletionResponse.CompletionType.Value), (String, CompletionResponse.CompletionType.Value, List[String]), NotUsed] =
     Flow[(String, CompletionResponse.CompletionType.Value)].map {
       case (name, tpe) =>
@@ -64,6 +68,7 @@ class SuggestionProvider(compiler:CompletionLike)
         (name, tpe, params)
     }
 
+  /** Converts the given tripel of (className, classType, parameterlist) into a CompletionResponse. */
   private def toCompletionResponse: Flow[(String, CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
     Flow[(String, CompletionType.Value, List[String])].map {
       case (name, tpe, parameters) =>
@@ -72,6 +77,7 @@ class SuggestionProvider(compiler:CompletionLike)
         CompletionResponse(tpe, name, paramOpt, classComment)
     }
 
+/** Returns all components/packages inside of `word`. */
   private def containingPackages(word:String): RunnableGraph[Future[Set[CompletionResponse]]] =
     Source.fromFuture(compiler.getClassesAsync(word)).
       mapConcat[(String, CompletionResponse.CompletionType.Value)](x => x).
@@ -80,6 +86,7 @@ class SuggestionProvider(compiler:CompletionLike)
       via(toSet).
       toMat(Sink.head)(Keep.right)
 
+  /** Finds the keywords, types that starts with `word`. */
   private def closestKeyWordType(word:String): Source[Set[CompletionResponse], NotUsed] =
     Source.fromFuture(findClosestMatch(word, keywords ++ types)).
       mapConcat(x => x).
@@ -119,6 +126,7 @@ class SuggestionProvider(compiler:CompletionLike)
       via(toCompletionResponse).
       via(toSet)
 
+  /** Removes all entries from `words` which doesn't start with `word` */
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
     @annotation.tailrec
     def closestMatch(w:String, remainingWords:Set[String], idx:Int): Set[String] =

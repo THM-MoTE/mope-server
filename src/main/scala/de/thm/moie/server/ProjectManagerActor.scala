@@ -25,6 +25,10 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+/** A manager for one specific project described by the given `description`.
+  * This actor is the main-entry-point for a connected project.
+  * @note This actor starts several subactors for serving all requests
+  */
 class ProjectManagerActor(description:ProjectDescription,
                           compiler:ModelicaCompiler,
                           indexFiles:Boolean = true)

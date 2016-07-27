@@ -6,6 +6,7 @@ package de.thm.moie.project
 
 import java.nio.file.{Files, Paths}
 
+/** A description for projects */
 case class ProjectDescription(
            path:String,
            outputDirectory:String,
@@ -14,6 +15,7 @@ case class ProjectDescription(
 object ProjectDescription {
   type Errors = List[String]
 
+  /** Checks the given description and returns found errors. */
   def validate(descr:ProjectDescription):Errors = {
     val realPath = Paths.get(descr.path)
     val scriptPathOpt = descr.buildScript.map(realPath.resolve)

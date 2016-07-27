@@ -6,6 +6,7 @@ import de.thm.moie.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
 
+/*+ An Actor which returns the documentation (as DocInfo) of a given `className`. */
 class DocumentationProvider(docLike: DocumentationLike)
   extends Actor
     with UnhandledReceiver
