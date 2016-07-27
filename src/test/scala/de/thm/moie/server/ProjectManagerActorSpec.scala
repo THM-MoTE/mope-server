@@ -12,7 +12,9 @@ import de.thm.moie.compiler._
 import de.thm.moie.position.FilePosition
 import de.thm.moie.project.ProjectDescription
 import de.thm.moie.server.ProjectManagerActor._
-
+import de.thm.moie.declaration.DeclarationRequest
+import de.thm.moie.position._
+import de.thm.moie.doc._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -52,6 +54,18 @@ class ProjectManagerActorSpec
       xs.filter(manager.errorInProjectFile) shouldEqual List(projectPath.resolve("test/util.mo"),
         projectPath.resolve("test/util3.mo"),
         projectPath.resolve("project.mo")).map(dummyError)
+    }
+
+    "not filter modelica scripts" in {
+      val xs = List(
+        Paths.get("/test.mo"),
+        Paths.get("/test2.mos"),
+        projectPath.resolve("test.mo")).
+        map(dummyError)
+
+      xs.filter(manager.errorInProjectFile) shouldEqual
+        (List(Paths.get("/test2.mos"), projectPath.resolve("test.mo")).
+          map(dummyError))
     }
   }
 
@@ -117,13 +131,30 @@ class ProjectManagerActorSpec
       xs shouldBe empty
     }
 
-    "return compile errors for invalid scripts" in {
-      val scriptFile = createInvalidScript(projectPath)
-        //test errors
-      testRef ! CompileScript(scriptFile)
-      val xs = expectMsgType[List[CompilerError]](10 seconds)
-      xs.size shouldBe 1
-      xs.head shouldBe invalidScriptError(scriptFile)
+    "return the source of a valid symbol" in {
+      testRef ! DeclarationRequest("Modelica.Electrical")
+      val fp = expectMsgType[Option[FilePath]](5 seconds)
+      fp.get.path.isEmpty() should be (false)
+      fp.get.path.contains("Modelica") shouldBe true
+    }
+
+    "return no source for unknown symbol" in {
+      testRef ! DeclarationRequest("nico")
+      val fp = expectMsgType[Option[FilePath]](5 seconds)
+      fp shouldBe None
+    }
+
+    "return a `DocInfo` for a symbol" in {
+      testRef ! DocumentationProvider.GetDocumentation("Modelica.Electrical")
+      val docOpt = expectMsgType[Option[DocInfo]](5 seconds)
+      docOpt shouldBe defined
+      docOpt.get.info.isEmpty() shouldBe (false)
+    }
+
+    "return no `DocInfo` for a unknown symbol" in {
+      testRef ! DocumentationProvider.GetDocumentation("nico")
+      val docOpt = expectMsgType[Option[DocInfo]](5 seconds)
+      docOpt shouldBe None
     }
 
     "fail if opened file doesn't exist" in {
@@ -134,6 +165,15 @@ class ProjectManagerActorSpec
       testRef ! CompileScript(projectPath.resolve("unknownscript"))
       val failure2 = expectMsgType[akka.actor.Status.Failure](10 seconds)
       failure2.cause.isInstanceOf[NotFoundException] shouldBe true
+    }
+
+    "return compile errors for invalid scripts" in {
+      val scriptFile = createInvalidScript(projectPath)
+        //test errors
+      testRef ! CompileScript(scriptFile)
+      val xs = expectMsgType[List[CompilerError]](10 seconds)
+      xs.size shouldBe 1
+      xs.head shouldBe invalidScriptError(scriptFile)
     }
 
     "return 0 compile errors for valid scripts" in {
