@@ -4,6 +4,8 @@ scalacOptions ++= Seq(
     "-feature"
 )
 
+parallelExecution in Test := false
+
 //include ./conf in classpath
 unmanagedResourceDirectories in Compile += baseDirectory.value / "conf"
 
