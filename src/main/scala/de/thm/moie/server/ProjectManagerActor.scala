@@ -72,10 +72,13 @@ class ProjectManagerActor(description:ProjectDescription,
       self ! InitialInfos(files, Nil)
     }
 
- def errorInProjectFile(error:CompilerError): Boolean =
-   error.file.isEmpty ||
-   Paths.get(error.file).startsWith(rootDir) ||
-   Paths.get(error.file).startsWith(rootDir.toRealPath())
+ def errorInProjectFile(error:CompilerError): Boolean = {
+    val path = Paths.get(error.file)
+     error.file.isEmpty ||
+     path.startsWith(rootDir) ||
+     path.startsWith(rootDir.toRealPath()) ||
+     error.file.endsWith(".mos")
+   }
 
   override def handleMsg: Receive = {
     case InitialInfos(files, errors) =>
