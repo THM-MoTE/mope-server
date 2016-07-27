@@ -136,9 +136,9 @@ class ProjectManagerActor(description:ProjectDescription,
     case NewFiles(files) =>
       projectFiles = (files ++ projectFiles).toList.sorted
     case NewPath(p) if Files.isDirectory(p) =>
-      for {
-        files <- (fileWatchingActor ? GetFiles(p)).mapTo[List[Path]]
-      } yield self ! NewFiles(files)
+      (fileWatchingActor ? GetFiles(p)).
+        mapTo[List[Path]].
+        foreach{ files => self ! NewFiles(files) }
     case NewPath(p) =>
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>

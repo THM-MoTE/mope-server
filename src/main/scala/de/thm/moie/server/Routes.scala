@@ -56,7 +56,8 @@ trait Routes extends JsonSupport with ErrorHandling {
 
   private def disconnectWithExit(id:Int):Unit =
     (projectsManager ? Disconnect(id)).
-      mapTo[Option[RemainingClients]].collect {
+      mapTo[Option[RemainingClients]].
+      collect {
         case Some(RemainingClients(0)) if exitOnLastDisconnect => ()
       }.foreach { _ =>
         shutdown("no active clients left")
@@ -141,7 +142,8 @@ trait Routes extends JsonSupport with ErrorHandling {
       } ~
       (path("declaration")  & get & parameters("class")) { clazz =>
         withIdExists(id) { projectManager =>
-          (projectManager ? DeclarationRequest(clazz)).mapTo[Option[FilePath]].
+          (projectManager ? DeclarationRequest(clazz)).
+            mapTo[Option[FilePath]].
             flatMap {
               case Some(path) => Future.successful(path)
               case None => Future.failed(new NotFoundException(s"class ${clazz} not found"))
@@ -150,26 +152,28 @@ trait Routes extends JsonSupport with ErrorHandling {
       } ~
       (path("doc") & get & parameters("class") & extractUri) { (clazz, uri) =>
         withIdExists(id) { projectManager =>
-          (projectManager ? GetDocumentation(clazz)).mapTo[Option[DocInfo]].map {
-            case Some(DocInfo(info, rev, header, subcomponents)) =>
-              val subcomponentEntries = subcomponents.toList.sorted.map { component =>
-                val link = uri.withQuery(Uri.Query("class" -> component.className)).toString
-                createSubcomponentLink(component, link)
-              }
-              val content = docEngine.insert(Map(
-                "className" -> clazz,
-                "subcomponents" -> "",
-                "info-header" -> header,
-                "info-string" -> info,
-                "revisions" -> rev,
-                "subcomponents" -> subcomponentEntries.mkString("\n")
-              )).getContent
-              HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
-            case None =>
-              val docMissing = missingDocEngine.insert(Map(
-                "className" -> clazz
-              )).getContent
-              HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
+          (projectManager ? GetDocumentation(clazz)).
+            mapTo[Option[DocInfo]].
+            map {
+              case Some(DocInfo(info, rev, header, subcomponents)) =>
+                val subcomponentEntries = subcomponents.toList.sorted.map { component =>
+                  val link = uri.withQuery(Uri.Query("class" -> component.className)).toString
+                  createSubcomponentLink(component, link)
+                }
+                val content = docEngine.insert(Map(
+                  "className" -> clazz,
+                  "subcomponents" -> "",
+                  "info-header" -> header,
+                  "info-string" -> info,
+                  "revisions" -> rev,
+                  "subcomponents" -> subcomponentEntries.mkString("\n")
+                )).getContent
+                HttpEntity(ContentTypes.`text/html(UTF-8)`, content)
+              case None =>
+                val docMissing = missingDocEngine.insert(Map(
+                  "className" -> clazz
+                )).getContent
+                HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
           }
         }
       }
