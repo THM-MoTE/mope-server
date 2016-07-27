@@ -181,8 +181,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   private def parseResult(result:Result)  = {
     val errOpt:Option[String] = result.error
-    log.debug("errOpt in parseResult {}", errOpt)
-    errOpt.map { x => log.debug("parsing {}", x); parseErrorMsg(x) }.getOrElse(parseErrorMsg(result.result))
+    errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
   private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] =
