@@ -5,6 +5,7 @@
 package de.thm.moie.compiler
 import java.nio.file.{Files, Path}
 
+import de.thm.moie.Global
 import de.thm.moie.doc.DocInfo
 import de.thm.moie.position.FilePosition
 import de.thm.moie.server.NotFoundException
@@ -20,7 +21,11 @@ import scala.util._
 class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
-  private val omc: OMCInterface = new OMCClient(executableName)
+  private val omc: OMCInterface = {
+    val forceEnglish = Global.config.getBoolean("force-english").getOrElse(false)
+    if(forceEnglish) new OMCClient(executableName, Global.usLocale)
+    else new OMCClient(executableName)
+  }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
   require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")

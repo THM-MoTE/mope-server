@@ -86,6 +86,7 @@ object Global {
   lazy val encoding = Charset.forName("UTF-8")
   lazy val configFileURL = getConfigFile("moie.conf")
   lazy val config: Config = new ConfigLoader(configFileURL)
+  lazy val usLocale = "en_US.UTF-8"
 
   lazy val copyright = "(c) 2016 Nicola Justus"
   lazy val version = "0.1"
