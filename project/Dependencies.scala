@@ -30,7 +30,7 @@ object Dependencies {
 
   val testLib = Seq(
       "org.scalactic" %% "scalactic" % "2.2.6" % Test,
-      "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+      "org.scalatest" %% "scalatest" % "2.2.6" % Test
   )
 
   val ewsProject = fromFile("../EnhancedWatchService")
