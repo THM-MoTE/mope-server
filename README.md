@@ -26,6 +26,7 @@ one directory. This should look like this:
     - moie-server/
     - omc-java-api/
     - EnhancedWatchService/
+    - moie-atom-plugin/
   ```
   __Site node:__ This procedure is only needed because we can't publish all our projects
   to github or maven central yet. Once we've checked the licensing issues the project's going
@@ -60,7 +61,7 @@ If you messed up your configuration just kill the whole ```~/.moie``` directory.
 Its possible to import this project as an sbt project.
 
 If you are using Mac OS X make sure that IntelliJ "sees" the
-```$JAVA_HOME``` variable. OS X doesn't publish environment 
+```$JAVA_HOME``` variable. OS X doesn't publish environment
 variables to GUI applications which are set inside
 ```.bash_profile```, ```.bashrc```, ...You have to set
 the ```$JAVA_HOME``` variable inside
@@ -71,6 +72,21 @@ http://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x
 ## Eclipse
 Import each subproject into the workspace and add these as project
 dependencies for this project.
+
+# `moie-project.json` example
+In order to connect to the server you need a `moie-project.json` file inside
+of the root directory of your project. The file should look similar to this:
+```json
+{
+	"path": "/home/user/dev/my-project",
+	"outputDirectory": "target"
+}
+```
+- `path` should be an absolute path to the project root directory.
+- `outputDirectory` is a relative path inside of the projects
+  root directroy which is used as output directory
+
+See the REST-API documentation for more details.
 
 # REST-API
 A documentation for the REST-API can be found in
@@ -99,4 +115,4 @@ MUST READ :exclamation:
 Helpful when writing Modelicascripts or communicating through CORBA
 
 - [OpenModelica User's Guide](https://openmodelica.org/doc/OpenModelicaUsersGuide/latest/)
-(not really helpfull while developing but for getting knowledge about the users!)
+(not really helpful while developing but for getting knowledge about the users!)
