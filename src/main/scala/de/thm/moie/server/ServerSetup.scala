@@ -23,7 +23,7 @@ trait ServerSetup {
  org.slf4j.bridge.SLF4JBridgeHandler.install();
 
   val serverName = "moie-server"
-  val applicationMode = ApplicationMode.parseString(config.getString("app.mode").getOrElse("prod"))
+  val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
 
   implicit val serverLogSource:LogSource[ServerSetup] = new LogSource[ServerSetup] {
     override def genString(setup:ServerSetup): String =
@@ -39,9 +39,9 @@ trait ServerSetup {
   implicit def execContext = actorSystem.dispatcher
   /** Overwrite as lazy val! */
   implicit def materializer:ActorMaterializer
-  implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout").getOrElse(20) seconds)
+  implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout") seconds)
 
   val serverlog = Logging(actorSystem, this)
-  val interface = config.getString("http.interface").getOrElse("127.0.0.1")
-  val port = config.getInt("http.port").getOrElse(9001)
+  val interface = config.getString("http.interface")
+  val port = config.getInt("http.port")
 }

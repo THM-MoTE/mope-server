@@ -8,6 +8,8 @@ object Dependencies {
   private val akkaVersion = "2.4.6"
   private val akkaGroup = "com.typesafe.akka"
 
+  val configLib = "com.typesafe" % "config" % "1.3.0"
+
   val logging = Seq(
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "org.slf4j" % "jul-to-slf4j" % "1.7.21"
@@ -36,5 +38,5 @@ object Dependencies {
   val ewsProject = fromFile("../EnhancedWatchService")
   val corbaProject = fromFile("../omc-java-api/")
 
-  val usedDependencies = akka ++ logging ++ scalaUtils ++ testLib
+  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib)
 }

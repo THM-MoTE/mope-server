@@ -22,7 +22,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
-    val forceEnglish = Global.config.getBoolean("force-english").getOrElse(false)
+    val forceEnglish = Global.config.getBoolean("force-english")
     if(forceEnglish) new OMCClient(executableName, Global.usLocale)
     else new OMCClient(executableName)
   }

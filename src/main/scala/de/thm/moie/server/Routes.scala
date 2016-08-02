@@ -35,7 +35,7 @@ trait Routes extends JsonSupport with ErrorHandling {
   def projectsManager: ActorRef
 
   private val exitOnLastDisconnect =
-    Global.config.getBoolean("exitOnLastDisconnect").getOrElse(false)
+    Global.config.getBoolean("exitOnLastDisconnect")
 
   private val cssStream = getClass.getResourceAsStream("/templates/style.css")
   private val docStream = getClass.getResourceAsStream("/templates/documentation.html")

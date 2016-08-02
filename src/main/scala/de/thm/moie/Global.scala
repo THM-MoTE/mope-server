@@ -8,12 +8,12 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 
+import com.typesafe.config.{Config, ConfigFactory}
 import de.thm.moie.compiler.ModelicaCompiler
-import de.thm.moie.config.{Config, ConfigLoader}
 
 import scala.io.Source
 
-object Global {
+object Global extends FallbackConfig {
 
   object ApplicationMode extends Enumeration {
     val Development, Production = Value
@@ -57,16 +57,13 @@ object Global {
     }
 
   private def getCompilerClass: Class[ModelicaCompiler] = {
-    val compilerKey = config.getString("compiler").
-      getOrElse(throw new IllegalStateException("Can't run without a defined compiler"))
+    val compilerKey = config.getString("compiler")
 
     compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
   }
 
   private def getCompilerExecutable: String = {
-    config.getString("compiler-executable").
-      orElse(config.getString("compiler")).
-      getOrElse(throw new IllegalStateException("Can't run without a defined compiler-executable"))
+    config.getString("compiler-executable")
   }
 
   def newCompilerInstance(outputDir:Path): ModelicaCompiler = {
@@ -85,7 +82,7 @@ object Global {
 
   lazy val encoding = Charset.forName("UTF-8")
   lazy val configFileURL = getConfigFile("moie.conf")
-  lazy val config: Config = new ConfigLoader(configFileURL)
+  lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
 
   lazy val copyright = "(c) 2016 Nicola Justus"

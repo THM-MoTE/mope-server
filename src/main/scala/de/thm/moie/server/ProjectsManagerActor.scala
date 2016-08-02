@@ -22,7 +22,7 @@ class ProjectsManagerActor
 
   private val register = new ProjectRegister()
 
-  private val indexFiles = Global.config.getBoolean("indexFiles").getOrElse(true)
+  private val indexFiles = Global.config.getBoolean("indexFiles")
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
     register.get(id) map {
