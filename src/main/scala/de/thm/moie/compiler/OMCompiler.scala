@@ -212,7 +212,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
-    val res = omc.sendExpression(s"""cd(${asString(dir)})""")
+    val res = omc.cd(dir)
     if (res.result.contains(dir.toString)) {
       f
     } else {
