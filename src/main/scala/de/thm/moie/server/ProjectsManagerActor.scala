@@ -31,9 +31,15 @@ class ProjectsManagerActor
 
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
-    val compiler = Global.newCompilerInstance(outputPath)
-    log.debug("new manager for id:{}", id)
-    context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
+    try {
+      val compiler = Global.newCompilerInstance(outputPath)
+      log.debug("new manager for id:{}", id)
+      context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
+    } catch {
+      case ex:Exception =>
+        log.error("Couldn't initialize a new ProjectManager - blow up system")
+        throw ex
+    }
   }
 
   override def handleMsg: Receive = {

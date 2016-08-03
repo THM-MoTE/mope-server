@@ -31,11 +31,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
 
-  try {
-    omc.connect()
-  } catch {
-    case e:Exception => log.error("Couldn't initialize omc connection", e)
-  }
+  omc.connect()
 
   private val isPackageMo:Path => Boolean = _.endsWith("package.mo")
 
