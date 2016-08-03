@@ -50,7 +50,6 @@ class ProjectManagerActor(description:ProjectDescription,
   val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
 
   private var projectFiles = List[Path]()
-  private var compileErrors = Seq[CompilerError]()
 
   def getProjectFiles:Future[List[Path]] =
     if(indexFiles) Future.successful(projectFiles)
@@ -73,7 +72,7 @@ class ProjectManagerActor(description:ProjectDescription,
     for {
       files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
     } {
-      self ! InitialInfos(files, Nil)
+      self ! InitialInfos(files)
     }
 
  def errorInProjectFile(error:CompilerError): Boolean = {
@@ -85,9 +84,8 @@ class ProjectManagerActor(description:ProjectDescription,
    }
 
   override def handleMsg: Receive = {
-    case InitialInfos(files, errors) =>
+    case InitialInfos(files) =>
       projectFiles = files.toList.sorted
-      compileErrors = errors
       context become initialized
   }
 
@@ -172,7 +170,7 @@ object ProjectManagerActor {
   case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
   case class CheckModel(path:Path) extends ProjectManagerMsg
-  private[ProjectManagerActor] case class InitialInfos(files:Seq[Path], errors:Seq[CompilerError])
+  private[ProjectManagerActor] case class InitialInfos(files:Seq[Path])
   private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
   private[ProjectManagerActor] case class NewFiles(files:Seq[Path])
 }
