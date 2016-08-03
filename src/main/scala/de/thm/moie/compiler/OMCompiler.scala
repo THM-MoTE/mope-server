@@ -3,7 +3,7 @@
  */
 
 package de.thm.moie.compiler
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 
 import de.thm.moie.Global
 import de.thm.moie.doc.DocInfo
@@ -209,10 +209,10 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
     val res = omc.cd(dir)
-    if (res.result.contains(dir.toString)) {
+    if (Paths.get(killTrailingQuotes(res.result)) equals dir) {
       f
     } else {
-      log.error("Couldn't change working directory for omc into {}", dir)
+      log.error("Couldn't change working directory for omc into {} got {}", dir:Any, res)
       throw new IllegalStateException("cd() error")
     }
   }
