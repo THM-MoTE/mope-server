@@ -33,7 +33,7 @@ class ProjectsManagerActor
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
     try {
       val compiler = Global.newCompilerInstance(outputPath)
-      log.debug("new manager for id:{}", id)
+      log.info("new manager for id:{}", id)
       context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
     } catch {
       case ex:Exception =>
@@ -60,7 +60,7 @@ class ProjectsManagerActor
         case ProjectEntry(_,_,_) =>
           RemainingClients(register.clientCount)
       }
-      log.debug("Client {} disconnected; remaining clients {}", id, register.clientCount)
+      log.info("Client {} disconnected; remaining clients {}", id, register.clientCount)
   }
 
   override def postStop(): Unit = log.info("stopping")
