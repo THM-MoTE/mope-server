@@ -30,7 +30,8 @@ class SuggestionProvider(compiler:CompletionLike)
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
 
   val logSuggestions: String => Set[CompletionResponse] => Set[CompletionResponse] = { word => suggestions =>
-    log.debug("suggestions for {} are {}", word, suggestions)
+    if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions)
+    else log.info("found {} suggestion(s) for {}", suggestions.size, word)
     suggestions
   }
 

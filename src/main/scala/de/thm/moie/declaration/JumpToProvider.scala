@@ -19,7 +19,7 @@ class JumpToProvider(jumpLike:JumpToLike)
     case DeclarationRequest(className) =>
       Future {
         val file = jumpLike.getSrcFile(className).map(FilePath.apply)
-        log.info("src of {} is {}", className, file)
+        log.info(file.map(x => s"src of {} is ${x.path}").getOrElse("src of {} is undefined"), className)
         file
       } pipeTo sender
   }

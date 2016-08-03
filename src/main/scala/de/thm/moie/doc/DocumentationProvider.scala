@@ -18,8 +18,12 @@ class DocumentationProvider(docLike: DocumentationLike)
   override def handleMsg: Receive = {
     case GetDocumentation(className) =>
       Future {
-        log.info("searching doc for {}", className)
-        docLike.getDocumentation(className)
+        val docOpt = docLike.getDocumentation(className)
+        log.info(
+            if(docOpt.isDefined) "got documentation for {}"
+            else "no documentation for {}",
+            className)
+        docOpt
       } pipeTo sender
   }
 }

@@ -30,7 +30,7 @@
    <logger name="com.typesafe" level="INFO">
    </logger>
 
-   <root level="DEBUG">
+   <root level="INFO">
        <appender-ref ref="FILE"/>
        <appender-ref ref="STDOUT"/>
    </root>
