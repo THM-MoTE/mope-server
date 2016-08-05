@@ -6,6 +6,9 @@ Python Interface zur Kommunikation mit dem Compiler Front-/Backend.
 - Beide Interaktionen produzieren Exceptions, wenn ein Kompilierfehler auftritt!
 - Informationen über den Modelica-Code sind nur über den abstrakten Syntaxbaum
 	erhältlich, eine Scripting API mit dem Umfang wie sie OMC bietet gibt es nicht
+- Damit die IDE-Features compilerübergreifend funktionieren sollten sie auf einem
+  eigenen, unabhängigen Parser basieren. Damit ist man nicht mehr an die Scripting API
+  von OMC bzw. dem AST von JModelica gebunden.
 
 ## Interaktion über Python
 Über das **Python Modul** ist es auf jeden Fall möglich mit dem Compiler zu
