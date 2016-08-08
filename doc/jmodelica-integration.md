@@ -3,6 +3,8 @@ JModelica ist eine weiterer alternativer Compiler zu OMC.
 Er ist in Java geschrieben, Open Source (GPLv3) und bietet ein
 Python Interface zur Kommunikation mit dem Compiler Front-/Backend.
 
+- Interaktion über Java bedeutet eine weitere riesige Abhängigkeit, die
+ 	bei vielen Endanwendern niemals gebraucht wird
 - Beide Interaktionen produzieren Exceptions, wenn ein Kompilierfehler auftritt!
 - Informationen über den Modelica-Code sind nur über den abstrakten Syntaxbaum
 	erhältlich, eine Scripting API mit dem Umfang wie sie OMC bietet gibt es nicht
@@ -29,3 +31,12 @@ Klasse als Haupteinstiegspunkt mit der Funktion
 
 `compileModel()` gibt den abstrakten Syntaxbaum zurück, auf dem man weitere
 Aktionen ausführen kann.
+
+# Problems
+- JModelicas Buildpipeline ist extrem komplex.
+	- Für diverse Dependencies (Beaver, JFlex, JastAdd) benutzen
+		sie kein automatisches Dependencymanagement.
+	- Nur für Windows gibt es ein pre-built binary
+- Dependency errors werden erst zur Laufzeit aufgedeckt??? :confused:
+- Mit allen nötigen Dependencies für JModelica ist eine Kompilation von
+	__validem Scala-Code nicht mehr möglich__??!
