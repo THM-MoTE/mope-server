@@ -37,6 +37,6 @@ trait CommonParsers extends RegexParsers with ImplicitConversions {
   /** Parses the root-node of a filesystem. In c:\ in Windows, / in Linux */
   def root: Parser[String] =
     ("/" //unix style
-    | character ~ ":" ~ fileSeparator ^^ { case ch ~ _ ~ fp => ch + ":" + fp } //windows style
+    | character ~ ":" ~ pathDelimiter ^^ { case ch ~ _ ~ _ => ch + ":" + fileSeparator } //windows style
     )
 }
