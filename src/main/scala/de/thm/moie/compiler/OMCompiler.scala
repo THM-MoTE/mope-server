@@ -44,7 +44,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       withOutputDir(outputDir) {
         //expect a package.mo in root-directory
         if(Files.exists(rootProjectFile)) {
-          val xs = parseResult(omc.call("loadFile", asString(rootProjectFile)))
+          val xs = parseResult(omc.call("loadFile", convertPath(rootProjectFile)))
           fn(xs)
         } else throw new NotFoundException(s"Expected a root `package.mo`-file in ${rootProjectFile.getParent}")
       }
@@ -78,7 +78,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
-    val fileList = asStringArray(files.asJava)
+    val fileList = asArray(files.map(convertPath).asJava)
     val expr = s"""loadFiles($fileList)"""
     val res = omc.sendExpression(expr)
     val errOpt:Option[String] = res.error
@@ -89,7 +89,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     val startDir = path.getParent
     withOutputDir(startDir) {
       omc.sendExpression("clear()")
-      val resScript = omc.sendExpression(s"""runScript(${asString(path)})""")
+      val resScript = omc.sendExpression(s"""runScript(${convertPath(path)})""")
       log.debug("runScript returned {}", resScript)
       parseResult(resScript)
     }
