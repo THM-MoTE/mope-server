@@ -6,12 +6,14 @@ package de.thm.moie.compiler
 
 import de.thm.moie.position.FilePosition
 
+import java.nio.file.FileSystems
 import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 
 /** A helper trait containing common-parsers for parsing compiler-errors.
   */
 trait CommonParsers extends RegexParsers with ImplicitConversions {
+  def fileSeparator = if(omc.Global.isWindowsOS) "\\" else "/"
   // regex from: http://stackoverflow.com/a/5954831
   override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
 
@@ -19,7 +21,7 @@ trait CommonParsers extends RegexParsers with ImplicitConversions {
   def unknownError:String = "Compiler didn't provide any further message"
   def unknownPath:String = ""
 
-  def pathDelimiter = """/|\\""".r
+  def pathDelimiter = """(?:/|\\)""".r
   def pathIdent = """[a-z-A-Z-.+<>0-9?=_ ]+""".r
   def number = """[0-9]+""".r
   def ident =  """[a-zA-Z0-9]+""".r
@@ -28,8 +30,8 @@ trait CommonParsers extends RegexParsers with ImplicitConversions {
   /** Parses a path similar to: /home/user/awesome/project.txt */
   def path:Parser[String] =
     (root ?) ~ rep1sep(pathIdent, pathDelimiter) ^^ {
-      case None ~ lst => lst.mkString("/")
-      case Some(root) ~ lst => root + lst.mkString("/")
+      case None ~ lst => lst.mkString(fileSeparator)
+      case Some(root) ~ lst => root + lst.mkString(fileSeparator)
     }
 
   /** Parses the root-node of a filesystem. In c:\ in Windows, / in Linux */

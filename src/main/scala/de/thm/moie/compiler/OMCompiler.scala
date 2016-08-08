@@ -199,7 +199,12 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       case Success(v) => v
       case Failure(ex) =>
         log.warn(s"Error while parsing compiler-output: ${ex.getMessage} from\n$msg")
-        Seq[CompilerError]()
+        //Seq[CompilerError]()
+        Seq(CompilerError("Error",
+          "",
+          FilePosition(0, 0),
+          FilePosition(0, 0),
+          "Couldn't understand compiler message."))
     }
 
   private def createOutputDir(path:Path): Unit = {

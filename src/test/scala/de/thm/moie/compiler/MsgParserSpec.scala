@@ -385,4 +385,31 @@ Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documen
 
     compiler.stop()
   }
+
+  "Messages with different path separators" should "get parsed" in {
+    System.setProperty("os.name", "Windows");
+    val parser = new MsgParser()
+    val msg =
+      """
+      false
+      "[C:\nico\Documents\test.mo:2:7-4:8:writable] Error: Parse error: The identifier at start and end are different
+      Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+      """"
+
+      parser.parse(msg) shouldBe util.Success((Seq(CompilerError(
+        "Error", "C:\\nico\\Documents\\test.mo", FilePosition(2,7), FilePosition(4,8),
+        "Parse error: The identifier at start and end are different"))))
+
+      System.setProperty("os.name", "Linux")
+      val msg2 =
+        """
+        false
+        "[/nico/Documents/test.mo:2:7-4:8:writable] Error: Parse error: The identifier at start and end are different
+        Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documents:/opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.
+        """"
+
+        parser.parse(msg2) shouldBe util.Success(Seq(CompilerError(
+          "Error", "/nico/Documents/test.mo", FilePosition(2,7), FilePosition(4,8),
+          "Parse error: The identifier at start and end are different")))
+    }
 }
