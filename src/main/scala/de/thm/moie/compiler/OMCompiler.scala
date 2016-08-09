@@ -214,7 +214,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
     val res = omc.cd(dir)
-    if (Paths.get(killTrailingQuotes(res.result)) equals dir) {
+    if (Paths.get(killTrailingQuotes(res.result)).toRealPath() equals dir.toRealPath()) {
       f
     } else {
       log.error("Couldn't change working directory for omc into {} got {}", dir:Any, res)
