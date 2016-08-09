@@ -96,7 +96,6 @@ class ProjectManagerActorSpec
 
     "remove files if they got deleted" in {
       deletedFiles.foreach(Files.delete(_))
-      Thread.sleep(5000)
       val fileList = manager.getProjectFiles
       val files = Await.result(fileList, 10 seconds)
       files.toSet shouldEqual remainingFiles.toSet
@@ -113,9 +112,7 @@ class ProjectManagerActorSpec
 
       //test errors
       require(Files.exists(invalidFile), "file has to be created!")
-//      Thread.sleep(20000)
       val files = manager.getProjectFiles
-      println("files in test: "+files)
       testRef ! CompileProject(invalidFile)
       val xs = expectMsgType[List[CompilerError]](10 seconds)
       xs.size shouldBe 1

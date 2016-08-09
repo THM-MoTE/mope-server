@@ -244,7 +244,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             HttpMethods.POST,
             uri = "/moie/project/0/compileScript",
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
-          Thread.sleep(8000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
+          Thread.sleep(4000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
           compileRequest ~> service.routes ~> check {
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]].size should be >= (1)
