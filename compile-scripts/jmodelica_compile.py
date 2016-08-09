@@ -1,5 +1,6 @@
-import pymodelica
+#import pymodelica
 import argparse
+import os.path as path
 
 def main():
     parser = argparse.ArgumentParser()
@@ -8,11 +9,11 @@ def main():
     parser.add_argument("-file", nargs="+")
 
     args = parser.parse_args()
-    files = args.file[1:]
+    files = [x for x in args.file if path.exists(x)]
     className = args.classname
     print "files ", files
     print "classname ", className
-    print "output ", parser.outputdir
+    print "output ", args.outputdir
     #pymodelica.compile_fmu(className, files)
 
 main()
