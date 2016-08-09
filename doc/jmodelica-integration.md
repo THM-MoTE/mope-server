@@ -12,6 +12,10 @@ Python Interface zur Kommunikation mit dem Compiler Front-/Backend.
   eigenen, unabhängigen Parser basieren. Damit ist man nicht mehr an die Scripting API
   von OMC bzw. dem AST von JModelica gebunden.
 
+Aufgrund der größe der Abhängigkeiten erfolgt die Integration über
+Python Skripte, die aus Java/Scala aufgerufen werden. Diese Skripte
+produzieren `well-formed` JSON auf `STDOUT`.
+
 ## Interaktion über Python
 Über das **Python Modul** ist es auf jeden Fall möglich mit dem Compiler zu
 interagieren und Kompilierprozesse anzustossen.
