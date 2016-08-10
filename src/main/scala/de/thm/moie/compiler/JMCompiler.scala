@@ -22,10 +22,10 @@ class JMCompiler(executableName:String, outputDir:Path)
   private val log = LoggerFactory.getLogger(this.getClass)
   private val scriptFile = Global.withCheckConfigDirectory { configPath =>
     val scriptDir = configPath.resolve("scripts")
-    val scriptPath = scriptDir.resolve("jmodelica_compile.py")
     if(Files.notExists(scriptDir))
       Files.createDirectory(scriptDir)
 
+    val scriptPath = scriptDir.resolve("jmodelica_compile.py")
     Global.copyIfNotExist(scriptPath, "jmodelica_compile.py")
     Global.copyIfNotExist(scriptDir.resolve("compiler_error.py"), "compiler_error.py")
     scriptPath
@@ -51,9 +51,11 @@ class JMCompiler(executableName:String, outputDir:Path)
     val stdout = prog.!!
     log.debug("stdout is: {}", stdout)
     if(stdout.contains("Nothing to compile")) Seq[CompilerError]()
-    else if(stdout == "JVM started.\n[]") Seq[CompilerError]()
+    else if(stdout.trim == "JVM started.") Seq[CompilerError]()
     else {
-      val erg = stdout.replace("JVM started.", "").toJson.convertTo[Seq[CompilerError]]
+      val str = stdout.replace("JVM started.", "").trim
+      println("str:\n"+str)
+      val erg = str.parseJson.convertTo[Seq[CompilerError]]
       log.debug("parsed json is: {}", erg)
       erg
     }
