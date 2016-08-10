@@ -3,6 +3,7 @@ import argparse
 import os.path as path
 import re
 from compiler_error import *
+import json
 
 warningRegex = "Warning: in file '([^']+)':\n\w+ line (\d+), column (\d+):\n\s*(.*)"
 errorRegex = "Error: in file '([^']+)':\n\w+ error at line (\d+), column (\d+):\n\s*(.*)"
@@ -47,7 +48,7 @@ def main():
                 instance = mc.instantiate_model(ast, className, targetObj)
         except Exception as e:
             errorObj = parse_error(e)
-            for x in errorObj:
-                print x.to_JSON()
+            dicts = [x.to_dict() for x in errorObj]
+            print json.dumps(dicts, indent=2, sort_keys=True)
 
 main()

@@ -14,6 +14,14 @@ class CompilerError:
         self.end  = FilePosition(startLine, startCol)
         self.msg = msg
 
+    def to_dict(self):
+        return {
+            "type": self.tpe,
+            "file": self.file,
+            "start": self.start.to_dict(),
+            "end": self.end.to_dict(),
+            "message": self.msg
+        }
     def to_JSON(self):
         dic = {
             "type": self.tpe,
