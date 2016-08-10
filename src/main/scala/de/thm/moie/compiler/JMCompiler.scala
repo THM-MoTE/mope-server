@@ -33,20 +33,18 @@ class JMCompiler(executableName:String, outputDir:Path)
 
   override def compile(files:List[Path], openedFile:Path): Seq[CompilerError] = {
     val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
-    if(files.exists(isPackageMo)) {
-      compileLib(files, modelname)
-    } else {
-      //compileFiles(files, modelname)
-      ???
-    }
+    if(files.exists(isPackageMo))
+      compile(files, modelname, true)
+    else
+      compile(files, modelname, false)
   }
 
-  private def compileLib(files:List[Path], modelName:Option[String]): Seq[CompilerError] = {
+  private def compile(files:List[Path], modelName:Option[String], isLib:Boolean): Seq[CompilerError] = {
     val classFlag = modelName.map(x => s"-classname $x")
-    val libDir = outputDir.getParent()
-    val args = s"${classFlag.getOrElse("")} -file $libDir"
+    val fileArgs = if(isLib) outputDir.getParent().toString else files.mkString(" ")
+    val args = s"${classFlag.getOrElse("")} -file $fileArgs"
     val prog = s"$executableName -- $scriptFile $args"
-    log.debug("compiling as library")
+    log.debug("compiling as {}", if(isLib) "Library" else "Files")
     log.debug("executing {}", s"$executableName -- $scriptFile")
     val stdout = prog.!!
     log.debug("stdout is: {}", stdout)
