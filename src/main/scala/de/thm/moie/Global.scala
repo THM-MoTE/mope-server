@@ -30,7 +30,8 @@ object Global extends FallbackConfig {
   private val configDirPath = homeDirPath.resolve(configDirectoryName)
 
   private val compilerMappings:Map[String, Class[_]] = Map(
-    "omc" -> classOf[de.thm.moie.compiler.OMCompiler]
+    "omc" -> classOf[de.thm.moie.compiler.OMCompiler],
+    "jm" -> classOf[de.thm.moie.compiler.JMCompiler]
   )
 
   /** Check if path exist; if not create it */
@@ -58,7 +59,6 @@ object Global extends FallbackConfig {
 
   private def getCompilerClass: Class[ModelicaCompiler] = {
     val compilerKey = config.getString("compiler")
-
     compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
   }
 
