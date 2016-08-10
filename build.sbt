@@ -8,6 +8,7 @@ parallelExecution in Test := false
 
 //include ./conf in classpath
 unmanagedResourceDirectories in Compile += baseDirectory.value / "conf"
+unmanagedResourceDirectories in Compile += baseDirectory.value / "compile-scripts"
 
 lazy val configDir = settingKey[File]("The config directory of moie")
 
