@@ -20,7 +20,6 @@ def convert_to_warning(matchObj):
     return __convert_to(matchObj, "Warning")
 
 def parse_error(e):
-    print e
     errorMatchings = errorPattern.findall(str(e))
     warningMatchings = warningPattern.findall(str(e))
     errorObjs = [convert_to_error(x) for x in errorMatchings]
@@ -30,17 +29,16 @@ def parse_error(e):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-classname", nargs=1, help="Name of the class, which should get instantiated")
-    parser.add_argument("-outputdir", nargs=1, help="Directory for generated files")
     parser.add_argument("-file", nargs="+", help="The Modelica Source files")
 
     args = parser.parse_args()
+
     if(args.file is None):
         print "Nothing to compile"
         return
-    else :
+    else:
         files = [x for x in args.file if path.exists(x)]
         className = args.classname[0]
-        outputDir = "target" if(args.outputdir is None) else args.outputdir[0]
         mc = ModelicaCompiler()
         targetObj = mc.create_target_object("me", "1.0")
         try:
@@ -51,9 +49,5 @@ def main():
             errorObj = parse_error(e)
             for x in errorObj:
                 print x.to_JSON()
-
-        print "files ", files
-        print "classname ", className
-        print "output ", outputDir
 
 main()
