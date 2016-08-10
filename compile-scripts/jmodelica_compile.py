@@ -12,7 +12,7 @@ errorPattern = re.compile(errorRegex)
 
 def __convert_to(matchObj, tpe):
     file, line, col, msg = matchObj
-    return CompilerError(tpe, file, line, col, msg)
+    return CompilerError(tpe, file, int(line), int(col), msg)
 
 def convert_to_error(matchObj):
     return __convert_to(matchObj, "Error")
