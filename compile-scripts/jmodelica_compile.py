@@ -38,7 +38,7 @@ def main():
         return
     else:
         files = [x for x in args.file if path.exists(x)]
-        className = args.classname[0]
+        className = args.classname[0] if(args.classname is not None) else None
         mc = ModelicaCompiler()
         targetObj = mc.create_target_object("me", "1.0")
         try:
