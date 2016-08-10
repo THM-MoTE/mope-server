@@ -34,14 +34,14 @@ object Global extends FallbackConfig {
   )
 
   /** Check if path exist; if not create it */
-  private def withCheckConfigDirectory[A](fn: Path => A): A = {
+  def withCheckConfigDirectory[A](fn: Path => A): A = {
     if(Files.notExists(configDirPath))
       Files.createDirectory(configDirPath)
     fn(configDirPath)
   }
 
   /** Copies the file from classpath to filePath if filePath doesn't exist */
-  private def copyIfNotExist(filePath:Path, filename:String): Unit = {
+  def copyIfNotExist(filePath:Path, filename:String): Unit = {
     if(Files.notExists(filePath)) {
       val is = getClass.getResourceAsStream("/"+filename)
       Files.copy(is, filePath)
