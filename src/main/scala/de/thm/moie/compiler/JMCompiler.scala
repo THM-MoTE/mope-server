@@ -20,6 +20,7 @@ class JMCompiler(executableName:String, outputDir:Path)
   with StubCompiler
   with JsonSupport {
   private val log = LoggerFactory.getLogger(this.getClass)
+  private val rootDir = outputDir.getParent()
   private val scriptFile = Global.withCheckConfigDirectory { configPath =>
     val scriptDir = configPath.resolve("scripts")
     if(Files.notExists(scriptDir))
@@ -41,7 +42,7 @@ class JMCompiler(executableName:String, outputDir:Path)
 
   private def compile(files:List[Path], modelName:Option[String], isLib:Boolean): Seq[CompilerError] = {
     val classFlag = modelName.map(x => s"-classname $x")
-    val fileArgs = if(isLib) outputDir.getParent().toString else files.mkString(" ")
+    val fileArgs = if(isLib) rootDir.toString else files.mkString(" ")
     val args = s"${classFlag.getOrElse("")} -file $fileArgs"
     val prog = s"$executableName -- $scriptFile $args"
     log.debug("compiling as {}", if(isLib) "Library" else "Files")
