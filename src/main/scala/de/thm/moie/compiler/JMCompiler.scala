@@ -6,6 +6,7 @@ package de.thm.moie.compiler
 
 import spray.json._
 import DefaultJsonProtocol._
+import de.thm.moie.server.FileWatchingActor
 import de.thm.moie.server.JsonSupport
 import de.thm.moie.Global
 import de.thm.moie.utils.MonadImplicits._
@@ -57,6 +58,21 @@ class JMCompiler(executableName:String, outputDir:Path)
       val erg = str.parseJson.convertTo[Seq[CompilerError]]
       log.debug("parsed json is: {}", erg)
       erg
+    }
+  }
+
+  override def getSrcFile(className:String): Option[String] = {
+    //skip all modelica classes
+    if(className.startsWith("Modelica")) None
+    else {
+      //try to find in the project files
+      val filesAndModels = FileWatchingActor.
+        getFiles(rootDir, FileWatchingActor.moFileFilter).
+        flatMap { x =>
+          asOption(ScriptingHelper.getModelName(x)).
+            map(name => x -> name)
+        }
+      filesAndModels find(_._2 == className) map(_._1.toString)
     }
   }
 
