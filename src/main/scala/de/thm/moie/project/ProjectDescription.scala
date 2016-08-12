@@ -21,8 +21,10 @@ object ProjectDescription {
     val scriptPathOpt = descr.buildScript.map(realPath.resolve)
     val errors = scala.collection.mutable.ArrayBuffer.empty[String]
 
-    if(!Files.isDirectory(realPath))
-      errors += s"$realPath isn't a directory"
+    if(!Files.exists(realPath))
+      errors += s"`$realPath` doesn't exist"
+    else if(!Files.isDirectory(realPath))
+      errors += s"`$realPath` isn't a directory"
 
     scriptPathOpt.
       filterNot { p =>
