@@ -24,7 +24,7 @@ class Server()
 
   val errors = validateConfig(Global.config)
   if(errors.nonEmpty) {
-    val errorString = errors.mkString("\n")
+    val errorString = errors.map(x => s" - $x").mkString("\n")
     serverlog.error(s"Your configuration (${Global.configFileURL}) contains the following errors:\n$errorString")
     System.exit(1)
   }

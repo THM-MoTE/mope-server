@@ -27,7 +27,7 @@ trait ErrorHandling {
     case ex:Exception =>
       extractUri { uri =>
         serverlog.error(s"Error by request $uri {}", ex)
-        complete(StatusCodes.InternalServerError)
+        complete(HttpResponse(StatusCodes.InternalServerError, entity=ex.getMessage))
       }
   }
 }

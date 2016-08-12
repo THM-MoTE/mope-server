@@ -10,6 +10,8 @@ import scala.sys.process._
 trait ValidateConfig {
   type Errors = List[String]
 
+  val compilerPossibilities = Set("omc", "jm")
+
   def validateConfig(config:Config): Errors = {
     val buffer = scala.collection.mutable.ArrayBuffer[String]()
     val compilerKey = "compiler"
@@ -17,6 +19,9 @@ trait ValidateConfig {
 
     if(!config.hasPath(compilerKey)) { //check which compiler
       buffer += s"`$compilerKey` is undefined. Specify which compiler to use. For example: $compilerKey=omc"
+    } else if(!compilerPossibilities.contains(config.getString(compilerKey))) {
+      val possibilities = compilerPossibilities.mkString(", ")
+      buffer +=s"`$compilerKey`: ${config.getString(compilerKey)} isn't a valid option. Options are: $possibilities"
     }
 
     if(!config.hasPath(compilerExecKey)) { //check executable
@@ -30,7 +35,7 @@ trait ValidateConfig {
         case ex:Exception => buffer += s"`$compilerExecKey`: $executable wasn't executable: " + ex.getMessage
       }
     }
-    
+
     buffer.toList
   }
 }
