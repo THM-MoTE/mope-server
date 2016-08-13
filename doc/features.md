@@ -9,9 +9,11 @@ Mo|E turns **Editors** with supported Plugins into real **Modelica IDEs**.
 - Error reports for Modelica Scripts
 - Go to definition using `Ctrl + Click`
 - Open up documentation in external Browser
+
 	![](img/doc.png)
 
 - Type completions via `Ctrl + Space`
+
 	![](img/code-completion.png)
 
 - Support for different Compilers:
