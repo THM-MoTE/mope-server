@@ -1,7 +1,8 @@
 # Mo|E - Modelica Integration for Editors
-## Mo|E - Server
-Mo|E brings IDE-features for Modelica into your favourite Editor.
+Mo|E brings IDE-features for Modelica into your favourite Editor. Features are
+documented in the [Feature Overview](doc/features.md).
 
+## Mo|E - Server
 This is the server-process for Mo|E.
 
 # Subprojects
