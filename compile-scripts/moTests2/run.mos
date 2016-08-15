@@ -1,0 +1,6 @@
+loadFile("package.mo");
+getErrorString();
+loadModel(test);
+getErrorString();
+checkModel(moTests2.test);
+getErrorString();

@@ -33,8 +33,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   omc.connect()
 
-  private val isPackageMo:Path => Boolean = _.endsWith("package.mo")
-
   def sortPathes(paths:List[Path]): List[Path] =
     paths.map(p => p.getParent -> p).sorted.map(_._2)
 

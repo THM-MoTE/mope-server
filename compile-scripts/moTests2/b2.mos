@@ -1,0 +1,6 @@
+cd("target");
+loadFile("package.mo");
+getPackages(moTests2);
+getClassNames(recursive=true);
+//checkModel(fibs);
+getErrorString();

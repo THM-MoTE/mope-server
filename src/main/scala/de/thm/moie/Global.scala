@@ -30,35 +30,36 @@ object Global extends FallbackConfig {
   private val configDirPath = homeDirPath.resolve(configDirectoryName)
 
   private val compilerMappings:Map[String, Class[_]] = Map(
-    "omc" -> classOf[de.thm.moie.compiler.OMCompiler]
+    "omc" -> classOf[de.thm.moie.compiler.OMCompiler],
+    "jm" -> classOf[de.thm.moie.compiler.JMCompiler]
   )
 
   /** Check if path exist; if not create it */
-  private def withCheckConfigDirectory[A](fn: Path => A): A = {
+  def withCheckConfigDirectory[A](fn: Path => A): A = {
     if(Files.notExists(configDirPath))
       Files.createDirectory(configDirPath)
     fn(configDirPath)
   }
 
   /** Copies the file from classpath to filePath if filePath doesn't exist */
-  private def copyIfNotExist(filePath:Path, filename:String): Unit = {
+  def copyIfNotExist(filePath:Path, filename:String): Boolean = {
     if(Files.notExists(filePath)) {
       val is = getClass.getResourceAsStream("/"+filename)
       Files.copy(is, filePath)
-    }
+      false
+    } else true
   }
 
   /** Returns the absolute config-url from relativePath */
-  private def getConfigFile(relativePath:String):URL =
+  private def getConfigFile(relativePath:String):(URL, Boolean) =
     withCheckConfigDirectory { configPath =>
       val filePath = configPath.resolve(relativePath)
-      copyIfNotExist(filePath, relativePath)
-      filePath.toUri.toURL
+      val flag = copyIfNotExist(filePath, relativePath)
+      (filePath.toUri.toURL, flag)
     }
 
   private def getCompilerClass: Class[ModelicaCompiler] = {
     val compilerKey = config.getString("compiler")
-
     compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
   }
 
@@ -81,7 +82,7 @@ object Global extends FallbackConfig {
   }
 
   lazy val encoding = Charset.forName("UTF-8")
-  lazy val configFileURL = getConfigFile("moie.conf")
+  lazy val (configFileURL, configDidExist) = getConfigFile("moie.conf")
   lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
 

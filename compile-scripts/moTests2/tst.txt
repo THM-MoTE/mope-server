@@ -1,0 +1,6 @@
+{"[/Users/nico/Documents/moTests2/run.mos:3:1-3:19:writable] Error: Variable aestest konnte nicht im Geltungsbereich von <global scope> gefunden werden.", "TRANSLATION", "Error", "5"}
+{"Error: Failed to load package aestest (default) using MODELICAPATH /opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.", "SCRIPTING", "Error", "184"}
+{"[/Users/nico/Documents/moTests2/run.mos:5:1-5:26:writable] Error: Variable moTests2.test konnte nicht im Geltungsbereich von <global scope> gefunden werden.", "TRANSLATION", "Error", "5"}
+{"Error: Failed to load package moTests2 (default) using MODELICAPATH /opt/openmodelica/lib/omlibrary:/Users/nico/.openmodelica/libraries/.", "SCRIPTING", "Error", "184"}
+{"Error: Klasse moTests2.test konnte nicht im Geltungsbereich von <TOP> gefunden werden.", "TRANSLATION", "Error", "3"}
+{"Error: Klasse moTests2.test konnte nicht im Geltungsbereich von <TOP> gefunden werden.", "TRANSLATION", "Error", "3"}

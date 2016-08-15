@@ -18,6 +18,8 @@ trait ModelicaCompiler
     with JumpToLike
     with DocumentationLike {
 
+  protected val isPackageMo:Path => Boolean = _.endsWith("package.mo")
+
   /** Disconnects this compiler from his backend. */
   def stop(): Unit
 
