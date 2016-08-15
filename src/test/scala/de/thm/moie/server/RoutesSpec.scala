@@ -86,7 +86,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
           uri = "/moie/connect",
           entity = HttpEntity(MediaTypes.`application/json`, faultyJsonRequest))
         faultyPostRequest ~> service.routes ~> check {
-          responseAs[List[String]] shouldEqual List("derb isn't a directory")
+          responseAs[String] shouldEqual "`derb` doesn't exist"
           status shouldEqual StatusCodes.BadRequest
         }
     }

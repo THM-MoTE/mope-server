@@ -27,7 +27,7 @@ package object moie {
     file.toRealPath().toString,
     FilePosition(1,1),
     FilePosition(1,23),
-    "Klasse lodFile konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden.")
+    "Class lodFile not found in scope <global scope> (looking for a function or record).")
 
   private def createFile(resourceURI:String, filePath:Path): Path = {
     Files.copy(getClass.getResourceAsStream(resourceURI), filePath)

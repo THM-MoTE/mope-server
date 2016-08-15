@@ -20,7 +20,7 @@ class ProjectDescriptionSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     val errors = ProjectDescription.validate(descr)
     errors should have size 1
-    errors.head should be ("unknown-path isn't a directory")
+    errors.head should be ("`unknown-path` doesn't exist")
   }
 
   it should "return errors for undefined buildScript" in {
