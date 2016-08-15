@@ -21,6 +21,10 @@
   <!-- EnhancedWatchService -->
   <logger name="ews" level="INFO">
   </logger>
+
+  <!-- omc api -->
+  <logger name="omc.corba" level="INFO">
+  </logger>
   <!-- Akka framework -->
   <logger name="akka" level="INFO">
        <appender-ref ref="FILE"/>
