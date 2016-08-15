@@ -387,7 +387,7 @@ Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documen
   }
 
   "Messages with different path separators" should "get parsed" in {
-    System.setProperty("os.name", "Windows");
+    System.setProperty("os.name", "Windows")
     val parser = new MsgParser()
     val msg =
       """

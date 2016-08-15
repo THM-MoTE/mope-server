@@ -28,7 +28,7 @@ class SuggestionProviderSpec extends ActorSpec {
       val words = completionActor.keywords ++ completionActor.types
       val word = "an"
       val res = Await.result(completionActor.findClosestMatch(word, words), 5 seconds)
-      res.toSet shouldBe Set("annotation", "and")
+      res shouldBe Set("annotation", "and")
 
       val word2 = "annotation"
       Await.result(completionActor.findClosestMatch(word2, words), 5 seconds) shouldBe Set("annotation")

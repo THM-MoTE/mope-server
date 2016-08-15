@@ -146,7 +146,7 @@ trait Routes extends JsonSupport with ErrorHandling {
             mapTo[Option[FilePath]].
             flatMap {
               case Some(path) => Future.successful(path)
-              case None => Future.failed(new NotFoundException(s"class ${clazz} not found"))
+              case None => Future.failed(new NotFoundException(s"class $clazz not found"))
             }
         }
       } ~

@@ -18,9 +18,9 @@ trait ServerSetup {
 
   /* Route java.util.logging into slf4j */
  // remove existing handlers attached to j.u.l root logger
- org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger();
+ org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
  // add SLF4JBridgeHandler to j.u.l's root logger
- org.slf4j.bridge.SLF4JBridgeHandler.install();
+ org.slf4j.bridge.SLF4JBridgeHandler.install()
 
   val serverName = "moie-server"
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))

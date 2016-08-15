@@ -63,14 +63,14 @@ package object moie {
     Files.walkFileTree(root, new SimpleFileVisitor[Path]() {
 
       override def visitFile(file:Path, attrs:BasicFileAttributes):FileVisitResult = {
-        Files.delete(file);
-        return FileVisitResult.CONTINUE;
+        Files.delete(file)
+        FileVisitResult.CONTINUE
       }
 
       override def postVisitDirectory(dir:Path, exc:java.io.IOException):FileVisitResult = {
-        Files.delete(dir);
-        return FileVisitResult.CONTINUE;
+        Files.delete(dir)
+        FileVisitResult.CONTINUE
       }
-    });
+    })
   }
 }
