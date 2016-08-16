@@ -46,9 +46,6 @@ class OMCompilerSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "return # of equations" in {
     val erg = compiler.checkModel(files, files.head)
-    println(erg)
-    println("starts \n: "+erg.startsWith("\n"))
-    println("ends \n: "+erg.endsWith("\n"))
     compiler.checkModel(files, files.head) shouldBe (
       """Check of test completed successfully.
       |Class test has 2 equation(s) and 1 variable(s).

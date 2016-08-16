@@ -46,15 +46,12 @@ class JMCompiler(executableName:String, outputDir:Path)
     val fileArgs = if(isLib) rootDir.toString else files.mkString(" ")
     val args = s"${classFlag.getOrElse("")} -file $fileArgs"
     val prog = s"$executableName -- $scriptFile $args"
-    log.debug("compiling as {}", if(isLib) "Library" else "Files")
-    log.debug("executing {}", s"$executableName -- $scriptFile")
+    log.debug("compiling as {} - executing {}", if(isLib) "Library" else "Files", s"$executableName -- $scriptFile":Any)
     val stdout = prog.!!
-    log.debug("stdout is: {}", stdout)
     if(stdout.contains("Nothing to compile")) Seq[CompilerError]()
     else if(stdout.trim == "JVM started.") Seq[CompilerError]()
     else {
       val str = stdout.replace("JVM started.", "").trim
-      println("str:\n"+str)
       val erg = str.parseJson.convertTo[Seq[CompilerError]]
       log.debug("parsed json is: {}", erg)
       erg
