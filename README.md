@@ -105,6 +105,10 @@ can be translated into a pdf with ``` make ```.
   like ENSIME for Scala.
 
 # Developer Informations
+Side notes about our tests:
+- Currently our tests are targeted at OMC and are going to
+  fail if you are compiling using JModelica
+
 Some developer informations about OpenModelica and OMC which are quite helpful:
 
 - [OpenModelica System Documentation](https://openmodelica.org/svn/OpenModelica/tags/OPENMODELICA_1_9_0_BETA_4/doc/OpenModelicaSystem.pdf)
