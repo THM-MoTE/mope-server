@@ -33,9 +33,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   omc.connect()
 
-  def sortPathes(paths:List[Path]): List[Path] =
-    paths.map(p => p.getParent -> p).sorted.map(_._2)
-
   def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
     createOutputDir(outputDir)
     if(files.exists(isPackageMo)) {
@@ -197,7 +194,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       case Success(v) => v
       case Failure(ex) =>
         log.warn(s"Error while parsing compiler-output: ${ex.getMessage} from\n$msg")
-        //Seq[CompilerError]()
         Seq(CompilerError("Error",
           "",
           FilePosition(0, 0),
