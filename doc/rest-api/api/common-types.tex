@@ -23,7 +23,7 @@ A path to a file.
     "path": <String> //absolute path to the script
   }
 \end{lstlisting}
-  
+
 \subsubsection{File-Position}
 Describes a position inside of a file. Contains a
 line and a column.
@@ -33,6 +33,16 @@ line and a column.
     "line": <number>, //linenumber
     "column": <number> //columnnumber
   }
+  \end{lstlisting}
+
+  \subsubsection{FileWithLine}
+  A path to a file and the line containing the searched value.
+  \newline\decodedAs{de.thm.moie.position.FileWithLine}
+  \begin{lstlisting}[basicstyle=\small,language=json]
+    {
+      "path": <String>, //absolute path to the file
+      "line": <number> //linenumber
+    }
   \end{lstlisting}
 
   \subsubsection{Completion-Object}
