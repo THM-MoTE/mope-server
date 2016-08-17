@@ -18,7 +18,7 @@ import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.doc.DocInfo._
 import de.thm.moie.doc.DocumentationProvider.GetDocumentation
 import de.thm.moie.doc.{DocInfo, DocumentationProvider}
-import de.thm.moie.position.FilePath
+import de.thm.moie.position.{FilePath, FileWithLine}
 import de.thm.moie.project._
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
@@ -143,7 +143,7 @@ trait Routes extends JsonSupport with ErrorHandling {
       (path("declaration")  & get & parameters("class")) { clazz =>
         withIdExists(id) { projectManager =>
           (projectManager ? DeclarationRequest(clazz)).
-            mapTo[Option[FilePath]].
+            mapTo[Option[FileWithLine]].
             flatMap {
               case Some(path) => Future.successful(path)
               case None => Future.failed(new NotFoundException(s"class $clazz not found"))
