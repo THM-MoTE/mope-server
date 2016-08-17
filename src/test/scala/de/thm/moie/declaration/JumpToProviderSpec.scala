@@ -5,7 +5,7 @@ import java.nio.file.Files
 import akka.testkit.TestActorRef
 import de.thm.moie.ActorSpec
 import de.thm.moie.compiler.OMCompiler
-import de.thm.moie.position.FilePath
+import de.thm.moie.position.FileWithLine
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -23,10 +23,10 @@ class JumpToProviderSpec extends ActorSpec {
   "JumpToProvider" should {
     "return the file to a class" in {
       testRef ! DeclarationRequest("Modelica.Electrical")
-      expectMsg(10 seconds, Some(FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo")))
+      expectMsg(10 seconds, Some(FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo", 1)))
 
       testRef ! DeclarationRequest("Modelica.Electrical.Analog")
-      expectMsg(10 seconds, Some(FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo")))
+      expectMsg(10 seconds, Some(FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo", 1)))
     }
 
     "return no file to a unknown class" in {
