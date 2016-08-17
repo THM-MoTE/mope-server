@@ -15,7 +15,7 @@ import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
-import de.thm.moie.position.{FilePath, FilePosition}
+import de.thm.moie.position.{FileWithLine, FilePath, FilePosition}
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import org.scalatest.{Matchers, WordSpec}
@@ -182,13 +182,13 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       val uri = "/moie/project/0/declaration?class=Modelica.Electrical"
       Get(uri) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[FilePath] shouldBe FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo")
+        responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo", 1)
       }
 
       val uri2 = "/moie/project/0/declaration?class=Modelica.Electrical.Analog"
       Get(uri2) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[FilePath] shouldBe FilePath("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo")
+        responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo", 1)
       }
 
       val faultyUri = "/moie/project/0/declaration?class=Modelica.nico"
