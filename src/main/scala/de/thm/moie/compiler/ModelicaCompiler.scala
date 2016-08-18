@@ -52,4 +52,6 @@ trait ModelicaCompiler
   def checkModelAsync(files:List[Path], path:Path)(
     implicit context:ExecutionContext): Future[String] =
     Future(checkModel(files, path))
+
+  override def getClassComment(className:String): Option[String] = getClassDocumentation(className)
 }

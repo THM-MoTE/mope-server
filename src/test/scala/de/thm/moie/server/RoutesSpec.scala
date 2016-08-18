@@ -15,7 +15,8 @@ import akka.util.ByteString
 import de.thm.moie._
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
-import de.thm.moie.position.{FileWithLine, FilePath, FilePosition}
+import de.thm.moie.doc.ClassComment
+import de.thm.moie.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
 import org.scalatest.{Matchers, WordSpec}
@@ -207,6 +208,18 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       Get("/moie/project/0/doc?class=nico") ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[String].contains("The documentation for nico is missing.") shouldBe true
+      }
+    }
+
+    "return classComment for a classname" in {
+      Get("/moie/project/0/comment?class=Modelica.Electrical") ~> service.routes ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[ClassComment] shouldEqual ClassComment("Modelica.Electrical", "Library of electrical models (analog, digital, machines, multi-phase)")
+      }
+
+      Get("/moie/project/0/comment?class=Modelica.nico") ~> service.routes ~> check {
+        status shouldEqual StatusCodes.NotFound
+        responseAs[String] shouldEqual "comment for Modelica.nico not found"
       }
     }
 

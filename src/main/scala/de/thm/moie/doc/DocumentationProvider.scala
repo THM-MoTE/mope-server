@@ -25,9 +25,19 @@ class DocumentationProvider(docLike: DocumentationLike)
             className)
         docOpt
       } pipeTo sender
+    case GetClassComment(className) =>
+      Future {
+        val comment = docLike.getClassComment(className)
+        log.info(
+          if(comment.isDefined) "got classComment for {}"
+          else "no classComment for {}",
+          className)
+        comment.map(ClassComment(className, _))
+      } pipeTo sender
   }
 }
 
 object DocumentationProvider {
   case class GetDocumentation(className:String)
+  case class GetClassComment(className:String)
 }

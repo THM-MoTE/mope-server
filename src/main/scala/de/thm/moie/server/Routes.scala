@@ -16,8 +16,8 @@ import de.thm.moie.Global
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.doc.DocInfo._
-import de.thm.moie.doc.DocumentationProvider.GetDocumentation
-import de.thm.moie.doc.{DocInfo, DocumentationProvider}
+import de.thm.moie.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
+import de.thm.moie.doc.{ClassComment, DocInfo, DocumentationProvider}
 import de.thm.moie.position.{FilePath, FileWithLine}
 import de.thm.moie.project._
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
@@ -176,6 +176,13 @@ trait Routes extends JsonSupport with ErrorHandling {
                 HttpEntity(ContentTypes.`text/html(UTF-8)`, docMissing)
           }
         }
-      }
+      } ~
+        (path("comment") & get & parameters("class") & extractUri) { (clazz, uri) =>
+          withIdExists(id) { projectManager =>
+            (projectManager ? GetClassComment(clazz)).
+              mapTo[Option[ClassComment]].
+              flatMap(optionToNotFoundExc(_, s"comment for $clazz not found"))
+          }
+        }
     }
 }

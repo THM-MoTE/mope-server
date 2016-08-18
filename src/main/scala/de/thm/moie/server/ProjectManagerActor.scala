@@ -13,7 +13,7 @@ import akka.util.Timeout
 import de.thm.moie.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.moie.declaration.{DeclarationRequest, JumpToProvider}
 import de.thm.moie.doc.DocumentationProvider
-import de.thm.moie.doc.DocumentationProvider.GetDocumentation
+import de.thm.moie.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
 import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, NewPath}
 import de.thm.moie.suggestion.{CompletionRequest, SuggestionProvider}
@@ -105,6 +105,7 @@ class ProjectManagerActor(description:ProjectDescription,
     case x:CompletionRequest => completionActor forward x
     case x:DeclarationRequest => jumpProvider forward x
     case x:GetDocumentation => docProvider forward x
+    case x:GetClassComment => docProvider forward x
   }
 
   private def compile: Receive = {

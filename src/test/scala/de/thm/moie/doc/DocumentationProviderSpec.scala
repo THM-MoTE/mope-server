@@ -5,7 +5,7 @@ import java.nio.file.Files
 import akka.testkit.TestActorRef
 import de.thm.moie.ActorSpec
 import de.thm.moie.compiler.OMCompiler
-import de.thm.moie.doc.DocumentationProvider.GetDocumentation
+import de.thm.moie.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -45,6 +45,17 @@ class DocumentationProviderSpec extends ActorSpec {
     "return no documentation for non-existent classes" in {
       testRef ! GetDocumentation("nico")
       expectMsg(5 seconds, None)
+    }
+
+    "return classComment from stdlib" in {
+      val exp = ClassComment("Modelica.Electrical", "Library of electrical models (analog, digital, machines, multi-phase)")
+      testRef ! GetClassComment("Modelica.Electrical")
+      expectMsg(Some(exp))
+    }
+
+    "return no classComment for non-existent classes" in {
+      testRef ! GetClassComment("Modelica.nico")
+      expectMsg(None)
     }
   }
 }

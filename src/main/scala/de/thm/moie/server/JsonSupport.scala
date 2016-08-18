@@ -7,6 +7,7 @@ package de.thm.moie.server
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
+import de.thm.moie.doc.ClassComment
 import de.thm.moie.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.moie.project._
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
@@ -29,4 +30,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   }
   implicit val completionResponseFormat:RootJsonFormat[CompletionResponse] = jsonFormat4(CompletionResponse.apply)
   implicit val declarationRequestFormat:RootJsonFormat[DeclarationRequest] = jsonFormat1(DeclarationRequest)
+  implicit val classCommentFormat:RootJsonFormat[ClassComment] = jsonFormat2(ClassComment)
 }
