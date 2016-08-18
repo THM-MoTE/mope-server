@@ -38,7 +38,7 @@ one directory. This should look like this:
   - Compile moie-server by typing ```compile``` at the sbt prompt.
     (sbt will compile the subprojects too.)
 
-4. Execute ```run``` to start the server. Mo|E will produce serveral logs during runtime.
+4. Execute ```run``` to start the server. Mo|E will produce several logs during runtime.
   Especially the starting log should look similar to this:
 ```
 [info] Running de.thm.moie.MoIE
@@ -85,7 +85,7 @@ of the root directory of your project. The file should look similar to this:
 ```
 - `path` should be an absolute path to the project root directory.
 - `outputDirectory` is a relative path inside of the projects
-  root directroy which is used as output directory
+  root directory which is used as output directory
 
 See the REST-API documentation for more details.
 
@@ -96,7 +96,7 @@ The documentation is a latex-file called ``` rest-api.tex ``` which
 can be translated into a pdf with ``` make ```.
 
 # Notes
-  - The idea of an server-process and several editors that are comunicating with
+  - The idea of an server-process and several editors that are communicating with
   the server isn't new. This project is heavily inspired by the [ENSIME-project](http://ensime.github.io/)
   which is a convenient way to develop scala projects.
   If you are a Scala developer please give ENSIME a try.
@@ -104,12 +104,12 @@ can be translated into a pdf with ``` make ```.
   Our main goal is to provide a similar development environment for Modelica
   like ENSIME for Scala.
 
-# Developer Informations
+# Developer Information's
 Side notes about our tests:
 - Currently our tests are targeted at OMC and are going to
   fail if you are compiling using JModelica
 
-Some developer informations about OpenModelica and OMC which are quite helpful:
+Some developer information about OpenModelica and OMC which are quite helpful:
 
 - [OpenModelica System Documentation](https://openmodelica.org/svn/OpenModelica/tags/OPENMODELICA_1_9_0_BETA_4/doc/OpenModelicaSystem.pdf)
 
