@@ -1,13 +1,18 @@
 package de.thm.moie.suggestion
 
+import java.nio.file.{Files, Paths}
+
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
+import akka.util.ByteString
 import de.thm.moie.Global
+import de.thm.moie.position.FilePosition
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 import de.thm.moie.utils.actors.UnhandledReceiver
+import omc.corba.ScriptingHelper
 
 import scala.concurrent.Future
 
@@ -43,11 +48,12 @@ class SuggestionProvider(compiler:CompletionLike)
       //searching for a class inside another class
       containingPackages(word.dropRight(1)).run().
       map(logSuggestions(word)) pipeTo sender
-    case CompletionRequest(_,_,word) =>
+    case CompletionRequest(filename,FilePosition(line,_),word) =>
       //searching for a possible not-completed class
       closestKeyWordType(word).
         mapConcat(x => x).
         merge(findMatchingClasses(word).mapConcat(x => x)).
+        merge(localVariables(filename, word, line)).
         via(toSet).
         toMat(Sink.head)(Keep.right).run().
         map(logSuggestions(word)) pipeTo sender
@@ -77,6 +83,7 @@ class SuggestionProvider(compiler:CompletionLike)
         val classComment = compiler.getClassDocumentation(name)
         CompletionResponse(tpe, name, paramOpt, classComment)
     }
+
 
 /** Returns all components/packages inside of `word`. */
   private def containingPackages(word:String): RunnableGraph[Future[Set[CompletionResponse]]] =
@@ -126,6 +133,53 @@ class SuggestionProvider(compiler:CompletionLike)
       via(withParameters).
       via(toCompletionResponse).
       via(toSet)
+
+  private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
+    val path = Paths.get(filename)
+    val nameStartsWith =
+      Flow[(String, String)].filter {
+        case (_, name) => name.startsWith(word)
+      }
+    val complResponse =
+      Flow[(String,String)].map {
+        case (tpe, name) =>
+          CompletionResponse(CompletionType.Variable, name, None, None)
+      }
+
+    val possibleLines = FileIO.fromPath(path).
+      via(Framing.delimiter(ByteString("\n"), 8192, true)).
+      map(_.utf8String).
+      take(lineNo)
+
+    possibleLines.
+      via(onlyVariables).
+      via(nameStartsWith).
+      via(complResponse)
+  }
+
+  val ignoredModifiers =
+    "(?:" + List("(?:parameter)",
+      "(?:discrete)",
+      "(?:input)",
+      "(?:output)",
+      "(?:flow)").mkString("|") + ")"
+  val typeRegex = """(\w[\w\-\_\.]*)"""
+  val identRegex = """(\w[\w\-\_]*)"""
+
+  val variableRegex =
+    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
+
+  private def onlyVariables =
+    Flow[String].collect {
+      case variableRegex(_, tpe, name) => (tpe, name)
+      case variableRegex(tpe, name) => (tpe, name)
+    }
+
+  private def modelLines: Flow[String, String, NotUsed] =
+    Flow[String].filter { line =>
+      val matcher = ScriptingHelper.modelPattern.matcher(line)
+      matcher.find()
+    }
 
   /** Removes all entries from `words` which doesn't start with `word` */
   def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
