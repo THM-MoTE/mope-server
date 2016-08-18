@@ -144,10 +144,7 @@ trait Routes extends JsonSupport with ErrorHandling {
         withIdExists(id) { projectManager =>
           (projectManager ? DeclarationRequest(clazz)).
             mapTo[Option[FileWithLine]].
-            flatMap {
-              case Some(path) => Future.successful(path)
-              case None => Future.failed(new NotFoundException(s"class $clazz not found"))
-            }
+            flatMap(optionToNotFoundExc(_, s"class $clazz not found"))
         }
       } ~
       (path("doc") & get & parameters("class") & extractUri) { (clazz, uri) =>
