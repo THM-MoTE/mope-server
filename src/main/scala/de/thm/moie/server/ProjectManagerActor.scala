@@ -16,7 +16,7 @@ import de.thm.moie.doc.DocumentationProvider
 import de.thm.moie.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
 import de.thm.moie.project.{InternalProjectConfig, ProjectDescription}
 import de.thm.moie.server.FileWatchingActor.{DeletedPath, GetFiles, NewPath}
-import de.thm.moie.suggestion.{CompletionRequest, SuggestionProvider}
+import de.thm.moie.suggestion.{CompletionRequest, SuggestionProvider, TypeRequest}
 import de.thm.moie.utils.ThreadUtils
 import de.thm.moie.utils.actors.UnhandledReceiver
 
@@ -103,6 +103,7 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def forward: Receive = {
     case x:CompletionRequest => completionActor forward x
+    case x:TypeRequest => completionActor forward x
     case x:DeclarationRequest => jumpProvider forward x
     case x:GetDocumentation => docProvider forward x
     case x:GetClassComment => docProvider forward x

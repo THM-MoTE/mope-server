@@ -22,7 +22,7 @@ import de.thm.moie.position.{FilePath, FileWithLine}
 import de.thm.moie.project._
 import de.thm.moie.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.moie.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
-import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse, TypeOf, TypeRequest}
 import de.thm.moie.templates.TemplateEngine
 import de.thm.moie.templates.TemplateEngine._
 import de.thm.moie.utils.IOUtils
@@ -138,6 +138,11 @@ trait Routes extends JsonSupport with ErrorHandling {
       path("completion") {
         postEntityWithId(as[CompletionRequest], id) { (completion, projectManager) =>
           (projectManager ? completion).mapTo[Set[CompletionResponse]]
+        }
+      } ~
+      path("typeOf") {
+        postEntityWithId(as[TypeRequest], id) { (typeOf, projectManager) =>
+          (projectManager ? typeOf).mapTo[TypeOf]
         }
       } ~
       (path("declaration")  & get & parameters("class")) { clazz =>

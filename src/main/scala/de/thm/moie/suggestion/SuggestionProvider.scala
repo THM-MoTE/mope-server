@@ -40,6 +40,11 @@ class SuggestionProvider(compiler:CompletionLike)
     suggestions
   }
 
+  val logType: TypeOf => TypeOf = { tpe =>
+    log.info("Type of {} is {}", tpe.name, tpe.`type`)
+    tpe
+  }
+
   override def handleMsg: Receive = {
     case CompletionRequest(_,_,word) if word.isEmpty =>
       //ignore empty strings
@@ -57,6 +62,10 @@ class SuggestionProvider(compiler:CompletionLike)
         via(toSet).
         toMat(Sink.head)(Keep.right).run().
         map(logSuggestions(word)) pipeTo sender
+      case TypeRequest(filename, FilePosition(line, _), word) =>
+        typeOf(filename, word, line).
+          toMat(Sink.head)(Keep.right).run().
+          map(logType) pipeTo sender
   }
 
   private def toSet[A]: Flow[A, Set[A], NotUsed] =
@@ -134,6 +143,28 @@ class SuggestionProvider(compiler:CompletionLike)
       via(toCompletionResponse).
       via(toSet)
 
+  private def lines(file:String) =
+    FileIO.fromPath(Paths.get(file)).
+      via(Framing.delimiter(ByteString("\n"), 8192, true)).
+      map(_.utf8String)
+
+  private def nameEquals(word:String) =
+    Flow[(String, String, Option[String])].filter {
+      case (_, name, _) => name == word
+    }
+
+  private def typeOf(filename:String, word:String, lineNo:Int): Source[TypeOf, _] = {
+    val toTypeOf =
+      Flow[(String, String, Option[String])].map {
+        case (tpe, name, comment) => TypeOf(name, tpe, comment)
+      }
+    lines(filename).
+      take(lineNo).
+      via(onlyVariables).
+      via(nameEquals(word)).
+      via(toTypeOf)
+  }
+
   private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
     val path = Paths.get(filename)
     val nameStartsWith =
@@ -146,10 +177,7 @@ class SuggestionProvider(compiler:CompletionLike)
           CompletionResponse(CompletionType.Variable, name, None, commentOpt)
       }
 
-    val possibleLines = FileIO.fromPath(path).
-      via(Framing.delimiter(ByteString("\n"), 8192, true)).
-      map(_.utf8String).
-      take(lineNo)
+    val possibleLines = lines(filename).take(lineNo)
 
     possibleLines.
       via(onlyVariables).
