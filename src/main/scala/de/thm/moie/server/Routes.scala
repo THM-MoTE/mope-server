@@ -179,12 +179,12 @@ trait Routes extends JsonSupport with ErrorHandling {
           }
         }
       } ~
-        (path("comment") & get & parameters("class") & extractUri) { (clazz, uri) =>
-          withIdExists(id) { projectManager =>
-            (projectManager ? GetClassComment(clazz)).
-              mapTo[Option[ClassComment]].
-              flatMap(optionToNotFoundExc(_, s"comment for $clazz not found"))
-          }
+      (path("comment") & get & parameters("class") & extractUri) { (clazz, uri) =>
+        withIdExists(id) { projectManager =>
+          (projectManager ? GetClassComment(clazz)).
+            mapTo[Option[ClassComment]].
+            flatMap(optionToNotFoundExc(_, s"comment for $clazz not found"))
         }
+      }
     }
 }
