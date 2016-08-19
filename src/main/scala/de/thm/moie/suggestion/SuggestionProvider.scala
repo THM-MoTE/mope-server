@@ -40,8 +40,8 @@ class SuggestionProvider(compiler:CompletionLike)
     suggestions
   }
 
-  val logType: TypeOf => TypeOf = { tpe =>
-    log.info("Type of {} is {}", tpe.name, tpe.`type`)
+  val logType: String => Option[TypeOf] => Option[TypeOf] = { name => tpe =>
+    log.info("Type of {} is {}", name, if(tpe.isDefined) tpe.get.`type` else "unknown")
     tpe
   }
 
@@ -64,8 +64,8 @@ class SuggestionProvider(compiler:CompletionLike)
         map(logSuggestions(word)) pipeTo sender
       case TypeRequest(filename, FilePosition(line, _), word) =>
         typeOf(filename, word, line).
-          toMat(Sink.head)(Keep.right).run().
-          map(logType) pipeTo sender
+          toMat(Sink.headOption)(Keep.right).run().
+          map(logType(word)) pipeTo sender
   }
 
   private def toSet[A]: Flow[A, Set[A], NotUsed] =

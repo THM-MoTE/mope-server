@@ -142,7 +142,8 @@ trait Routes extends JsonSupport with ErrorHandling {
       } ~
       path("typeOf") {
         postEntityWithId(as[TypeRequest], id) { (typeOf, projectManager) =>
-          (projectManager ? typeOf).mapTo[TypeOf]
+          (projectManager ? typeOf).mapTo[Option[TypeOf]].
+          flatMap(optionToNotFoundExc(_, s"type of ${typeOf.word} is unknown"))
         }
       } ~
       (path("declaration")  & get & parameters("class")) { clazz =>
