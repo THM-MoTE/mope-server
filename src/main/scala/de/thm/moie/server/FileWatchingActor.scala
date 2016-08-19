@@ -47,7 +47,8 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   private val modelicaFileFilter = new Predicate[Path] {
     override def test(file: Path): Boolean =
-      dirFilter.test(file) || moFileFilter(file)
+      if(Files.isDirectory(file)) dirFilter.test(file)
+      else moFileFilter(file)
   }
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
