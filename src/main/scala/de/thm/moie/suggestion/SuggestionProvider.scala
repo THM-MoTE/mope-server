@@ -137,13 +137,13 @@ class SuggestionProvider(compiler:CompletionLike)
   private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
     val path = Paths.get(filename)
     val nameStartsWith =
-      Flow[(String, String)].filter {
-        case (_, name) => name.startsWith(word)
+      Flow[(String, String, Option[String])].filter {
+        case (_, name, _) => name.startsWith(word)
       }
     val complResponse =
-      Flow[(String,String)].map {
-        case (tpe, name) =>
-          CompletionResponse(CompletionType.Variable, name, None, None)
+      Flow[(String,String, Option[String])].map {
+        case (tpe, name, commentOpt) =>
+          CompletionResponse(CompletionType.Variable, name, None, commentOpt)
       }
 
     val possibleLines = FileIO.fromPath(path).
@@ -165,14 +165,17 @@ class SuggestionProvider(compiler:CompletionLike)
       "(?:flow)").mkString("|") + ")"
   val typeRegex = """(\w[\w\-\_\.]*)"""
   val identRegex = """(\w[\w\-\_]*)"""
+  val commentRegex = """"([^"]+)";"""
 
   val variableRegex =
     s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
+  val variableCommentRegex =
+    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
 
   private def onlyVariables =
     Flow[String].collect {
-      case variableRegex(_, tpe, name) => (tpe, name)
-      case variableRegex(tpe, name) => (tpe, name)
+      case variableCommentRegex(tpe,name,comment) => (tpe, name, Some(comment))
+      case variableRegex(tpe, name) => (tpe, name, None)
     }
 
   private def modelLines: Flow[String, String, NotUsed] =
