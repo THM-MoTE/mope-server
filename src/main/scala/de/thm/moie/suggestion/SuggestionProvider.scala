@@ -158,11 +158,16 @@ class SuggestionProvider(compiler:CompletionLike)
       Flow[(String, String, Option[String])].map {
         case (tpe, name, comment) => TypeOf(name, tpe, comment)
       }
-    lines(filename).
-      take(lineNo).
-      via(onlyVariables).
-      via(nameEquals(word)).
-      via(toTypeOf)
+
+    identRegex.r.
+      findFirstIn(word).
+      map { ident =>
+        lines(filename).
+          take(lineNo).
+          via(onlyVariables).
+          via(nameEquals(ident)).
+          via(toTypeOf)
+      }.getOrElse(Source.empty)
   }
 
   private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
