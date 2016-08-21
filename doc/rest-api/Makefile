@@ -20,3 +20,9 @@ display: compile
 zip:
 	rm $(ZIPFILE)
 	zip -r $(ZIPFILE) ./
+
+clean:
+	rm *.aux
+	rm *.log
+	rm *.toc
+	rm *.out
