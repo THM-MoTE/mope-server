@@ -42,7 +42,7 @@ class ProjectsManagerActor
     }
   }
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case description:ProjectDescription =>
       val errors = ProjectDescription.validate(description)
       if(errors.isEmpty) {

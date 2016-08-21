@@ -15,7 +15,7 @@ class DocumentationProvider(docLike: DocumentationLike)
   import DocumentationProvider._
   import context.dispatcher
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case GetDocumentation(className) =>
       Future {
         val docOpt = docLike.getDocumentation(className)

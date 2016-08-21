@@ -21,7 +21,7 @@ class JumpToProvider(jumpLike:JumpToLike)
 
   import context.dispatcher
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case DeclarationRequest(className) =>
       Future {
         val lastPointIdx = className.lastIndexOf(".")

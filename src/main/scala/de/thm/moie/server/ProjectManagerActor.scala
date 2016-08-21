@@ -83,7 +83,7 @@ class ProjectManagerActor(description:ProjectDescription,
      error.file.endsWith(".mos")
    }
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case InitialInfos(files) =>
       projectFiles = files.toList.sorted
       context become initialized

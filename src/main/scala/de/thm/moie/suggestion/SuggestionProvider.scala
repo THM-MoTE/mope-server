@@ -35,7 +35,7 @@ class SuggestionProvider(compiler:CompletionLike)
     suggestions
   }
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case CompletionRequest(_,_,word) if word.isEmpty =>
       //ignore empty strings
       sender ! Set.empty[CompletionResponse]

@@ -57,7 +57,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
   private def files(path:Path) =
     getFiles(path, moFileFilter).sorted
 
-  override def handleMsg: Receive = {
+  override def receive: Receive = {
     case GetFiles =>
       Future(files(rootPath)) pipeTo sender
     case GetFiles(root) =>
