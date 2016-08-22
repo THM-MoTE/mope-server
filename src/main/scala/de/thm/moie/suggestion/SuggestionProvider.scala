@@ -27,6 +27,22 @@ class SuggestionProvider(compiler:CompletionLike)
 
   def filterLines(line:String):Boolean = !line.isEmpty
 
+  val ignoredModifiers =
+    "(?:" + List("(?:parameter)",
+      "(?:discrete)",
+      "(?:input)",
+      "(?:output)",
+      "(?:flow)").mkString("|") + ")"
+  val typeRegex = """(\w[\w\-\_\.]*)"""
+  val identRegex = """(\w[\w\-\_]*)"""
+  val commentRegex = """"([^"]+)";"""
+
+  val variableRegex =
+    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
+  val variableCommentRegex =
+    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
+
+
   val keywords =
     Global.readValuesFromResource(
         getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _).toSet
@@ -179,21 +195,6 @@ class SuggestionProvider(compiler:CompletionLike)
       via(nameStartsWith).
       via(complResponse)
   }
-
-  val ignoredModifiers =
-    "(?:" + List("(?:parameter)",
-      "(?:discrete)",
-      "(?:input)",
-      "(?:output)",
-      "(?:flow)").mkString("|") + ")"
-  val typeRegex = """(\w[\w\-\_\.]*)"""
-  val identRegex = """(\w[\w\-\_]*)"""
-  val commentRegex = """"([^"]+)";"""
-
-  val variableRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
-  val variableCommentRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
 
   private def onlyVariables =
     Flow[String].collect {
