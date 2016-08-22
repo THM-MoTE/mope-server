@@ -130,14 +130,14 @@ class ProjectManagerActorSpec
 
     "return the source of a valid symbol" in {
       testRef ! DeclarationRequest("Modelica.Electrical")
-      val fp = expectMsgType[Option[FilePath]](5 seconds)
+      val fp = expectMsgType[Option[FileWithLine]](5 seconds)
       fp.get.path.isEmpty() should be (false)
       fp.get.path.contains("Modelica") shouldBe true
     }
 
     "return no source for unknown symbol" in {
       testRef ! DeclarationRequest("nico")
-      val fp = expectMsgType[Option[FilePath]](5 seconds)
+      val fp = expectMsgType[Option[FileWithLine]](5 seconds)
       fp shouldBe None
     }
 
