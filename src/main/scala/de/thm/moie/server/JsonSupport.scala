@@ -11,7 +11,7 @@ import de.thm.moie.doc.ClassComment
 import de.thm.moie.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.moie.project._
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
-import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
+import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse, TypeOf, TypeRequest}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
@@ -31,4 +31,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val completionResponseFormat:RootJsonFormat[CompletionResponse] = jsonFormat4(CompletionResponse.apply)
   implicit val declarationRequestFormat:RootJsonFormat[DeclarationRequest] = jsonFormat1(DeclarationRequest)
   implicit val classCommentFormat:RootJsonFormat[ClassComment] = jsonFormat2(ClassComment)
+  implicit val typeOfFormat:RootJsonFormat[TypeOf] = jsonFormat3(TypeOf)
+  implicit val typeRequestFormat:RootJsonFormat[TypeRequest] = jsonFormat3(TypeRequest)
 }
