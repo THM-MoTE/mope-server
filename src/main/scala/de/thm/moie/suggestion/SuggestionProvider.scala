@@ -56,22 +56,22 @@ class SuggestionProvider(compiler:CompletionLike)
     case CompletionRequest(filename,FilePosition(line,_),word) =>
       //searching for a possible not-completed class
       closestKeyWordType(word).
-        mapConcat(x => x).
-        merge(findMatchingClasses(word).mapConcat(x => x)).
+        merge(findMatchingClasses(word)).
         merge(localVariables(filename, word, line)).
-        via(toSet).
-        toMat(Sink.head)(Keep.right).run().
+        toMat(toStartsWith(word))(Keep.right).run().
         map(logSuggestions(word)) pipeTo sender
-      case TypeRequest(filename, FilePosition(line, _), word) =>
-        typeOf(filename, word, line).
-          toMat(Sink.headOption)(Keep.right).run().
-          map(logType(word)) pipeTo sender
+    case TypeRequest(filename, FilePosition(line, _), word) =>
+      typeOf(filename, word, line).
+        toMat(Sink.headOption)(Keep.right).run().
+        map(logType(word)) pipeTo sender
   }
 
-  private def toSet[A]: Flow[A, Set[A], NotUsed] =
-    Flow[A].fold(Set.empty[A]) {
-      case (acc, elem) => acc + elem
+  private def toSet[A] =
+    Sink.fold[Set[A], A](Set[A]()) {
+      case (set, elem) => set + elem
     }
+
+  private def toStartsWith(word:String) = onlyStartsWith(word).toMat(toSet)(Keep.right)
 
   /** Adds to the given tupel of (className, classType) a list of parameters. */
   private def withParameters: Flow[(String, CompletionResponse.CompletionType.Value), (String, CompletionResponse.CompletionType.Value, List[String]), NotUsed] =
@@ -97,16 +97,15 @@ class SuggestionProvider(compiler:CompletionLike)
 /** Returns all components/packages inside of `word`. */
   private def containingPackages(word:String): RunnableGraph[Future[Set[CompletionResponse]]] =
     Source.fromFuture(compiler.getClassesAsync(word)).
-      mapConcat[(String, CompletionResponse.CompletionType.Value)](x => x).
+      mapConcat(identity).
       via(withParameters).
       via(toCompletionResponse).
-      via(toSet).
-      toMat(Sink.head)(Keep.right)
+      toMat(toStartsWith(word))(Keep.right)
+
 
   /** Finds the keywords, types that starts with `word`. */
-  private def closestKeyWordType(word:String): Source[Set[CompletionResponse], NotUsed] =
-    Source.fromFuture(findClosestMatch(word, keywords ++ types)).
-      mapConcat(x => x).
+  private def closestKeyWordType(word:String): Source[CompletionResponse, NotUsed] =
+    Source(keywords ++ types).
       map { x =>
         if (keywords.contains(x))
           CompletionResponse(CompletionType.Keyword, x, None, None)
@@ -117,9 +116,9 @@ class SuggestionProvider(compiler:CompletionLike)
           CompletionResponse(CompletionType.Keyword, x, None, None)
         }
       }.
-      via(toSet)
+      via(onlyStartsWith(word))
 
-  private def findMatchingClasses(word:String): Source[Set[CompletionResponse], NotUsed] = {
+  private def findMatchingClasses(word:String): Source[CompletionResponse, NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
     if(pointIdx == -1) toCompletionResponse(word, Future(compiler.getGlobalScope()))
     else {
@@ -128,20 +127,11 @@ class SuggestionProvider(compiler:CompletionLike)
     }
   }
 
-  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Source[Set[CompletionResponse], NotUsed] =
+  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Source[CompletionResponse, NotUsed] =
     Source.fromFuture(xs).
-      mapAsync(2) { clazzes =>
-        val classMap = clazzes.toMap
-        val classNames = clazzes.map(_._1)
-        findClosestMatch(word, classNames).map { set =>
-          set.map { clazz => clazz -> classMap(clazz)
-          }
-        }
-      }.
-      mapConcat[(String,CompletionType.Value)](x => x).
+      mapConcat(identity).
       via(withParameters).
-      via(toCompletionResponse).
-      via(toSet)
+      via(toCompletionResponse)
 
   private def lines(file:String) =
     FileIO.fromPath(Paths.get(file)).
@@ -217,16 +207,8 @@ class SuggestionProvider(compiler:CompletionLike)
       matcher.find()
     }
 
-  /** Removes all entries from `words` which doesn't start with `word` */
-  def findClosestMatch(word:String, words:Set[String]): Future[Set[String]]= Future {
-    @annotation.tailrec
-    def closestMatch(w:String, remainingWords:Set[String], idx:Int): Set[String] =
-      if(w.length > 0) {
-        val char = w.head
-        val filtered = remainingWords.filter(_.charAt(idx) == char)
-        closestMatch(w.tail, filtered, idx+1)
-      } else remainingWords
-
-    closestMatch(word, words, 0)
-  }
+  def onlyStartsWith(word:String) =
+    Flow[CompletionResponse].filter { response =>
+      response.name.startsWith(word)
+    }
 }
