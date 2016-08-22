@@ -74,7 +74,8 @@ class SuggestionProvider(compiler:CompletionLike)
       closestKeyWordType(word).
         merge(findMatchingClasses(word)).
         merge(localVariables(filename, word, line)).
-        toMat(toStartsWith(word))(Keep.right).run().
+        merge(memberAccess(filename, word, line)).
+        toMat(toSet)(Keep.right).run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
       typeOf(filename, word, line).
@@ -136,7 +137,8 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def findMatchingClasses(word:String): Source[CompletionResponse, NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1) toCompletionResponse(word, Future(compiler.getGlobalScope()))
+    if(pointIdx == -1)
+      toCompletionResponse(word, Future(compiler.getGlobalScope()))
     else {
       val parentPackage = word.substring(0, pointIdx)
       toCompletionResponse(word, compiler.getClassesAsync(parentPackage))
@@ -178,28 +180,46 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
     val path = Paths.get(filename)
-    val nameStartsWith =
-      Flow[(String, String, Option[String])].filter {
-        case (_, name, _) => name.startsWith(word)
-      }
-    val complResponse =
-      Flow[(String,String, Option[String])].map {
-        case (tpe, name, commentOpt) =>
-          CompletionResponse(CompletionType.Variable, name, None, commentOpt)
-      }
-
     val possibleLines = lines(filename).take(lineNo)
 
     possibleLines.
       via(onlyVariables).
-      via(nameStartsWith).
-      via(complResponse)
+      via(complResponse).
+      via(onlyStartsWith(word))
+  }
+
+  def memberAccess(filename:String, word:String, lineNo:Int) = {
+    val pointIdx = word.lastIndexOf(".")
+    if(pointIdx == -1) Source.empty
+    else {
+      val objectName = word.substring(0, pointIdx)
+      val memberName = word.substring(pointIdx+1)
+
+      typeOf(filename, objectName, lineNo).
+        map { tpe =>
+          if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
+          else None
+        }.collect { case Some(file) => file }.
+        flatMapConcat(lines).
+        via(onlyVariables).
+        via(complResponse).
+        via(onlyStartsWith(memberName)).
+        map { resp =>
+          resp.copy(name = objectName+"."+resp.name)
+        }
+    }
   }
 
   private def onlyVariables =
     Flow[String].collect {
       case variableCommentRegex(tpe,name,comment) => (tpe, name, Some(comment))
       case variableRegex(tpe, name) => (tpe, name, None)
+    }
+
+  val complResponse =
+    Flow[(String,String, Option[String])].map {
+      case (tpe, name, commentOpt) =>
+        CompletionResponse(CompletionType.Variable, name, None, commentOpt)
     }
 
   private def modelLines: Flow[String, String, NotUsed] =
@@ -210,6 +230,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
   def onlyStartsWith(word:String) =
     Flow[CompletionResponse].filter { response =>
+      log.info("testing {} to {} is {}", response:Any, word:Any, response.name.startsWith(word))
       response.name.startsWith(word)
     }
 }

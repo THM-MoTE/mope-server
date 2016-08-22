@@ -4,11 +4,12 @@
 
 package de.thm.moie.suggestion
 
+import de.thm.moie.declaration.JumpToLike
 import de.thm.moie.suggestion.CompletionResponse.CompletionType
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait CompletionLike {
+trait CompletionLike extends JumpToLike {
   def getClasses(className:String): Set[(String, CompletionType.Value)]
   def getClassesAsync(className:String)(
     implicit context:ExecutionContext): Future[Set[(String, CompletionType.Value)]] =
