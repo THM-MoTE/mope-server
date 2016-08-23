@@ -188,15 +188,18 @@ class SuggestionProvider(compiler:CompletionLike)
   }
 
   def memberAccess(filename:String, word:String, lineNo:Int) = {
+    val srcFile =
+      Flow[TypeOf].map { tpe =>
+        if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
+        else None
+      }.collect { case Some(file) => file }
+
     val pointIdx = word.lastIndexOf(".")
     if(pointIdx == -1) Source.empty
     else {
       val objectName = word.substring(0, pointIdx)
       typeOf(filename, objectName, lineNo).
-        map { tpe =>
-          if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
-          else None
-        }.collect { case Some(file) => file }.
+        via(srcFile).
         flatMapConcat(lines).
         via(onlyVariables).
         via(complResponse).
