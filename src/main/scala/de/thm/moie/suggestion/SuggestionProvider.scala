@@ -181,9 +181,7 @@ class SuggestionProvider(compiler:CompletionLike)
   }
 
   private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
-    val path = Paths.get(filename)
     val possibleLines = lines(filename).take(lineNo)
-
     possibleLines.
       via(onlyVariables).
       via(complResponse)
@@ -194,8 +192,6 @@ class SuggestionProvider(compiler:CompletionLike)
     if(pointIdx == -1) Source.empty
     else {
       val objectName = word.substring(0, pointIdx)
-      val memberName = word.substring(pointIdx+1)
-
       typeOf(filename, objectName, lineNo).
         map { tpe =>
           if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
@@ -222,15 +218,8 @@ class SuggestionProvider(compiler:CompletionLike)
         CompletionResponse(CompletionType.Variable, name, None, commentOpt)
     }
 
-  private def modelLines: Flow[String, String, NotUsed] =
-    Flow[String].filter { line =>
-      val matcher = ScriptingHelper.modelPattern.matcher(line)
-      matcher.find()
-    }
-
   def onlyStartsWith(word:String) =
     Flow[CompletionResponse].filter { response =>
-      log.info("testing {} to {} is {}", response:Any, word:Any, response.name.startsWith(word))
       response.name.startsWith(word)
     }
 }
