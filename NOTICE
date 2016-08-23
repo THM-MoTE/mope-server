@@ -1,0 +1,29 @@
+Used sbt-plugins:
+    == sbt-assembly ==
+    Homepage: https://github.com/sbt/sbt-assembly
+    License: MIT License (https://github.com/sbt/sbt-assembly/blob/master/LICENSE)
+
+Used libraries:
+    == Akka ==
+    Homepage: http://akka.io/
+    License: Apache License V2 (https://github.com/akka/akka/blob/master/LICENSE)
+
+    == Typesafe Config library ==
+    Homepage: https://github.com/typesafehub/config
+    License: Apache License V2 (https://github.com/typesafehub/config/blob/master/LICENSE-2.0.txt)
+
+    == scala-parser-combinators ==
+    Homepage: https://github.com/scala/scala-parser-combinators
+    License: BSD 3-Clause License (https://github.com/scala/scala-parser-combinators/blob/1.0.x/LICENSE.md)
+
+    == Logback ==
+    Homepage: http://logback.qos.ch/
+    License: LGPL 2.1 (http://logback.qos.ch/license.html)
+
+    == Simple Logging Facade for Java (SLF4J) ==
+    Homepage: http://www.slf4j.org
+    License: MIT (http://www.slf4j.org/license.html)
+
+    == ScalaTest ==
+    Homepage: http://www.scalatest.org/
+    License: Apache License v2 (http://www.apache.org/licenses/LICENSE-2.0.html)
