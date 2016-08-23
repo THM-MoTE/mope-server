@@ -67,15 +67,18 @@ class SuggestionProvider(compiler:CompletionLike)
       sender ! Set.empty[CompletionResponse]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
       //searching for a class inside another class
-      containingPackages(word.dropRight(1)).run().
-      map(logSuggestions(word)) pipeTo sender
+      containingPackages(word.dropRight(1)).
+        toMat(toSet)(Keep.right).
+        run().
+        map(logSuggestions(word)) pipeTo sender
     case CompletionRequest(filename,FilePosition(line,_),word) =>
       //searching for a possible not-completed class
       closestKeyWordType(word).
         merge(findMatchingClasses(word)).
         merge(localVariables(filename, word, line)).
         merge(memberAccess(filename, word, line)).
-        toMat(toSet)(Keep.right).run().
+        toMat(toStartsWith(word))(Keep.right).
+        run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
       typeOf(filename, word, line).
@@ -112,12 +115,11 @@ class SuggestionProvider(compiler:CompletionLike)
 
 
 /** Returns all components/packages inside of `word`. */
-  private def containingPackages(word:String): RunnableGraph[Future[Set[CompletionResponse]]] =
+  private def containingPackages(word:String): Source[CompletionResponse, NotUsed] =
     Source.fromFuture(compiler.getClassesAsync(word)).
       mapConcat(identity).
       via(withParameters).
-      via(toCompletionResponse).
-      toMat(toStartsWith(word))(Keep.right)
+      via(toCompletionResponse)
 
 
   /** Finds the keywords, types that starts with `word`. */
@@ -132,8 +134,7 @@ class SuggestionProvider(compiler:CompletionLike)
           log.warning("Couldn't find CompletionType for {}", x)
           CompletionResponse(CompletionType.Keyword, x, None, None)
         }
-      }.
-      via(onlyStartsWith(word))
+      }
 
   private def findMatchingClasses(word:String): Source[CompletionResponse, NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
@@ -184,8 +185,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
     possibleLines.
       via(onlyVariables).
-      via(complResponse).
-      via(onlyStartsWith(word))
+      via(complResponse)
   }
 
   def memberAccess(filename:String, word:String, lineNo:Int) = {
@@ -203,7 +203,6 @@ class SuggestionProvider(compiler:CompletionLike)
         flatMapConcat(lines).
         via(onlyVariables).
         via(complResponse).
-        via(onlyStartsWith(memberName)).
         map { resp =>
           resp.copy(name = objectName+"."+resp.name)
         }
