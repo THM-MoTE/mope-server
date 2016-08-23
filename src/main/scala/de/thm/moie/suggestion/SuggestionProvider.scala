@@ -82,7 +82,8 @@ class SuggestionProvider(compiler:CompletionLike)
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
       typeOf(filename, word, line).
-        toMat(Sink.headOption)(Keep.right).run().
+        toMat(Sink.headOption)(Keep.right).
+        run().
         map(logType(word)) pipeTo sender
   }
 
