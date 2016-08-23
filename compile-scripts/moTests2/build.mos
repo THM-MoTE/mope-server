@@ -1,2 +1,0 @@
-loadFile("package.mo");
-checkModel(moTests2.test);
