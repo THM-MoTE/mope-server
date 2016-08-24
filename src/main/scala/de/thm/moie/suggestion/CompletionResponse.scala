@@ -22,7 +22,10 @@ case class CompletionResponse(completionType: CompletionType.Value,
                               name:String,
                               parameters:Option[Seq[String]],
                               classComment: Option[String],
-                              `type`: Option[String])
+                              `type`: Option[String]) {
+  def displayString: String =
+    s"$completionType - $name"
+}
 
 object CompletionResponse {
   object CompletionType extends Enumeration {
