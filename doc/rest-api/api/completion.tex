@@ -12,11 +12,11 @@ All other requests result in an empty list of completions.
 \item \textbf{Data Params} An object which contains the position and the word that should get completed.
   \decodedAs{de.thm.moie.suggestion.CompletionRequest}
   \begin{lstlisting}[basicstyle=\small,language=json]
-    {
-      "file": <String>, //absolute path to the file which contains the word/symbol
-      "position": <File-Position>, //the position of the word in the file
-      "word": <String> //word/symbol
-    }
+  {
+    "file": <String>, //absolute path to the file which contains the word/symbol
+    "position": <File-Position>, //the position of the word in the file
+    "word": <String> //word/symbol
+  }
   \end{lstlisting}
 
 \item \textbf{Success Response}
