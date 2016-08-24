@@ -21,7 +21,8 @@ import de.thm.moie.suggestion.CompletionResponse._
 case class CompletionResponse(completionType: CompletionType.Value,
                               name:String,
                               parameters:Option[Seq[String]],
-                              classComment: Option[String])
+                              classComment: Option[String],
+                              `type`: Option[String])
 
 object CompletionResponse {
   object CompletionType extends Enumeration {

@@ -128,7 +128,7 @@ class SuggestionProvider(compiler:CompletionLike)
       case (name, tpe, parameters) =>
         val paramOpt = if(parameters.isEmpty) None else Some(parameters)
         val classComment = compiler.getClassDocumentation(name)
-        CompletionResponse(tpe, name, paramOpt, classComment)
+        CompletionResponse(tpe, name, paramOpt, classComment, None)
     }
 
 
@@ -145,12 +145,12 @@ class SuggestionProvider(compiler:CompletionLike)
     Source(keywords ++ types).
       map { x =>
         if (keywords.contains(x))
-          CompletionResponse(CompletionType.Keyword, x, None, None)
+          CompletionResponse(CompletionType.Keyword, x, None, None, None)
         else if (types.contains(x))
-          CompletionResponse(CompletionType.Type, x, None, None)
+          CompletionResponse(CompletionType.Type, x, None, None, None)
         else {
           log.warning("Couldn't find CompletionType for {}", x)
-          CompletionResponse(CompletionType.Keyword, x, None, None)
+          CompletionResponse(CompletionType.Keyword, x, None, None, None)
         }
       }
 
@@ -235,7 +235,9 @@ class SuggestionProvider(compiler:CompletionLike)
   val complResponse =
     Flow[(String,String, Option[String])].map {
       case (tpe, name, commentOpt) =>
-        CompletionResponse(CompletionType.Variable, name, None, commentOpt)
+        val pointIdx = tpe.lastIndexOf('.')
+        val shortenedType = if(pointIdx != -1) tpe.substring(pointIdx+1) else tpe
+        CompletionResponse(CompletionType.Variable, name, None, commentOpt, Some(shortenedType))
     }
 
   val propertyResponse =
