@@ -201,7 +201,7 @@ class SuggestionProvider(compiler:CompletionLike)
     val possibleLines = lines(filename).take(lineNo)
     possibleLines.
       via(onlyVariables).
-      via(complResponse)
+      via(variableResponse)
   }
 
   def memberAccess(filename:String, word:String, lineNo:Int) = {
@@ -232,7 +232,7 @@ class SuggestionProvider(compiler:CompletionLike)
       case variableRegex(tpe, name) => (tpe, name, None)
     }
 
-  val complResponse =
+  val variableResponse =
     Flow[(String,String, Option[String])].map {
       case (tpe, name, commentOpt) =>
         val pointIdx = tpe.lastIndexOf('.')
@@ -241,7 +241,7 @@ class SuggestionProvider(compiler:CompletionLike)
     }
 
   val propertyResponse =
-    complResponse.map(x => x.copy(completionType = CompletionType.Property))
+    variableResponse.map(x => x.copy(completionType = CompletionType.Property))
 
   def onlyStartsWith(word:String) =
     Flow[CompletionResponse].filter { response =>
