@@ -3,7 +3,6 @@
   - Im Kern textbasiert => Editierung in Texteditor, IDE etc.
   - ???
 
-2. Motivation
   - Editierung in Editoren mit optionaler Fehleranzeige
   - Alternativen auf dem Open Source Markt: OMEdit, MDT
   - OMEdit nur begrenzte Unterstützung bei Fehlern
@@ -12,6 +11,8 @@
     - keine Hinweise im Editor
     - Fehlerhafte Dateien nicht speicherbar
     - Langsam bei großen Projekten
+    - automatische Codeformatierung von Kommentaren
+    - Entfernung von unnötigem Whitespace
     - extrem kompliziert zu installieren auf nicht-Windows Systemen
   - MDT
     - basiert auf Eclipse
@@ -19,6 +20,8 @@
     - genau wie OMEdit langsam bei großen Projekten
     - lange Ladezeiten
     - verbraucht konstant **viel Speicher** durch den Eclipse Unterbau
+    - ???
+  - OneModelica ? - Stand-alone Eclipse
   - Zugeschnitten auf OpenModelica Compiler, Nutzung eines Alternativen
     Compilers im bekannten Editor nicht möglich
 
@@ -37,8 +40,19 @@
       - Sprachen unterschiedlich mächtig & unterschiedlich beliebt
         - Vimscript kann niemand
         - JS will niemand
-3. bessere Alternative
+  - deswegen Editor Plugin minimalistisch + externer Prozess mit
+  den IDE Aufgaben (siehe auch Ensime als Vorbild)
+2. bessere Alternative
   - minimales Plugin für Editoren, die mit einem separatem
     Prozess kommunizieren, der die komplexen Aufgaben übernimmt
   - separater Prozess in nebenläufig und mächtiger, plattformunabhängiger Sprache
   - Client-Server-Architektur zwischen Editor + separatem Prozess
+  - Was mach ich & dafür benötige ich Aktoren .. die funktionieren so
+
+### Literatur
+- Benutzbarkeit von Modelica
+- Modelica in der Lehre
+- Benutzbarkeit Modelicatools
+- Aktorenkonzept
+- Fritzson Modelicabücher, Paper
+- Modelica By Example
