@@ -59,7 +59,6 @@ class SuggestionProvider(compiler:CompletionLike)
   val variableCommentRegex =
     s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
 
-
   val keywords =
     Global.readValuesFromResource(
         getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _).toSet
@@ -111,7 +110,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def toStartsWith(word:String) = onlyStartsWith(word).toMat(toSet)(Keep.right)
 
-  /** Adds to the given tupel of (className, classType) a list of parameters. */
+  /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */
   private def withParameters: Flow[(String, CompletionResponse.CompletionType.Value), (String, CompletionResponse.CompletionType.Value, List[String]), NotUsed] =
     Flow[(String, CompletionResponse.CompletionType.Value)].map {
       case (name, tpe) =>
@@ -122,7 +121,7 @@ class SuggestionProvider(compiler:CompletionLike)
         (name, tpe, params)
     }
 
-  /** Converts the given tripel of (className, classType, parameterlist) into a CompletionResponse. */
+  /** Converts the given tripel of (className, completionType, parameterlist) into a CompletionResponse. */
   private def toCompletionResponse: Flow[(String, CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
     Flow[(String, CompletionType.Value, List[String])].map {
       case (name, tpe, parameters) =>
