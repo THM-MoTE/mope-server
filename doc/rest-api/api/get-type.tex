@@ -1,0 +1,35 @@
+\subsection{Get type of a property}
+Returns the type and comment of the given property.
+\begin{itemize}
+\item \textbf{URL} \code{/moie/project/:id/typeOf}
+\item \textbf{Method} \code{POST}
+
+\item \textbf{URL Params}
+  \newline\textbf{Required} \code{id=[integer]}
+
+\item \textbf{Data Params} An object containing the file, position and propertyname.
+  \decodedAs{de.thm.moie.suggestion.TypeRequest}
+    \begin{lstlisting}[basicstyle=\small,language=json]
+    {
+      "file": <String>, //absolute path to the file which contains the word/symbol
+      "position": <File-Position>, //the position of the word in the file
+      "word": <String> //propertyname
+    }
+  \end{lstlisting}
+
+\item \textbf{Success Response}
+  \newline\textbf{Code} 200 OK
+  \newline\textbf{Content} An \code{TypeOf}-object containing the property's name,
+  it's type and it's comment if it exists.
+  
+\item \textbf{Error Response}
+  \newline\textbf{Cause} Given id is unknown.
+  \newline\textbf{Code} 404 Not Found
+  \newline\textbf{Content} \code{unknown project-id :id}
+
+  \fixedspace\textbf{Cause} Given property can't be found
+  \newline\textbf{Code} 404 Not Found
+  \newline\textbf{Content} \code{type of :property not found}
+
+\item \textbf{Sample Call}
+\end{itemize}
