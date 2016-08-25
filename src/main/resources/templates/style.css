@@ -43,5 +43,6 @@
 
 .highlighted-box {
   padding: 10px;
-  box-shadow: 10px 10px 20px #4a5c66;
+  box-shadow: 8px 5px 10px #4a5c66;
+  margin-bottom: 30px;
 }
