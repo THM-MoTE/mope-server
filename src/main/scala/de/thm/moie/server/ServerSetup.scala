@@ -57,4 +57,6 @@ trait ServerSetup {
   val serverlog = Logging(actorSystem, this)
   val interface = config.getString("http.interface")
   val port = config.getInt("http.port")
+
+  serverlog.info("Mo|E-Server - Version {}", version)
 }
