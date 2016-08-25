@@ -99,6 +99,5 @@ object Global extends FallbackConfig {
   lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
 
-  lazy val copyright = "(c) 2016 Nicola Justus"
-  lazy val version = "0.1"
+  lazy val version = "0.5"
 }
