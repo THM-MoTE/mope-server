@@ -1,4 +1,4 @@
-1. Einleitung
+## Einleitung
   - Was, Wofür ist Modelica?
   - Im Kern textbasiert => Editierung in Texteditor, IDE etc.
   - ???
@@ -49,7 +49,45 @@
   - Client-Server-Architektur zwischen Editor + separatem Prozess
   - Was mach ich & dafür benötige ich Aktoren .. die funktionieren so
 
-### Literatur
+
+## Konzeption
+Noch keine technischen Details, wie etwa HTTP, JSON?
+- C-/S Struktur, in der Texteditoren Rolle des aktiven Clienten übernehmen
+- Server = Compile-Service
+
+### Server
+- Arbeitet nur bei Bedarf, ist passiver Kommunikationspartner
+- Verwaltet Projekte, wobei 1 Projekt definiert ist als 1 Ordnerstruktur
+  - weist diesen eindeutige IDs zu, wenn sich ein Client mit einem Projekt
+    anmeldet
+  - (Indiziert zugehörige Quelldateien --
+      evtl. in Umsetzung? Grund ist Performance?)
+- Stößt Kompiliervorgänge (evtl. als Subprozess) an und
+  parst das Ergebnis (den Output) der verschiedenen Compiler
+- Findet Quelldateien, die Deklaration von Typen
+- Generiert Autovervollständigungen für gegebene Wörter anhand der Quelldateien
+- Findet den Typ & Comment von Variablen
+- Bettet HTML-Dokumentation in HTML ein und stellt sie zur Verfügung
+
+### Client
+- beliebige Texteditoren oder andere textdarstellende Programme
+- bieten bereits umfangreiche Editierungsmöglichkeiten; Implementierung
+  Editorfeatures unnötig
+- melden sich einmalig an um mit Server zu kommunizieren
+- kommunizieren **bei Bedarf/auf Anfrage** mit Server
+  (z.B.: nach dem speichern => compilieren)
+- stellen Serverantwort sinnvoll dar (Atom Zeilenmarkierung +
+  Fehlerbeschreibung unten)
+- Fragen nach Autovervollständigung für Wort unter/bevor dem Cursor
+- Fragen nach Quelldatei eines Typs, durch Nutzer per Strg + Click ausgeführt
+
+### Protokoll
+- Schaubild zur Kommunikation (siehe Präsentation)
+- HTTP in Verbindung mit JSON
+- Zustandsbehaftet durch Angabe der Projekt-ID (project/**20**/*TASK*)
+
+
+## Literatur
 - Benutzbarkeit von Modelica
 - Modelica in der Lehre
 - Benutzbarkeit Modelicatools
