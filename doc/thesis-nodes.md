@@ -50,6 +50,19 @@
   - Was mach ich & dafür benötige ich Aktoren .. die funktionieren so
 
 
+## Grundlagen
+- IDEs
+- Client-/Server Systeme
+- HTTP
+- (Reaktive Systeme)
+- Ensime Projekt
+- CORBA
+- (OpeModelica)
+- (JModelica)
+
+## Glossar
+API, HTTP, JS, JSON, IDE, OM
+
 ## Konzeption
 Noch keine technischen Details, wie etwa HTTP, JSON?
 - C-/S Struktur, in der Texteditoren Rolle des aktiven Clienten übernehmen
