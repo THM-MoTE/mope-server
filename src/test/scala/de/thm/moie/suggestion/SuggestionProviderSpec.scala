@@ -23,7 +23,7 @@ import akka.testkit.TestActorRef
 import de.thm.moie.ActorSpec
 import de.thm.moie.compiler.OMCompiler
 import de.thm.moie.position.FilePosition
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.Suggestion.Kind
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -43,11 +43,11 @@ class SuggestionProviderSpec extends ActorSpec {
   "CodeCompletionActor" should {
     "return a keyword completion" in {
       testRef ! simpleRequest("func")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "function", None, None)))
+      expectMsg(5 seconds, Set(Suggestion(Kind.Keyword, "function", None, None)))
 
       testRef ! simpleRequest("im")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Keyword, "import", None, None),
-                                CompletionResponse(CompletionType.Keyword, "impure", None, None)))
+      expectMsg(5 seconds, Set(Suggestion(Kind.Keyword, "import", None, None),
+                                Suggestion(Kind.Keyword, "impure", None, None)))
 
       val erg = Set(
         "each",
@@ -60,16 +60,16 @@ class SuggestionProviderSpec extends ActorSpec {
         "equation",
         "expandable",
         "extends",
-        "external").map(CompletionResponse(CompletionType.Keyword, _, None, None))
+        "external").map(Suggestion(Kind.Keyword, _, None, None))
       testRef ! simpleRequest("e")
       expectMsg(5 seconds, erg)
     }
     "return a type completion" in {
       testRef ! simpleRequest("B")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Boolean", None, None)))
+      expectMsg(5 seconds, Set(Suggestion(Kind.Type, "Boolean", None, None)))
 
       testRef ! simpleRequest("In")
-      expectMsg(5 seconds, Set(CompletionResponse(CompletionType.Type, "Integer", None, None)))
+      expectMsg(5 seconds, Set(Suggestion(Kind.Type, "Integer", None, None)))
     }
 
     "return package-names" in {
@@ -82,7 +82,7 @@ class SuggestionProviderSpec extends ActorSpec {
       "Modelica.Electrical.QuasiStationary" -> "Library for quasi-stationary electrical singlephase and multiphase AC simulation",
       "Modelica.Electrical.Spice3" -> "Library for components of the Berkeley SPICE3 simulator").
       map {
-        case (name, classComment) => CompletionResponse(CompletionType.Package, name, None, Some(classComment))
+        case (name, classComment) => Suggestion(Kind.Package, name, None, Some(classComment))
       }
 
       expectMsg(10 seconds, exp)
@@ -105,7 +105,7 @@ class SuggestionProviderSpec extends ActorSpec {
         "Modelica.Icons" -> "Library of icons",
         "Modelica.SIunits" -> "Library of type and unit definitions based on SI units according to ISO 31-1992").
       map {
-        case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+        case (name, classComment) => Suggestion(Kind.Package, name , None, Some(classComment))
       }
 
       testRef ! simpleRequest("Modelica.")
@@ -117,7 +117,7 @@ class SuggestionProviderSpec extends ActorSpec {
         "Modelica" -> "Modelica Standard Library - Version 3.2.1 (Build 4)",
         "ModelicaServices" -> "ModelicaServices (OpenModelica implementation) - Models and functions used in the Modelica Standard Library requiring a tool specific implementation").
         map {
-          case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+          case (name, classComment) => Suggestion(Kind.Package, name , None, Some(classComment))
         }
 
       testRef ! simpleRequest("Mod")
@@ -128,11 +128,11 @@ class SuggestionProviderSpec extends ActorSpec {
 
     "return empty-set for empty string" in {
       testRef ! simpleRequest("")
-      expectMsg(10 seconds, Set.empty[CompletionResponse])
+      expectMsg(10 seconds, Set.empty[Suggestion])
     }
 
     "return names for started classes" in {
-      val exp = Set(CompletionResponse(CompletionType.Package, "Modelica.Electrical",
+      val exp = Set(Suggestion(Kind.Package, "Modelica.Electrical",
         None,
         Some("Library of electrical models (analog, digital, machines, multi-phase)")))
       testRef ! simpleRequest("Modelica.Elec")
@@ -142,7 +142,7 @@ class SuggestionProviderSpec extends ActorSpec {
         "Modelica.Magnetic" -> "Library of magnetic models",
         "Modelica.Math" -> "Library of mathematical functions (e.g., sin, cos) and of functions operating on vectors and matrices").
         map {
-        case (name, classComment) => CompletionResponse(CompletionType.Package, name , None, Some(classComment))
+        case (name, classComment) => Suggestion(Kind.Package, name , None, Some(classComment))
       }
       testRef ! simpleRequest("Modelica.Ma")
       expectMsg(10 seconds, exp2)

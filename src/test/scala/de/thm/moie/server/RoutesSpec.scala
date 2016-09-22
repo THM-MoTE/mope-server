@@ -30,8 +30,8 @@ import de.thm.moie.compiler.CompilerError
 import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.doc.ClassComment
 import de.thm.moie.position.{FilePath, FilePosition, FileWithLine}
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
-import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse}
+import de.thm.moie.suggestion.Suggestion.Kind
+import de.thm.moie.suggestion.{CompletionRequest, Suggestion$}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -145,27 +145,27 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return keyword completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "an")
-      val exp = Set("annotation", "and").map(CompletionResponse(CompletionType.Keyword, _, None, None))
+      val exp = Set("annotation", "and").map(Suggestion(Kind.Keyword, _, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
         uri = "/moie/project/0/completion",
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[Set[CompletionResponse]] shouldBe exp
+        responseAs[Set[Suggestion]] shouldBe exp
       }
     }
 
     "return type completions for /completion" in {
       val complReq = CompletionRequest("unknown", FilePosition(0,0), "Int")
-      val exp = Set("Integer").map(CompletionResponse(CompletionType.Type, _, None, None))
+      val exp = Set("Integer").map(Suggestion(Kind.Type, _, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
         uri = "/moie/project/0/completion",
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[Set[CompletionResponse]] shouldBe exp
+        responseAs[Set[Suggestion]] shouldBe exp
       }
     }
 
@@ -179,7 +179,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         "Modelica.Electrical.QuasiStationary" -> "Library for quasi-stationary electrical singlephase and multiphase AC simulation",
         "Modelica.Electrical.Spice3" -> "Library for components of the Berkeley SPICE3 simulator").
         map {
-          case (name, classComment) => CompletionResponse(CompletionType.Package, name, None, Some(classComment))
+          case (name, classComment) => Suggestion(Kind.Package, name, None, Some(classComment))
         }
 
       val completionRequest = HttpRequest(
@@ -188,7 +188,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[Set[CompletionResponse]] shouldBe exp
+        responseAs[Set[Suggestion]] shouldBe exp
       }
     }
 

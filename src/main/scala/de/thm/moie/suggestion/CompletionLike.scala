@@ -18,17 +18,17 @@
 package de.thm.moie.suggestion
 
 import de.thm.moie.declaration.JumpToLike
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.Suggestion.Kind
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CompletionLike extends JumpToLike {
-  def getClasses(className:String): Set[(String, CompletionType.Value)]
+  def getClasses(className:String): Set[(String, Kind.Value)]
   def getClassesAsync(className:String)(
-    implicit context:ExecutionContext): Future[Set[(String, CompletionType.Value)]] =
+    implicit context:ExecutionContext): Future[Set[(String, Kind.Value)]] =
       Future(getClasses(className))
 
   def getParameters(className:String): List[(String, Option[String])]
   def getClassDocumentation(className:String): Option[String]
-  def getGlobalScope(): Set[(String, CompletionType.Value)]
+  def getGlobalScope(): Set[(String, Kind.Value)]
 }

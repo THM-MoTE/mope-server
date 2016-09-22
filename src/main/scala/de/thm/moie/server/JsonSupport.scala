@@ -23,8 +23,8 @@ import de.thm.moie.declaration.DeclarationRequest
 import de.thm.moie.doc.ClassComment
 import de.thm.moie.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.moie.project._
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
-import de.thm.moie.suggestion.{CompletionRequest, CompletionResponse, TypeOf, TypeRequest}
+import de.thm.moie.suggestion.Suggestion.Kind
+import de.thm.moie.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
@@ -34,14 +34,14 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val filePathFormat:RootJsonFormat[FilePath] = jsonFormat1(FilePath.apply)
   implicit val fileWithLineFormat:RootJsonFormat[FileWithLine] = jsonFormat2(FileWithLine)
   implicit val completionRequestFormat:RootJsonFormat[CompletionRequest] = jsonFormat3(CompletionRequest)
-  implicit val completionTypeFormat = new RootJsonFormat[CompletionType.Value] {
-    override def write(tpe:CompletionType.Value) = JsString(tpe.toString)
+  implicit val completionTypeFormat = new RootJsonFormat[Kind.Value] {
+    override def write(tpe:Kind.Value) = JsString(tpe.toString)
     override def read(value:JsValue) = value match {
-      case JsString(str) => CompletionType.withName(str)
+      case JsString(str) => Kind.withName(str)
       case _ => throw new DeserializationException("CompletionType.Value expected")
     }
   }
-  implicit val completionResponseFormat:RootJsonFormat[CompletionResponse] = jsonFormat5(CompletionResponse.apply)
+  implicit val suggestionFormat:RootJsonFormat[Suggestion] = jsonFormat5(Suggestion.apply)
   implicit val declarationRequestFormat:RootJsonFormat[DeclarationRequest] = jsonFormat1(DeclarationRequest)
   implicit val classCommentFormat:RootJsonFormat[ClassComment] = jsonFormat2(ClassComment)
   implicit val typeOfFormat:RootJsonFormat[TypeOf] = jsonFormat3(TypeOf)

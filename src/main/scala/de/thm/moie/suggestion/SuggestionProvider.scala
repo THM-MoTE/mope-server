@@ -27,7 +27,7 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import de.thm.moie.Global
 import de.thm.moie.position.FilePosition
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.Suggestion.Kind
 import de.thm.moie.utils.actors.UnhandledReceiver
 import omc.corba.ScriptingHelper
 
@@ -66,7 +66,7 @@ class SuggestionProvider(compiler:CompletionLike)
     Global.readValuesFromResource(
         getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
 
-  val logSuggestions: String => Set[CompletionResponse] => Set[CompletionResponse] = { word => suggestions =>
+  val logSuggestions: String => Set[Suggestion] => Set[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
     else log.info("found {} suggestion(s) for {}", suggestions.size, word)
     suggestions
@@ -80,7 +80,7 @@ class SuggestionProvider(compiler:CompletionLike)
   override def receive: Receive = {
     case CompletionRequest(_,_,word) if word.isEmpty =>
       //ignore empty strings
-      sender ! Set.empty[CompletionResponse]
+      sender ! Set.empty[Suggestion]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
       //searching for a class inside another class
       containingPackages(word.dropRight(1)).
@@ -111,8 +111,8 @@ class SuggestionProvider(compiler:CompletionLike)
   private def toStartsWith(word:String) = onlyStartsWith(word).toMat(toSet)(Keep.right)
 
   /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */
-  private def withParameters: Flow[(String, CompletionResponse.CompletionType.Value), (String, CompletionResponse.CompletionType.Value, List[String]), NotUsed] =
-    Flow[(String, CompletionResponse.CompletionType.Value)].map {
+  private def withParameters: Flow[(String, Suggestion.Kind.Value), (String, Suggestion.Kind.Value, List[String]), NotUsed] =
+    Flow[(String, Suggestion.Kind.Value)].map {
       case (name, tpe) =>
         val params = compiler.getParameters(name).map {
           case (name, Some(tpe)) => tpe+" "+name
@@ -122,17 +122,17 @@ class SuggestionProvider(compiler:CompletionLike)
     }
 
   /** Converts the given tripel of (className, completionType, parameterlist) into a CompletionResponse. */
-  private def toCompletionResponse: Flow[(String, CompletionType.Value, List[String]), CompletionResponse, NotUsed] =
-    Flow[(String, CompletionType.Value, List[String])].map {
+  private def toCompletionResponse: Flow[(String, Kind.Value, List[String]), Suggestion, NotUsed] =
+    Flow[(String, Kind.Value, List[String])].map {
       case (name, tpe, parameters) =>
         val paramOpt = if(parameters.isEmpty) None else Some(parameters)
         val classComment = compiler.getClassDocumentation(name)
-        CompletionResponse(tpe, name, paramOpt, classComment, None)
+        Suggestion(tpe, name, paramOpt, classComment, None)
     }
 
 
 /** Returns all components/packages inside of `word`. */
-  private def containingPackages(word:String): Source[CompletionResponse, NotUsed] =
+  private def containingPackages(word:String): Source[Suggestion, NotUsed] =
     Source.fromFuture(compiler.getClassesAsync(word)).
       mapConcat(identity).
       via(withParameters).
@@ -140,20 +140,20 @@ class SuggestionProvider(compiler:CompletionLike)
 
 
   /** Finds the keywords, types that starts with `word`. */
-  private def closestKeyWordType(word:String): Source[CompletionResponse, NotUsed] =
+  private def closestKeyWordType(word:String): Source[Suggestion, NotUsed] =
     Source(keywords ++ types).
       map { x =>
         if (keywords.contains(x))
-          CompletionResponse(CompletionType.Keyword, x, None, None, None)
+          Suggestion(Kind.Keyword, x, None, None, None)
         else if (types.contains(x))
-          CompletionResponse(CompletionType.Type, x, None, None, None)
+          Suggestion(Kind.Type, x, None, None, None)
         else {
           log.warning("Couldn't find CompletionType for {}", x)
-          CompletionResponse(CompletionType.Keyword, x, None, None, None)
+          Suggestion(Kind.Keyword, x, None, None, None)
         }
       }
 
-  private def findMatchingClasses(word:String): Source[CompletionResponse, NotUsed] = {
+  private def findMatchingClasses(word:String): Source[Suggestion, NotUsed] = {
     val pointIdx = word.lastIndexOf(".")
     if(pointIdx == -1)
       toCompletionResponse(word, Future(compiler.getGlobalScope()))
@@ -163,7 +163,7 @@ class SuggestionProvider(compiler:CompletionLike)
     }
   }
 
-  private def toCompletionResponse(word:String, xs:Future[Set[(String, CompletionType.Value)]]): Source[CompletionResponse, NotUsed] =
+  private def toCompletionResponse(word:String, xs:Future[Set[(String, Kind.Value)]]): Source[Suggestion, NotUsed] =
     Source.fromFuture(xs).
       mapConcat(identity).
       via(withParameters).
@@ -196,7 +196,7 @@ class SuggestionProvider(compiler:CompletionLike)
       }.getOrElse(Source.empty)
   }
 
-  private def localVariables(filename:String, word:String, lineNo:Int): Source[CompletionResponse, _] = {
+  private def localVariables(filename:String, word:String, lineNo:Int): Source[Suggestion, _] = {
     val possibleLines = lines(filename).take(lineNo)
     possibleLines.
       via(onlyVariables).
@@ -236,14 +236,14 @@ class SuggestionProvider(compiler:CompletionLike)
       case (tpe, name, commentOpt) =>
         val pointIdx = tpe.lastIndexOf('.')
         val shortenedType = if(pointIdx != -1) tpe.substring(pointIdx+1) else tpe
-        CompletionResponse(CompletionType.Variable, name, None, commentOpt, Some(shortenedType))
+        Suggestion(Kind.Variable, name, None, commentOpt, Some(shortenedType))
     }
 
   val propertyResponse =
-    variableResponse.map(x => x.copy(completionType = CompletionType.Property))
+    variableResponse.map(x => x.copy(kind = Kind.Property))
 
   def onlyStartsWith(word:String) =
-    Flow[CompletionResponse].filter { response =>
+    Flow[Suggestion].filter { response =>
       response.name.startsWith(word)
     }
 }

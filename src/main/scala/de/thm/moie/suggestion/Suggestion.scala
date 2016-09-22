@@ -17,18 +17,18 @@
 
 package de.thm.moie.suggestion
 
-import de.thm.moie.suggestion.CompletionResponse._
-case class CompletionResponse(completionType: CompletionType.Value,
-                              name:String,
-                              parameters:Option[Seq[String]],
-                              classComment: Option[String],
-                              `type`: Option[String]) {
+import de.thm.moie.suggestion.Suggestion._
+case class Suggestion(kind: Kind.Value,
+                      name:String,
+                      parameters:Option[Seq[String]],
+                      classComment: Option[String],
+                      `type`: Option[String]) {
   def displayString: String =
-    s"$completionType - $name"
+    s"$kind - $name"
 }
 
-object CompletionResponse {
-  object CompletionType extends Enumeration {
+object Suggestion {
+  object Kind extends Enumeration {
     val Type, Variable, Function, Keyword, Package, Model, Class, Property = Value
   }
 }

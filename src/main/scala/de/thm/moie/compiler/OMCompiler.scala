@@ -22,7 +22,7 @@ import de.thm.moie.Global
 import de.thm.moie.doc.DocInfo
 import de.thm.moie.position.FilePosition
 import de.thm.moie.server.NotFoundException
-import de.thm.moie.suggestion.CompletionResponse.CompletionType
+import de.thm.moie.suggestion.Suggestion.Kind
 import de.thm.moie.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
 import omc.corba._
@@ -114,7 +114,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  override def getClasses(className: String): Set[(String, CompletionType.Value)] = {
+  override def getClasses(className: String): Set[(String, Kind.Value)] = {
     val classNames = omc.getList("getClassNames", className,
       java.lang.Boolean.valueOf(false),
       java.lang.Boolean.valueOf(true)).asScala
@@ -123,7 +123,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     xs
   }
 
-  override def getGlobalScope(): Set[(String, CompletionType.Value)] = {
+  override def getGlobalScope(): Set[(String, Kind.Value)] = {
     val classNames = omc.getList("getClassNames").asScala
     classNames.zip(getCompletionType(classNames)).toSet
   }
@@ -173,13 +173,13 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  private def getCompletionType(classNames:Seq[String]): Seq[CompletionType.Value] = {
+  private def getCompletionType(classNames:Seq[String]): Seq[Kind.Value] = {
     classNames.map { x =>
-      if(omc.is_("Function", x)) CompletionType.Function
-      else if(omc.is_("Package", x)) CompletionType.Package
-      else if(omc.is_("Type", x)) CompletionType.Type
-      else if(omc.is_("Model", x)) CompletionType.Model
-      else CompletionType.Class
+      if(omc.is_("Function", x)) Kind.Function
+      else if(omc.is_("Package", x)) Kind.Package
+      else if(omc.is_("Type", x)) Kind.Type
+      else if(omc.is_("Model", x)) Kind.Model
+      else Kind.Class
     }
   }
 
