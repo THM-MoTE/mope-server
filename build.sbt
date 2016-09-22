@@ -18,6 +18,14 @@ configDir := new File(System.getProperty("user.home")) / ".moie"
 
 cleanConfig := IO.delete(configDir.value)
 
+sourceGenerators in Compile <+= Def.task {
+  val dir:File = (sourceManaged in Compile).value
+  InfoGenerator.generateProjectInfo(dir, Seq(
+    "name" -> (name in root).value,
+    "version" -> (version in root).value,
+    "organization" -> (organization in root).value))
+}
+
 lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
     organization := "thm",
