@@ -184,8 +184,8 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   override def getSrcFile(className:String): Option[String] = {
-    val classOpt:Option[String] = omc.getClassInformation(className)
-    classOpt.flatMap(extractPath)
+    val res = omc.call("getSourceFile", className)
+    extractPath(res.result)
   }
 
   private def parseResult(result:Result)  = {
