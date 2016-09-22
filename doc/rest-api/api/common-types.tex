@@ -45,13 +45,13 @@ from the server.
   }
   \end{lstlisting}
 
-  \subsubsection{Completion-Object}
+  \subsubsection{Suggestion-Object}
   Describes possible code completions.
-  \newline\representedBy{de.thm.moie.suggestion.CompletionResponse}
+  \newline\representedBy{de.thm.moie.suggestion.Suggestion}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
-    //type of completion; 1 of the listed strings
-    "completionType": "Type" | "Variable" | "Function" | "Keyword" | "Package" | "Model" | "Class",
+    //kind of completion; 1 of the listed strings
+    "kind": "Type" | "Variable" | "Function" | "Keyword" | "Package" | "Model" | "Class",
     "name": <String>, //the completion for the given word
     //OPTIONAL: list containing names of parameters if completionType=function
     "parameters": [
