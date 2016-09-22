@@ -98,6 +98,4 @@ object Global extends FallbackConfig {
   lazy val (configFileURL, configDidExist) = getConfigFile("moie.conf")
   lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
-
-  lazy val version = "0.5"
 }
