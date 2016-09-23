@@ -1,7 +1,6 @@
-TEXFILE = ./rest-api.tex
+TEXFILE = ./protocol.tex
 #BIBTEXINPUT = ./report.aux
-PDFFILE = ./rest-api.pdf
-#ZIPFILE = ../projs.zip
+PDFFILE = ./protocol.pdf
 
 all: compile
 
@@ -17,12 +16,9 @@ compile:
 display: compile
 	open -a Preview $(PDFFILE)
 
-zip:
-	rm $(ZIPFILE)
-	zip -r $(ZIPFILE) ./
-
 clean:
 	rm *.aux
 	rm *.log
 	rm *.toc
 	rm *.out
+	rm $(PDFFILE)
