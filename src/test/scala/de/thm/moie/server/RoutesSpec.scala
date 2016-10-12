@@ -225,19 +225,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       }
     }
 
-    "return classComment for a classname" in {
-      Get("/moie/project/0/comment?class=Modelica.Electrical") ~> service.routes ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[ClassComment] shouldEqual ClassComment("Modelica.Electrical", "Library of electrical models (analog, digital, machines, multi-phase)")
-      }
-
-      Get("/moie/project/0/comment?class=Modelica.nico") ~> service.routes ~> check {
-        status shouldEqual StatusCodes.NotFound
-        responseAs[String] shouldEqual "comment for Modelica.nico not found"
-      }
-    }
-
-
         "return errors for /compile" in {
           val invalidFile = createInvalidFile(projPath)
           val compileRequest = HttpRequest(
