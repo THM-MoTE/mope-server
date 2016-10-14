@@ -60,7 +60,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     removeDirectoryTree(tmpPath)
   }
 
-  "moie" should {
+  "mope" should {
     val jsonRequest = ByteString(
         s"""
            |{
@@ -70,10 +70,10 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         """.stripMargin)
       val postRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/connect",
+        uri = "/mope/connect",
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest))
 
-    "return a valid project-id for POST /moie/connect" in {
+    "return a valid project-id for POST /mope/connect" in {
       postRequest ~> service.routes ~> check {
         Thread.sleep(2000)
         responseAs[String] shouldEqual "0"
@@ -98,7 +98,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
           """.stripMargin)
         val faultyPostRequest = HttpRequest(
           HttpMethods.POST,
-          uri = "/moie/connect",
+          uri = "/mope/connect",
           entity = HttpEntity(MediaTypes.`application/json`, faultyJsonRequest))
         faultyPostRequest ~> service.routes ~> check {
           responseAs[String] shouldEqual "`derb` doesn't exist"
@@ -112,12 +112,12 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         responseAs[String] shouldEqual "0"
       }
 
-      Post("/moie/project/0/disconnect") ~> service.routes ~> check {
+      Post("/mope/project/0/disconnect") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NoContent
       }
     }
     "return NoContent for /disconnect with non-valid project-id" in {
-      Post("/moie/project/200/disconnect") ~> service.routes ~> check {
+      Post("/mope/project/200/disconnect") ~> service.routes ~> check {
         status shouldEqual StatusCodes.NoContent
       }
     }
@@ -125,7 +125,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     "return NotFound for /compile with non-valid project-id" in {
       val compileRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/200/compile",
+        uri = "/mope/project/200/compile",
         entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
       compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
@@ -136,7 +136,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     "return NotFound for /compileScript with non-valid project-id" in {
       val compileRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/200/compileScript",
+        uri = "/mope/project/200/compileScript",
         entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath("empty")).compactPrint))
       compileRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
@@ -149,7 +149,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       val exp = Set("annotation", "and").map(Suggestion(Kind.Keyword, _, None, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/completion",
+        uri = "/mope/project/0/completion",
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
@@ -162,7 +162,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       val exp = Set("Integer").map(Suggestion(Kind.Type, _, None, None, None))
       val completionRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/completion",
+        uri = "/mope/project/0/completion",
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
@@ -185,7 +185,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
       val completionRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/moie/project/0/completion",
+        uri = "/mope/project/0/completion",
         entity = HttpEntity(MediaTypes.`application/json`, completionRequestFormat.write(complReq).compactPrint))
       completionRequest ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
@@ -194,19 +194,19 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     }
 
     "return corresponding file for a classname" in {
-      val uri = "/moie/project/0/declaration?class=Modelica.Electrical"
+      val uri = "/mope/project/0/declaration?class=Modelica.Electrical"
       Get(uri) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo", 1)
       }
 
-      val uri2 = "/moie/project/0/declaration?class=Modelica.Electrical.Analog"
+      val uri2 = "/mope/project/0/declaration?class=Modelica.Electrical.Analog"
       Get(uri2) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo", 1)
       }
 
-      val faultyUri = "/moie/project/0/declaration?class=Modelica.nico"
+      val faultyUri = "/mope/project/0/declaration?class=Modelica.nico"
       Get(faultyUri) ~> service.routes ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[String] shouldBe "class Modelica.nico not found"
@@ -214,12 +214,12 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     }
 
     "return documentation for a classname" in {
-      Get("/moie/project/0/doc?class=Modelica.Electrical") ~> service.routes ~> check {
+      Get("/mope/project/0/doc?class=Modelica.Electrical") ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[String].contains("Documentation for Modelica.Electrical") shouldBe true
       }
 
-      Get("/moie/project/0/doc?class=nico") ~> service.routes ~> check {
+      Get("/mope/project/0/doc?class=nico") ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[String].contains("The documentation for nico is missing.") shouldBe true
       }
@@ -229,7 +229,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
           val invalidFile = createInvalidFile(projPath)
           val compileRequest = HttpRequest(
             HttpMethods.POST,
-            uri = "/moie/project/0/compile",
+            uri = "/mope/project/0/compile",
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
           Thread.sleep(8000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
           compileRequest ~> service.routes ~> check {
@@ -242,7 +242,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
           val compileRequest2 = HttpRequest(
             HttpMethods.POST,
-            uri = "/moie/project/0/compile",
+            uri = "/mope/project/0/compile",
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
@@ -256,7 +256,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
           val invalidScript = createInvalidScript(projPath)
           val compileRequest = HttpRequest(
             HttpMethods.POST,
-            uri = "/moie/project/0/compileScript",
+            uri = "/mope/project/0/compileScript",
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidScript.toString)).compactPrint))
           Thread.sleep(4000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
           compileRequest ~> service.routes ~> check {
@@ -269,7 +269,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
           val compileRequest2 = HttpRequest(
             HttpMethods.POST,
-            uri = "/moie/project/0/compileScript",
+            uri = "/mope/project/0/compileScript",
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
@@ -280,7 +280,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
         }
 
     "shutdown when calling /stop-server" in {
-      Post("/moie/stop-server") ~> service.routes ~> check {
+      Post("/mope/stop-server") ~> service.routes ~> check {
         status shouldEqual StatusCodes.Accepted
       }
       try {
