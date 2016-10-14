@@ -51,7 +51,7 @@ one directory. This should look like this:
 
 5. Set the interface and port in the Atom-plugin in order to connect to the server.
 
-After the first run MoPE generates a configuration file located at ```~/.moie/moie.conf```. You can change it to suit your needs.
+After the first run MoPE generates a configuration file located at ```~/.mope/mope.conf```. You can change it to suit your needs.
 
 __DO NOT CHANGE THE ```akka { .. }```-SECTION!__
 If you messed up your configuration just kill the whole ```~/.moie``` directory.
@@ -74,8 +74,8 @@ http://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x
 Import each subproject into the workspace and add these as project
 dependencies for this project.
 
-# `moie-project.json` example
-In order to connect to the server you need a `moie-project.json` file inside
+# `mope-project.json` example
+In order to connect to the server you need a `mope-project.json` file inside
 of the root directory of your project. The file should look similar to this:
 ```json
 {
@@ -89,10 +89,10 @@ of the root directory of your project. The file should look similar to this:
 
 See the REST-API documentation for more details.
 
-# REST-API
+# REST-API / Protocol documentation
 A documentation for the REST-API can be found in
-``` doc/rest-api/ ```.
-The documentation is a latex-file called ``` rest-api.tex ``` which
+``` doc/protocol/ ```.
+The documentation is a latex-file called ``` protocol.tex ``` which
 can be translated into a pdf with ``` make ```.
 
 # Notes
