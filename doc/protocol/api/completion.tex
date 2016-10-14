@@ -2,14 +2,14 @@
 Returns possible code completions for the given word/symbol.
 
 \begin{itemize}
-\item \textbf{URL} \code{/moie/project/:id/completion}
+\item \textbf{URL} \code{/mope/project/:id/completion}
 \item \textbf{Method} \code{POST}
 
 \item \textbf{URL Params}
   \newline\textbf{Required} \code{id=[integer]}
 
 \item \textbf{Data Params} An object which contains the position and the word that should get completed.
-  \decodedAs{de.thm.moie.suggestion.CompletionRequest}
+  \decodedAs{de.thm.mope.suggestion.CompletionRequest}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "file": <String>, //absolute path to the file which contains the word/symbol

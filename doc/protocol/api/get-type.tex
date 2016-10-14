@@ -1,14 +1,14 @@
 \subsection{Get type of a property}
 Returns the type and comment of the given property.
 \begin{itemize}
-\item \textbf{URL} \code{/moie/project/:id/typeOf}
+\item \textbf{URL} \code{/mope/project/:id/typeOf}
 \item \textbf{Method} \code{POST}
 
 \item \textbf{URL Params}
   \newline\textbf{Required} \code{id=[integer]}
 
 \item \textbf{Data Params} An object containing the file, position and propertyname.
-  \newline\decodedAs{de.thm.moie.suggestion.TypeRequest}
+  \newline\decodedAs{de.thm.mope.suggestion.TypeRequest}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "file": <String>, //absolute path to the file which contains the word/symbol

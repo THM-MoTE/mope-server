@@ -5,11 +5,11 @@ Connects a client to the server and starts a manager for the given project.
 % template taken from: https://gist.github.com/iros/3426278
 
 \begin{itemize}
-\item \textbf{URL} \code{/moie/connect}
+\item \textbf{URL} \code{/mope/connect}
 \item \textbf{Method} \code{POST}
 \item \textbf{URL Params} Empty
 \item \textbf{Data Params}
-  The content of the \code{moie-project.json} file. This file is located at the /-directory of the project.
+  The content of the \code{mope-project.json} file. This file is located at the /-directory of the project.
   This object defines several project-specific configurations and looks like this:
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
@@ -20,7 +20,7 @@ Connects a client to the server and starts a manager for the given project.
     "buildScript": <String>
   }
   \end{lstlisting}
-  \decodedAs{de.thm.moie.project.ProjectDescription}
+  \decodedAs{de.thm.mope.project.ProjectDescription}
 \item \textbf{Success Response}
   \newline\textbf{Code} 200 OK
   \newline\textbf{Content} ID which identifies the project. For example: \code{1}

@@ -4,7 +4,7 @@ from the server.
 
   \subsubsection{Error-Object}
   Describes compiler-errors in Modelica files or Modelica Script-files.
-  \newline\decodedAs{de.thm.moie.compiler.CompilerError}
+  \newline\decodedAs{de.thm.mope.compiler.CompilerError}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "type": "Error" | "Warning", //type of the message from the compiler
@@ -17,7 +17,7 @@ from the server.
 
   \subsubsection{FilePath}
   A path to a file.
-  \newline\decodedAs{de.thm.moie.position.FilePath}
+  \newline\decodedAs{de.thm.mope.position.FilePath}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "path": <String> //absolute path to the script
@@ -27,7 +27,7 @@ from the server.
   \subsubsection{File-Position}
   Describes a position inside of a file. Contains a
   line and a column.
-  \newline\decodedAs{de.thm.moie.position.FilePosition}
+  \newline\decodedAs{de.thm.mope.position.FilePosition}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "line": <number>, //line number
@@ -37,7 +37,7 @@ from the server.
 
   \subsubsection{FileWithLine}
   A path to a file and the line containing the searched value.
-  \newline\decodedAs{de.thm.moie.position.FileWithLine}
+  \newline\decodedAs{de.thm.mope.position.FileWithLine}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "path": <String>, //absolute path to the file
@@ -47,7 +47,7 @@ from the server.
 
   \subsubsection{Suggestion-Object}
   Describes possible code completions.
-  \newline\representedBy{de.thm.moie.suggestion.Suggestion}
+  \newline\representedBy{de.thm.mope.suggestion.Suggestion}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     //kind of completion; 1 of the listed strings
@@ -69,7 +69,7 @@ from the server.
 
   \subsubsection{TypeOf}
   The type of a property.
-  \newline\representedBy{de.thm.moie.suggestion.TypeOf}
+  \newline\representedBy{de.thm.mope.suggestion.TypeOf}
   \begin{lstlisting}[basicstyle=\small,language=json]
   {
     "name": <String>, //name of property
