@@ -1,12 +1,12 @@
-# Mo|E - Modelica Integration for Editors
-Mo|E brings IDE-features for Modelica into your favourite Editor. Features are
+# MoPE - Modelica Integration for Editors
+MoPE brings IDE-features for Modelica into your favourite Editor. Features are
 documented in the [Feature Overview](doc/features.md).
 
-## Mo|E - Server
-This is the server-process for Mo|E.
+## MoPE - Server
+This is the server-process for MoPE.
 
 # Subprojects
-Mo|E uses the following subprojects:
+MoPE uses the following subprojects:
 - [omc-java-api](https://git.thm.de/njss90/omc-java-api) -
   Java-implementation of OMC's CORBA interface
 - [EnhancedWatchService](https://github.com/njustus/EnhancedWatchService) -
@@ -20,7 +20,7 @@ You can skip point 2 & 3 if you use our setup script located [here](https://git.
 
 1. Install [sbt](http://www.scala-sbt.org/) in order to compile the projects.
 
-2. Because Mo|E uses subprojects you need to clone all subprojects and this project into
+2. Because MoPE uses subprojects you need to clone all subprojects and this project into
 one directory. This should look like this:
   ```
   parent/
@@ -38,7 +38,7 @@ one directory. This should look like this:
   - Compile moie-server by typing ```compile``` at the sbt prompt.
     (sbt will compile the subprojects too.)
 
-4. Execute ```run``` to start the server. Mo|E will produce several logs during runtime.
+4. Execute ```run``` to start the server. MoPE will produce several logs during runtime.
   Especially the starting log should look similar to this:
 ```
 [info] Running de.thm.moie.MoIE
@@ -51,7 +51,7 @@ one directory. This should look like this:
 
 5. Set the interface and port in the Atom-plugin in order to connect to the server.
 
-After the first run Mo|E generates a configuration file located at ```~/.moie/moie.conf```. You can change it to suit your needs.
+After the first run MoPE generates a configuration file located at ```~/.moie/moie.conf```. You can change it to suit your needs.
 
 __DO NOT CHANGE THE ```akka { .. }```-SECTION!__
 If you messed up your configuration just kill the whole ```~/.moie``` directory.

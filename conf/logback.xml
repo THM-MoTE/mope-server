@@ -6,7 +6,7 @@
   </appender>
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${user.home}/.moie/moie-server.log</file>
+    <file>${user.home}/.mope/mope-server.log</file>
     <encoder>
       <pattern>%date{ISO8601} [%-5level] %logger{15} [%X{akkaSource}] - %msg%n</pattern>
     </encoder>
