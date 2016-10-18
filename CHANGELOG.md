@@ -1,4 +1,20 @@
 # Changelog of Mo|E-Server
+## Version 0.6
+**Alternative writing of Mo|E is now MoPE and mope!**
+
+Majore changes:
+- Config-Keys are all in Camel case
+- Remove unused `filewatcher-polling-timeout` from mope.conf
+- Programinformations (like name & version) now generated from within sbt
+- Retrieving a DocumentationComment removed!
+
+Renamings:
+  - package `moie` => `mope`
+  - `CompletionResponse` => `Suggestion`
+  - `CompletionResponse.ComlpetionType` => `Kind`
+  - `MoieExitcodes` => `MopeExitCodes`
+  - `rest-api` => `protocol`
+
 ## Version 0.5
   - It's possible to use the JModelica compiler instead of OpenModelica
   - OpenModelica's compiler messages are forced to be in english
