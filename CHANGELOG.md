@@ -1,4 +1,5 @@
-== Version 0.5 ==
+# Changelog of Mo|E-Server
+## Version 0.5
   - It's possible to use the JModelica compiler instead of OpenModelica
   - OpenModelica's compiler messages are forced to be in english
   - Own config loader (de.thm.moie.config) replaced with typesafe's config library
@@ -16,7 +17,7 @@
   - Bugfixes:
     - Crash due pathes with \ on Windows systems
 
-== Version 0.4 ==
+## Version 0.4
   This is the first useful version with a
   quite stable HTTP/REST API.
   The API documentation is up-to-date.
@@ -43,7 +44,7 @@
     documentation is embedded inside a HTML-template and
     supplied through Akka HTTP.
 
-  Major implementation changes:
+Major implementation changes:
   - Errors are handled in ErrorHandling
   - Multiple projects are managed by ProjectsManager
   - Projects are managed by 1 ProjectManager
