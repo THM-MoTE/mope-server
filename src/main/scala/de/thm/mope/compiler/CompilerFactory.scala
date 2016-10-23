@@ -21,12 +21,9 @@ import java.nio.file.Path
 import com.typesafe.config.Config
 
 class CompilerFactory(config:Config) {
+  import CompilerFactory._
   val compilerKey = config.getString("compiler")
   val compilerExecutable = config.getString("compilerExecutable")
-
-	private val availableCompilers:Map[String, Class[_ <: ModelicaCompiler]] =
-		Map("omc" -> classOf[de.thm.mope.compiler.OMCompiler],
-				"jm" -> classOf[de.thm.mope.compiler.JMCompiler])
 
   require(availableCompilers.keys.exists(_ == compilerKey),
     s"The given compilerKey [$compilerKey] isn't a valid key!")
@@ -40,4 +37,12 @@ class CompilerFactory(config:Config) {
     val constructor = compilerClazz.getDeclaredConstructor(classOf[String], classOf[Path])
     constructor.newInstance(compilerExecutable, outputDir)
   }
+}
+
+object CompilerFactory {
+  private val availableCompilers:Map[String, Class[_ <: ModelicaCompiler]] =
+    Map("omc" -> classOf[de.thm.mope.compiler.OMCompiler],
+        "jm" -> classOf[de.thm.mope.compiler.JMCompiler])
+
+  val compilerKeys = availableCompilers.keys.toSet
 }

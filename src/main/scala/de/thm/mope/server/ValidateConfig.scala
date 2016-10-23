@@ -18,12 +18,11 @@
 package de.thm.mope.server
 
 import com.typesafe.config.Config
+import de.thm.mope.compiler.CompilerFactory
 import scala.sys.process._
 
 trait ValidateConfig {
   type Errors = List[String]
-
-  val compilerPossibilities = Set("omc", "jm")
 
   def validateConfig(config:Config): Errors = {
     val buffer = scala.collection.mutable.ArrayBuffer[String]()
@@ -32,8 +31,8 @@ trait ValidateConfig {
 
     if(!config.hasPath(compilerKey)) { //check which compiler
       buffer += s"`$compilerKey` is undefined. Specify which compiler to use. For example: $compilerKey=omc"
-    } else if(!compilerPossibilities.contains(config.getString(compilerKey))) {
-      val possibilities = compilerPossibilities.mkString(", ")
+    } else if(!CompilerFactory.compilerKeys.contains(config.getString(compilerKey))) {
+      val possibilities = CompilerFactory.compilerKeys.mkString(", ")
       buffer +=s"`$compilerKey`: ${config.getString(compilerKey)} isn't a valid option. Options are: $possibilities"
     }
 
