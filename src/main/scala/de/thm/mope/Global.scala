@@ -38,9 +38,7 @@ object Global extends FallbackConfig {
     }
   }
 
-  private val configDirectoryName = ".mope"
-  private val homeDirPath = Paths.get(System.getProperty("user.home"))
-  private val configDirPath = homeDirPath.resolve(configDirectoryName)
+  private val configDirPath = Paths.get(build.ProjectInfo.configDirectory)
 
   private val compilerMappings:Map[String, Class[_]] = Map(
     "omc" -> classOf[de.thm.mope.compiler.OMCompiler],

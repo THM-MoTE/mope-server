@@ -18,7 +18,8 @@ sourceGenerators in Compile <+= Def.task {
   InfoGenerator.generateProjectInfo(dir, Seq(
     "name" -> (name in root).value,
     "version" -> (version in root).value,
-    "organization" -> (organization in root).value))
+    "organization" -> (organization in root).value,
+    "configDirectory" -> (configDir in root).value.getPath))
 }
 
 lazy val root = Project(id = "moie-server", base = file(".")).
