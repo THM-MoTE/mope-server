@@ -21,6 +21,7 @@ import java.nio.file.Paths
 
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
 import de.thm.mope.Global
+import de.thm.mope.compiler.CompilerFactory
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectRegister._
 import de.thm.mope.utils.actors.UnhandledReceiver
@@ -34,7 +35,7 @@ class ProjectsManagerActor
   import ProjectsManagerActor._
 
   private val register = new ProjectRegister()
-
+  private val compilerFactory = new CompilerFactory(Global.config)
   private val indexFiles = Global.config.getBoolean("indexFiles")
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
@@ -45,7 +46,7 @@ class ProjectsManagerActor
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
     val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
     try {
-      val compiler = Global.newCompilerInstance(outputPath)
+      val compiler = compilerFactory.newCompiler(outputPath)
       log.info("new manager for id:{}", id)
       context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
     } catch {

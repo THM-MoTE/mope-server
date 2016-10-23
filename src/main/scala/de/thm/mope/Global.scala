@@ -22,7 +22,6 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.config.{Config, ConfigFactory}
-import de.thm.mope.compiler.ModelicaCompiler
 
 import scala.io.Source
 
@@ -39,11 +38,6 @@ object Global extends FallbackConfig {
   }
 
   private val configDirPath = Paths.get(build.ProjectInfo.configDirectory)
-
-  private val compilerMappings:Map[String, Class[_]] = Map(
-    "omc" -> classOf[de.thm.mope.compiler.OMCompiler],
-    "jm" -> classOf[de.thm.mope.compiler.JMCompiler]
-  )
 
   /** Check if path exist; if not create it */
   def withCheckConfigDirectory[A](fn: Path => A): A = {
@@ -69,21 +63,6 @@ object Global extends FallbackConfig {
       (filePath.toUri.toURL, flag)
     }
 
-  private def getCompilerClass: Class[ModelicaCompiler] = {
-    val compilerKey = config.getString("compiler")
-    compilerMappings(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
-  }
-
-  private def getCompilerExecutable: String = {
-    config.getString("compilerExecutable")
-  }
-
-  def newCompilerInstance(outputDir:Path): ModelicaCompiler = {
-    val executableString = Global.getCompilerExecutable
-    val compilerClazz = Global.getCompilerClass
-    val constructor = compilerClazz.getDeclaredConstructor(classOf[String], classOf[Path])
-    constructor.newInstance(executableString, outputDir)
-  }
 
   def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {
     Source.fromURL(path, encoding.displayName).getLines.flatMap {
