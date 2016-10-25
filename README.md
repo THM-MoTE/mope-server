@@ -18,7 +18,7 @@ working. Please check if it's possible to run OMC from the terminal (```which om
 
 Make sure you have a `$JAVA_HOME` environment variable. On Linux-Systems you can by adding the
 following line to your `~/.bashrc`-file:
-```
+```sh
 export JAVA_HOME=<path-to-java>
 ```
 
