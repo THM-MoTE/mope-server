@@ -13,19 +13,23 @@ function current_branch() {
 cd $ATOM_PLUGIN
 echo
 echo "Updating " $ATOM_PLUGIN
+git fetch origin
 git pull origin $(current_branch)
 
 cd $OMC_API
 echo
 echo "Updating " $OMC_API
+git fetch origin
 git pull origin $(current_branch)
 
 cd $EWS
 echo
 echo "Updating " $EWS
+git fetch origin
 git pull origin $(current_branch)
 
 cd $SERVER
 echo
 echo "Updating " $SERVER
+git fetch origin
 git pull origin $(current_branch)
