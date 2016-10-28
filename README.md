@@ -16,7 +16,7 @@ MoPE uses the following subprojects:
 Currently we are only supporting OpenModelica. Make sure that OpenModelica and OMC is
 working. Please check if it's possible to run OMC from the terminal (```which omc```).
 
-Make sure you have a `$JAVA_HOME` environment variable. On Linux-Systems you can by adding the
+Make sure you have a `$JAVA_HOME` environment variable. On Linux-Systems you can create one by adding the
 following line to your `~/.bashrc`-file:
 ```sh
 export JAVA_HOME=<path-to-java>
@@ -62,7 +62,7 @@ After the first run MoPE generates a configuration file located at ```~/.mope/mo
 __DO NOT CHANGE THE ```akka { .. }```-SECTION!__
 If you messed up your configuration just kill the whole ```~/.moie``` directory.
 
-# Creating a executable-jar
+# Creating an executable-jar
 You can create an executable-jar using the `sbt assembly` command. This command packages
 everything - including all dependencies - in one jar which is executable using `java -jar <jar>`.
 
