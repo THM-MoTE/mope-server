@@ -24,7 +24,7 @@ sourceGenerators in Compile <+= Def.task {
 
 lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
-    organization := "thm",
+    organization := "de.thm.mote",
     name := "MoPE-server",
     version := "0.6",
     scalaVersion := "2.11.8",
