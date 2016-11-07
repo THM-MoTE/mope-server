@@ -50,8 +50,10 @@ trait ServerSetup {
   implicit def actorSystem:ActorSystem
   /** Overwrite as lazy val! */
   implicit def execContext = actorSystem.dispatcher
+  def blockingDispatcher = actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io")
   /** Overwrite as lazy val! */
   implicit def materializer:ActorMaterializer
+
   implicit val defaultTimeout = Timeout(config.getInt("defaultAskTimeout") seconds)
 
   val serverlog = Logging(actorSystem, this)

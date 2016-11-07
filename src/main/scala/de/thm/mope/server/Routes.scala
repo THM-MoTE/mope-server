@@ -218,7 +218,7 @@ trait Routes extends JsonSupport with ErrorHandling {
         val moveJar = Global.config.getString(execField)
         val cmd = Seq("java", "-jar", moveJar, filepath)
         cmd.lineStream
-      }
+      }(blockingDispatcher)
       Right(())
     } else {
       Left(s"Config-field `$execField` unknown. Please define an executable-jar for MoVE.")
