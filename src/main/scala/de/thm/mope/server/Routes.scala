@@ -42,7 +42,7 @@ import de.thm.mope.utils.IOUtils
 
 import scala.concurrent.Future
 
-trait Routes extends JsonSupport with ErrorHandling {
+trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
   this: ServerSetup =>
 
   def projectsManager: ActorRef
@@ -116,7 +116,7 @@ trait Routes extends JsonSupport with ErrorHandling {
           }
         } ~
         projectRoutes ~
-        toolEnsemble
+        ensembleRoutes
       }
     }
 
@@ -195,33 +195,4 @@ trait Routes extends JsonSupport with ErrorHandling {
         }
       }
     }
-
-  def toolEnsemble =
-    pathPrefix("ensemble") {
-      postEntity(as[FilePath]) { filepath =>
-        path("move") {
-          execMove(filepath.path) match {
-            case Left(errorMsg) =>
-              complete(HttpResponse(StatusCodes.BadRequest,entity = errorMsg))
-            case Right(_) =>
-              complete(StatusCodes.Accepted)
-          }
-        }
-      }
-    }
-
-  def execMove(filepath:String): Either[String, Unit] = {
-    val execField = "mote.moveExecutable"
-    if(Global.config.hasPath(execField)) {
-      import scala.sys.process._
-      Future { //fork off external process in separate thread
-        val moveJar = Global.config.getString(execField)
-        val cmd = Seq("java", "-jar", moveJar, filepath)
-        cmd.lineStream
-      }(blockingDispatcher)
-      Right(())
-    } else {
-      Left(s"Config-field `$execField` unknown. Please define an executable-jar for MoVE.")
-    }
-  }
 }
