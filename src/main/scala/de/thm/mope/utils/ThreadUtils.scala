@@ -34,4 +34,8 @@ object ThreadUtils {
       thread
     }
   }
+
+  def runnable(f: () => Unit): java.lang.Runnable = new java.lang.Runnable() {
+    override def run(): Unit = f()
+  }
 }
