@@ -26,7 +26,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
 import de.thm.mope.project.InternalProjectConfig
 import de.thm.mope.utils.actors.UnhandledReceiver
-import ews.EnhancedWatchService
+import de.thm.mope.utils.ThreadUtils
+import ews._
 
 import scala.concurrent.Future
 
@@ -43,32 +44,31 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
     StandardWatchEventKinds.ENTRY_DELETE
   )
 
-  private val callback = new BiConsumer[Path, WatchEvent.Kind[_]] {
-    override def accept(path: Path, kind: Kind[_]): Unit = kind match {
-      case StandardWatchEventKinds.ENTRY_CREATE =>
-        interestee ! NewPath(path)
-      case StandardWatchEventKinds.ENTRY_DELETE =>
-        interestee ! DeletedPath(path)
+  private val listener = new WatchServiceListener() {
+    override def created(p:Path):Unit = {
+      interestee ! NewPath(p)
     }
+    override def deleted(p:Path):Unit = {
+      interestee ! DeletedPath(p)
+    }
+    override def modified(p:Path):Unit = ()
   }
 
-  private val dirFilter = new Predicate[Path] {
-    override def test(dir: Path): Boolean =
-      !Files.isHidden(dir) &&
-      dir.getFileName.toString != outputDirName
-  }
+  private val filter = new ews.PathFilter() {
+    override def acceptDirectory(dir:Path): Boolean =
+      !Files.isHidden(dir) && dir.getFileName.toString != outputDirName
 
-  private val modelicaFileFilter = new Predicate[Path] {
-    override def test(file: Path): Boolean =
-      if(Files.isDirectory(file)) dirFilter.test(file)
+    override def acceptFile(file:Path): Boolean =
+      if(Files.isDirectory(file)) acceptDirectory(file)
       else moFileFilter(file)
   }
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
-  private val runningFuture = watchService.start(projConfig.blockingExecutor,callback, dirFilter, modelicaFileFilter)
+
+  private val runningFuture = projConfig.blockingExecutor.submit(watchService.setup(listener, filter))
 
   private def files(path:Path) =
-    getFiles(path, moFileFilter).sorted
+    getFiles(path, filter.acceptFile).sorted
 
   override def receive: Receive = {
     case GetFiles =>
