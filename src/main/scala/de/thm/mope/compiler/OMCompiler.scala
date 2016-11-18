@@ -24,6 +24,7 @@ import de.thm.mope.position.FilePosition
 import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.MonadImplicits._
+import de.thm.mope.utils.IOUtils
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -45,9 +46,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
 
   omc.connect()
+  IOUtils.createDirectory(outputDir)
 
   def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
-    createOutputDir(outputDir)
     if(files.exists(isPackageMo)) {
       withOutputDir(outputDir) {
         //expect a package.mo in root-directory
@@ -212,11 +213,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
           FilePosition(0, 0),
           "Couldn't understand compiler message."))
     }
-
-  private def createOutputDir(path:Path): Unit = {
-    if(!Files.exists(path))
-      Files.createDirectory(path)
-  }
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
     val res = omc.cd(dir)
