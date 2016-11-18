@@ -193,13 +193,12 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
-  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] =
+  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] = {
     if(xs.nonEmpty) xs
-    else typecheckModel(model)
-
-  private def typecheckModel(model:String): Seq[CompilerError] = {
-    val res = omc.checkAllModelsRecursive(model)
-    parseErrorMsg(res)
+    else {
+      val res = omc.checkAllModelsRecursive(model)
+      parseErrorMsg(res)
+    }
   }
 
   def parseErrorMsg(msg:String): Seq[CompilerError] =
