@@ -1,1 +1,1 @@
-linguist-language=scala
+src/*.scala linguist-language=Scala
