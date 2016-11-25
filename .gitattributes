@@ -1,1 +1,2 @@
-src/*.scala linguist-language=Scala
+*.scala linguist-language=Scala
+*.sbt linguist-language=Scala
