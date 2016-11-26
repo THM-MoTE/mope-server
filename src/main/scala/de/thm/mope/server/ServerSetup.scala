@@ -17,6 +17,10 @@
 
 package de.thm.mope.server
 
+import org.slf4j.{LoggerFactory}
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Level
+
 import akka.actor.ActorSystem
 import akka.event.{LogSource, Logging}
 import akka.stream.ActorMaterializer
@@ -37,6 +41,13 @@ trait ServerSetup {
 
   val serverName = "mope-server"
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
+
+  val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+  applicationMode match {
+    case ApplicationMode.Development => rootLogger.setLevel(Level.DEBUG)
+    case ApplicationMode.Production => rootLogger.setLevel(Level.INFO)
+  }
+
 
   implicit val serverLogSource:LogSource[ServerSetup] = new LogSource[ServerSetup] {
     override def genString(setup:ServerSetup): String =
