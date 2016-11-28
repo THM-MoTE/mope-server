@@ -20,7 +20,9 @@ package de.thm.mope
 import de.thm.mope.server.Server
 
 
-object MoPE {
+object MoPE
+  extends MopeSetup {
+
   def main(args:Array[String]) = {
     val server = new Server()
   }
