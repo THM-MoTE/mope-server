@@ -44,5 +44,19 @@ class TreeSpec extends WordSpec with Matchers {
       }
       elemLists.foreach(_ shouldBe buffer.toList)
     }
+
+    "pretty print its elements" in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      val str = """- 5
+|  - 2
+|    - 20
+|    - 30
+|  - 5
+|  - 10""".stripMargin
+
+      tree.pretty shouldBe str
+
+      tree.pretty("*") shouldBe str.replaceAll("-", "*")
+    }
   }
 }

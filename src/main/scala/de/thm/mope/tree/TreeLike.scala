@@ -17,10 +17,19 @@
 
 package de.thm.mope.tree
 
-import scala.collection.Traversable
-
-trait TreeLike[+Elem] extends Traversable[Elem] {
-
+sealed trait TreeLike[+Elem] {
+  def foreach[U](f: Elem => U): Unit
+  def pretty:String = pretty()
+  def pretty(indicator:String="-"):String = {
+    def spaces(implicit indent:Int):String = " "*indent+indicator+" "
+    def mkStr(elem:TreeLike[Elem])(implicit indent:Int): String = {
+      elem match {
+        case Leaf(e) => spaces+e.toString
+        case Node(e, children) => spaces + e+"\n"+ children.map(mkStr(_)(indent+2)).mkString("\n")
+      }
+    }
+    mkStr(this)(0)
+  }
 }
 
 case class Node[+Elem](elem:Elem, children:List[TreeLike[Elem]]) extends TreeLike[Elem] {
