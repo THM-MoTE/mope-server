@@ -19,6 +19,8 @@ package de.thm.mope.tree
 
 sealed trait TreeLike[+Elem] {
   def foreach[U](f: Elem => U): Unit
+  def fold[Z](zero:Z)(op: (Z, Elem) => Z): Z = ???
+  def map[B >: Elem](f: Elem => B): TreeLike[B] = ???
   def pretty:String = pretty()
   def pretty(indicator:String="-"):String = {
     def spaces(implicit indent:Int):String = " "*indent+indicator+" "
