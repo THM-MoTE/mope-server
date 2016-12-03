@@ -58,5 +58,14 @@ class TreeSpec extends WordSpec with Matchers {
 
       tree.pretty("*") shouldBe str.replaceAll("-", "*")
     }
+
+    "contain a map implementation" in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      tree.map(_*2) shouldBe Node(10, List(Node(4, List(Leaf(40), Leaf(60))), Leaf(10), Leaf(20)))
+
+      val tree2 = Node("nico", List(Node("bella", List(Leaf("sandra"), Leaf("sarah")))))
+      tree2.map(_.toUpperCase) shouldBe Node("NICO", List(Node("BELLA", List(Leaf("SANDRA"), Leaf("SARAH")))))
+      tree2.map(_.length) shouldBe Node(4, List(Node(5, List(Leaf(6), Leaf(5)))))
+    }
   }
 }
