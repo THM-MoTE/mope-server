@@ -48,14 +48,13 @@ class TreeSpec extends WordSpec with Matchers {
     "pretty print its elements" in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
       val str = """- 5
-|  - 2
-|    - 20
-|    - 30
-|  - 5
-|  - 10""".stripMargin
+                  |  - 2
+                  |    - 20
+                  |    - 30
+                  |  - 5
+                  |  - 10""".stripMargin
 
       tree.pretty shouldBe str
-
       tree.pretty("*") shouldBe str.replaceAll("-", "*")
     }
 
@@ -66,6 +65,20 @@ class TreeSpec extends WordSpec with Matchers {
       val tree2 = Node("nico", List(Node("bella", List(Leaf("sandra"), Leaf("sarah")))))
       tree2.map(_.toUpperCase) shouldBe Node("NICO", List(Node("BELLA", List(Leaf("SANDRA"), Leaf("SARAH")))))
       tree2.map(_.length) shouldBe Node(4, List(Node(5, List(Leaf(6), Leaf(5)))))
+    }
+
+    "contain a fold implementation" in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      val sum = tree.fold(0)(_+_)
+
+      sum shouldBe (5+2+20+30+5+10)
+      val diff = tree.fold(100)(_-_)
+      diff shouldBe (100-5-2-20-30-5-10)
+
+      val lst = tree.fold(List[Int]()) {
+        case (xs, el) => el :: xs
+      }
+      lst shouldBe List(5,2,20,30,5,10).reverse
     }
   }
 }

@@ -19,7 +19,13 @@ package de.thm.mope.tree
 
 sealed trait TreeLike[+Elem] {
   def foreach[U](f: Elem => U): Unit
-  def fold[Z](zero:Z)(op: (Z, Elem) => Z): Z = ???
+  def fold[Z](zero:Z)(op: (Z, Elem) => Z): Z = this match {
+    case Leaf(e) => op(zero, e)
+    case Node(e, children) =>
+      children.foldLeft(op(zero, e)) {
+        case (acc,el) => el.fold(acc)(op)
+      }
+  }
   def map[B >: Elem](f: Elem => B): TreeLike[B] = this match {
     case Leaf(e) => Leaf(f(e))
     case Node(e, children) =>
