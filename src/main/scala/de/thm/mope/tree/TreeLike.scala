@@ -21,6 +21,15 @@ sealed trait TreeLike[+Elem] {
   type Filter[X] = X => Boolean
   def foreach[U](f: Elem => U): Unit
 
+  def filterElements(p:Filter[Elem]): List[Elem] = this match {
+    case Leaf(e) if p(e) => List(e)
+    case Leaf(e) => Nil
+    case Node(e, children) =>
+      val childs = children.flatten(_.filterElements(p))
+      if(p(e)) e :: childs
+      else childs
+  }
+
   def find(p:Filter[Elem]):Option[Elem] = {
     @annotation.tailrec
     def findInSubtrees(trees:List[TreeLike[Elem]]): Option[Elem] = trees match {
