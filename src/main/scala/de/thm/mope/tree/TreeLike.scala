@@ -18,7 +18,30 @@
 package de.thm.mope.tree
 
 sealed trait TreeLike[+Elem] {
+  type Filter[X] = X => Boolean
   def foreach[U](f: Elem => U): Unit
+
+  def find(p:Filter[Elem]):Option[Elem] = {
+    @annotation.tailrec
+    def findInSubtrees(trees:List[TreeLike[Elem]]): Option[Elem] = trees match {
+      case hd::tl =>
+        //explicit pattern matching (instead of Option#orElse) for tail call optimization
+        findImpl(hd) match {
+          case s@Some(_) => s
+          case None => findInSubtrees(tl)
+        }
+      case _ => None
+    }
+    def findImpl(tree:TreeLike[Elem]):Option[Elem] = tree match {
+      case Leaf(e) if p(e) => Some(e)
+      case Leaf(e) => None
+      case Node(e, _) if p(e) => Some(e)
+      case Node(_, children) =>
+        findInSubtrees(children)
+    }
+    findImpl(this)
+  }
+
   def fold[Z](zero:Z)(op: (Z, Elem) => Z): Z = this match {
     case Leaf(e) => op(zero, e)
     case Node(e, children) =>

@@ -80,5 +80,12 @@ class TreeSpec extends WordSpec with Matchers {
       }
       lst shouldBe List(5,2,20,30,5,10).reverse
     }
+
+    "contain a find implementation" in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      tree.find(_==30) shouldBe Some(30)
+      tree.find(_>30) shouldBe None
+      tree.find{x => x > 5 && x < 12} shouldBe Some(10)
+    }
   }
 }
