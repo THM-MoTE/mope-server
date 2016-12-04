@@ -21,6 +21,9 @@ import org.scalatest.{Matchers, WordSpec}
 import scala.collection.mutable
 
 class TreeSpec extends WordSpec with Matchers {
+
+  def containFn(fn:String):String = s"contain a `$fn` implementation"
+
   "A tree" should {
     "contain elements" in {
       val tree = Leaf(5)
@@ -58,7 +61,7 @@ class TreeSpec extends WordSpec with Matchers {
       tree.pretty("*") shouldBe str.replaceAll("-", "*")
     }
 
-    "contain a map implementation" in {
+    containFn("map") in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
       tree.map(_*2) shouldBe Node(10, List(Node(4, List(Leaf(40), Leaf(60))), Leaf(10), Leaf(20)))
 
@@ -67,7 +70,7 @@ class TreeSpec extends WordSpec with Matchers {
       tree2.map(_.length) shouldBe Node(4, List(Node(5, List(Leaf(6), Leaf(5)))))
     }
 
-    "contain a fold implementation" in {
+    containFn("fold") in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
       val sum = tree.fold(0)(_+_)
 
@@ -81,14 +84,14 @@ class TreeSpec extends WordSpec with Matchers {
       lst shouldBe List(5,2,20,30,5,10).reverse
     }
 
-    "contain a find implementation" in {
+    containFn("find") in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
       tree.find(_==30) shouldBe Some(30)
       tree.find(_>30) shouldBe None
       tree.find{x => x > 5 && x < 12} shouldBe Some(10)
     }
 
-    "contain a filterElements implementation" in {
+    containFn("filterElements") in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
       tree.filterElements(_>=10) shouldBe List(20,30,10)
       tree.filterElements(_<10) shouldBe List(5,2,5)
