@@ -25,7 +25,7 @@ class FileSystemTreeSpec extends WordSpec with Matchers {
 		"create a tree from a filesystem" in {
 			val root = Paths.get(System.getProperty("user.home")).resolve("Downloads")
 
-			println( FileSystemTree(root, List()).pretty )
+			println( FileSystemTree(root).pretty )
 		}
 	}
 }

@@ -20,32 +20,32 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
 object FileSystemTree {
-	/**
-	 * TODO implement using:
-	 * if me.isDirectory
-	 *  xs = Files#newDirectoryStream { entry =>
-	 *  	recurse(entry)
-	 *  } toList
-	 *  Node(me, xs)
-	 * else Leaf(me)
-	 * @type {[type]}
-	 */
-	def tree(root:Path, pathes:List[Path]):TreeLike[Path] = {
-		println(root)
-		println("relativized: "+pathes.map(root.relativize(_)))
-		println("root: "+pathes.map(root.relativize(_).getName(0)))
-		null
-	}
 
-	def apply(root:Path, rest:List[Path]): TreeLike[Path] = {
+	private def buildTree(root:Path, filter:DirectoryStream.Filter[Path]): TreeLike[Path] = {
 		if(Files.isRegularFile(root))
 			Leaf(root)
-		else {
-			//tree(root, rest)
-			val visitor = new FileVisitor
-			Files.walkFileTree(root, visitor)
-			visitor.tree
-		}
+		else if(Files.isDirectory(root)) {
+			ResourceUtils.tryR(Files.newDirectoryStream(root, filter)) { dirStream =>
+				val children = (for(entry <- dirStream.asScala) yield {
+					if(Files.isDirectory(entry)) buildTree(entry, filter)
+					else Leaf(entry)
+				}).toList
+				Node(root, children)
+			}
+		} else throw new IllegalArgumentException(s"what is this? $root")
+	}
+
+	def apply(root:Path, filter:PathFilter): TreeLike[Path] = {
+		buildTree(root, dirFilter(filter))
+	}
+
+	def apply(root:Path): TreeLike[Path] = {
+		buildTree(root, dirFilter(_ => true))
+	}
+
+	def dirFilter(additionalFilter:PathFilter) = new DirectoryStream.Filter[Path]() {
+		override def accept(entry: Path): Boolean =
+			!Files.isHidden(entry) && additionalFilter(entry)
 	}
 
 	class FileVisitor extends SimpleFileVisitor[Path] {
