@@ -64,6 +64,9 @@ sealed trait TreeLike[+Elem] {
       val newChilds = children.map(_.map(f))
       Node(f(e), newChilds)
   }
+
+  def contains[E>:Elem](e: E):Boolean = find(_ == e).isDefined
+
   def pretty:String = pretty()
   def pretty(indicator:String="-"):String = {
     def spaces(implicit indent:Int):String = " "*indent+indicator+" "

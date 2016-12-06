@@ -90,6 +90,12 @@ class TreeSpec extends WordSpec with Matchers {
       tree.find(_>30) shouldBe None
       tree.find{x => x > 5 && x < 12} shouldBe Some(10)
     }
+    containFn("contains") in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      tree.contains(5) shouldBe true
+      tree.contains(30) shouldBe true
+      tree.contains(-5) shouldBe false
+    }
 
     containFn("filterElements") in {
       val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
