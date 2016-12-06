@@ -59,7 +59,7 @@ class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 		files.foreach(Files.createFile(_))
 	}
 	override def afterAll(): Unit = {
-		//removeDirectoryTree(path)
+		removeDirectoryTree(path)
 	}
 
 	"A FSTree" should {
