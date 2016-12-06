@@ -17,15 +17,72 @@
 
 package de.thm.mope.tree
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.Inspectors._
 import java.nio.file._
 
-class FileSystemTreeSpec extends WordSpec with Matchers {
-	"A FSTree" should {
-		"create a tree from a filesystem" in {
-			val root = Paths.get(System.getProperty("user.home")).resolve("Downloads")
+import de.thm.mope._
 
-			println( FileSystemTree(root).pretty )
+class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
+	val path = Files.createTempDirectory("moie")
+	val projectPath = path.resolve("mo-project")
+	val emptyPath = path.resolve("empty")
+
+	val files = List(
+			// moie/mo-project/*
+		projectPath.resolve("test.mo"),
+		projectPath.resolve("test.txt"),
+		projectPath.resolve("model.mo"),
+		projectPath.resolve("model.test"),
+		projectPath.resolve("util/model2.mo"),
+		projectPath.resolve("util/resistor.mo"),
+		projectPath.resolve("common/transistor.mo"),
+		projectPath.resolve("common/test/algorithm.mo"),
+		projectPath.resolve("common/test/algorithm.java"),
+			// moie/empty/*
+		emptyPath.resolve("test/test.txt"),
+		emptyPath.resolve("test.txt"),
+		emptyPath.resolve("rechnung.java"),
+		emptyPath.resolve("common/uebung.java")
+	)
+
+	val dirs = List(
+		projectPath.resolve("util"),
+		projectPath.resolve("common/test"),
+		emptyPath.resolve("test"),
+		emptyPath.resolve("common")
+	)
+
+	override def beforeAll(): Unit = {
+		//create tmp Files
+		dirs.foreach(Files.createDirectories(_))
+		files.foreach(Files.createFile(_))
+	}
+	override def afterAll(): Unit = {
+		//removeDirectoryTree(path)
+	}
+
+	"A FSTree" should {
+		"built a tree from a filesystem" in {
+			val tree = FileSystemTree(path)
+			tree should not be null
+		}
+		"contain all directories of a filesystem tree" in {
+			val tree = FileSystemTree(path)
+			forAll(dirs) { dir =>
+				tree.contains(dir) shouldBe true
+			}
+		}
+
+		"contain all files of a filesystem tree" in {
+			val tree = FileSystemTree(path)
+			forAll(files) { file =>
+				tree.contains(file) shouldBe true
+			}
+		}
+		"only contain files & directories from a filesystem tree" in {
+			val tree = FileSystemTree(path)
+			tree.size shouldBe 21
 		}
 	}
 }
