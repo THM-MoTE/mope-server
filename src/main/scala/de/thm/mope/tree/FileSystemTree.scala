@@ -19,6 +19,19 @@ package de.thm.mope.tree
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
+import de.thm.mope.server.FileWatchingActor.PathFilter
+import de.thm.mope.utils.ResourceUtils
+
+import scala.collection.JavaConverters._
+
+trait FileSystemTree {
+	this:TreeLike[Path] =>
+	type TreeCopy = TreeLike[Path] with FileSystemTree
+
+	def +(path:Path): TreeCopy
+	def -(path:Path): TreeCopy
+}
+
 object FileSystemTree {
 
 	private def buildTree(root:Path, filter:DirectoryStream.Filter[Path]): TreeLike[Path] = {
