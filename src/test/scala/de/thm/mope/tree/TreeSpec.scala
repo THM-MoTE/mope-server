@@ -104,5 +104,14 @@ class TreeSpec extends WordSpec with Matchers {
       tree.filterElements(_>20) shouldBe List(30)
       tree.filterElements(_>30) shouldBe Nil
     }
+
+    containFn("size") in {
+      val tree = Node(5, List(Node(2, List(Leaf(20), Leaf(30))), Leaf(5), Leaf(10)))
+      tree.size shouldBe 6
+      val tree2 = Leaf(10)
+      tree2.size shouldBe 1
+      val tree3 = Node(5, List())
+      tree3.size shouldBe 1
+    }
   }
 }

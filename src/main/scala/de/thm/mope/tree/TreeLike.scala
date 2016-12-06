@@ -66,7 +66,9 @@ sealed trait TreeLike[+Elem] {
   }
 
   def contains[E>:Elem](e: E):Boolean = find(_ == e).isDefined
-
+  def size:Int = fold(0) {
+    case (acc,_) => acc+1
+  }
   def pretty:String = pretty()
   def pretty(indicator:String="-"):String = {
     def spaces(implicit indent:Int):String = " "*indent+indicator+" "
