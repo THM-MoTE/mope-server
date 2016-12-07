@@ -24,17 +24,31 @@ import de.thm.mope.utils.ResourceUtils
 
 import scala.collection.JavaConverters._
 
-trait FileSystemTree {
-	this:TreeLike[Path] =>
-	type TreeCopy = TreeLike[Path] with FileSystemTree
-
-	def +(path:Path): TreeCopy
-	def -(path:Path): TreeCopy
-}
-
 object FileSystemTree {
 
-	private def buildTree(root:Path, filter:DirectoryStream.Filter[Path]): TreeLike[Path] = {
+	type PTree = TreeLike[Path]
+
+	def add(tree:PTree)(path:Path): PTree = tree match {
+		case Leaf(x) => ???
+		case Node(me, children) if path.getParent == me =>
+			//TODO handle directories
+			println(s"found me $me other $path")
+			Node(me, Leaf(path) :: children)
+		case Node(me, children) =>
+			children.find { subTree =>
+				path.startsWith(subTree .label)
+			}.map {
+				case subTree@Node(lbl, _) =>
+					val newSubTree = add(subTree)(path)
+					println("new subtree\n"+newSubTree.pretty)
+					Node(me, newSubTree :: children.filterNot(_ == subTree))
+				case l@Leaf(lbl) =>
+					println(s"leaf $lbl")
+					Node(me, Node(lbl, List(Leaf(path))) :: children.filterNot(_==l))
+			}.get
+	}
+
+	private def buildTree(root:Path, filter:DirectoryStream.Filter[Path]): PTree = {
 		if(Files.isRegularFile(root))
 			Leaf(root)
 		else if(Files.isDirectory(root)) {
@@ -48,11 +62,11 @@ object FileSystemTree {
 		} else throw new IllegalArgumentException(s"what is this? $root")
 	}
 
-	def apply(root:Path, filter:PathFilter): TreeLike[Path] = {
+	def apply(root:Path, filter:PathFilter): PTree = {
 		buildTree(root, dirFilter(filter))
 	}
 
-	def apply(root:Path): TreeLike[Path] = {
+	def apply(root:Path): PTree = {
 		buildTree(root, dirFilter(_ => true))
 	}
 

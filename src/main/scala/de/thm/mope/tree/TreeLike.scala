@@ -80,14 +80,18 @@ sealed trait TreeLike[+Elem] {
     }
     mkStr(this)(0)
   }
+
+  def label:Elem
 }
 
 case class Node[+Elem](elem:Elem, children:List[TreeLike[Elem]]) extends TreeLike[Elem] {
+  override def label:Elem = elem
   override def foreach[U](f: Elem => U): Unit = {
     f(elem)
     children.foreach(_.foreach(f))
   }
 }
 case class Leaf[+Elem](elem:Elem) extends TreeLike[Elem] {
+  def label:Elem = elem
   override def foreach[U](f: Elem => U): Unit = f(elem)
 }

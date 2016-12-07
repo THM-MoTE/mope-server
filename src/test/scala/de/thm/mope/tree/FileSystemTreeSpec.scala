@@ -24,6 +24,7 @@ import java.nio.file._
 import de.thm.mope._
 
 class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
+	import FileSystemTree._
 	val path = Files.createTempDirectory("moie")
 	val projectPath = path.resolve("mo-project")
 	val emptyPath = path.resolve("empty")
@@ -83,6 +84,60 @@ class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 		"only contain files & directories from a filesystem tree" in {
 			val tree = FileSystemTree(path)
 			tree.size shouldBe 21
+		}
+		"add a path that is a file" in {
+			/**
+				* /h/nico/Documents
+				* 	- /h/nico/Documents/tst
+				* 		-	/h/nico/Documents/tst/1.txt
+				*/
+			val tree = Node(Paths.get("/h/nico/Documents"),
+				List(Node(Paths.get("/h/nico/Documents/tst"),
+					List(Leaf(Paths.get("/h/nico/Documents/tst/1.txt"))))
+				))
+/*
+			/**
+				* /h/nico/Documents
+				* 	- /h/nico/Documents/tst
+				* 		-	/h/nico/Documents/tst/2.txt <= added
+				* 		-	/h/nico/Documents/tst/1.txt
+				*/
+			add(tree)(Paths.get("/h/nico/Documents/tst/2.txt")) shouldBe Node(Paths.get("/h/nico/Documents"),
+									List(Node(Paths.get("/h/nico/Documents/tst"),
+										List(Leaf(Paths.get("/h/nico/Documents/tst/2.txt")), Leaf(Paths.get("/h/nico/Documents/tst/1.txt"))))
+									))
+
+			/**
+				* /h/nico/Documents
+				* 	- /h/nico/Documents/t.txt <= added
+				* 	- /h/nico/Documents/tst
+				* 		-	/h/nico/Documents/tst/1.txt
+				*/
+			add(tree)(Paths.get("/h/nico/Documents/t.txt")) shouldBe Node(Paths.get("/h/nico/Documents"),
+								List(Leaf(Paths.get("/h/nico/Documents/t.txt")),
+									Node(Paths.get("/h/nico/Documents/tst"),
+									List(Leaf(Paths.get("/h/nico/Documents/tst/1.txt"))))
+								))
+*/
+			/**
+				* /h/nico/Documents
+				* 	- /h/nico/Documents/t <= added
+				* 	- /h/nico/Documents/tst
+				* 		-	/h/nico/Documents/tst/1.txt
+				*/
+			val tree2 = add(tree)(Paths.get("/h/nico/Documents/t"))
+			/**
+				* /h/nico/Documents
+				* 	- /h/nico/Documents/t
+				* 		-	/h/nico/Documents/t/x.txt <= added
+				* 	- /h/nico/Documents/tst
+				* 		-	/h/nico/Documents/tst/1.txt
+				*/
+			add(tree2)(Paths.get("/h/nico/Documents/t/x.txt")) shouldBe Node(Paths.get("/h/nico/Documents"),
+				List(Node(Paths.get("/h/nico/Documents/t"), List(Leaf(Paths.get("/h/nico/Documents/t/x.txt")))),
+					Node(Paths.get("/h/nico/Documents/tst"),
+						List(Leaf(Paths.get("/h/nico/Documents/tst/1.txt"))))
+				))
 		}
 	}
 }
