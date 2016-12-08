@@ -23,8 +23,9 @@ import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
 import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
-import de.thm.mope.utils.MonadImplicits._
+import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
+import de.thm.mope.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -85,6 +86,34 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       case None => Seq[CompilerError]()
     }
   }
+
+  override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
+    def parseFiles(files: Seq[Path]): Seq[CompilerError] = {
+      log.debug("parseFiles files {}", files)
+      for {
+        file <- files
+        errors <- parseResult(omc.call("loadFile", convertPath(file)))
+      } yield {
+        log.info("parsing returned: {}", errors)
+        errors
+      }
+    }
+
+    /** 1. load all package.mo files
+      * 3. load all non-package.mo files
+      * 4. typecheck
+      */
+    val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
+    val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
+    val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
+
+    val modelNameOp: Option[String] = ScriptingHelper.getModelName(openedFile)
+    val parseErrors = parseFiles(pckMoFiles) ++ parseFiles(plainFiles)
+    modelNameOp.
+      map(typecheckIfEmpty(parseErrors, _)).
+      getOrElse(parseErrors)
+  }
+
 
   private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
     val fileList = asArray(files.map(convertPath).asJava)
