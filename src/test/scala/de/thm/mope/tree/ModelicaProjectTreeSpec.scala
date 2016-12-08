@@ -44,7 +44,8 @@ class ModelicaProjectTreeSpec extends WordSpec with Matchers with BeforeAndAfter
 		projectPath.resolve("test/t2/file2.mo"),
 		projectPath.resolve("test/t5/Model.mo"),
 		projectPath.resolve("test/t5/Model2.mo"),
-		projectPath.resolve("common/file.mo")
+		projectPath.resolve("common/file.mo"),
+		projectPath.resolve("common/DS_Store")
 	)
 
 	val dirs = List(
@@ -67,8 +68,7 @@ class ModelicaProjectTreeSpec extends WordSpec with Matchers with BeforeAndAfter
 		s"return all path's to '$packageFilename' files" in {
 			val tree = FileSystemTree(projectPath)
 			packageMoDirectories(tree).toSet shouldBe Set(projectPath.resolve("util"),
-								projectPath.resolve("test"),
-								projectPath.resolve("test/t2"))
+								projectPath.resolve("test"))
 		}
 		"return only directories" in {
 			val tree = FileSystemTree(projectPath)
@@ -81,18 +81,27 @@ class ModelicaProjectTreeSpec extends WordSpec with Matchers with BeforeAndAfter
 		s"return only files that aren't inside of a '$packageFilename' organized directory" in {
 			val tree = FileSystemTree(projectPath)
 			val packageDirectories = Set(projectPath.resolve("util"),
-								projectPath.resolve("test"),
-								projectPath.resolve("test/t2"))
+								projectPath.resolve("test"))
 			forAll(singleFiles(tree)) { path =>
 				forAll(packageDirectories) { pckDir =>
 					!path.startsWith(pckDir)
 				}
 			}
 		}
-		"return only files" in {
+		"return only *.mo files" in {
 			val tree = FileSystemTree(projectPath)
+			val pathes = singleFiles(tree)
+			forAll(pathes) { path =>
+				path.endsWith(".mo")
+			}
+		}
+		"return only files that aren't inside of a 'package.mo' directory" in {
+			val tree = FileSystemTree(projectPath)
+			val packageDirectories = Set(projectPath.resolve("util"),
+								projectPath.resolve("test"))
 			forAll(singleFiles(tree)) { path =>
-				Files.isRegularFile(path)
+				Files.isRegularFile(path) &&
+				!packageDirectories.exists(path.startsWith)
 			}
 		}
 	}

@@ -26,7 +26,7 @@ object ModelicaProjectTree {
 		tree match {
 			case Leaf(x) if x.endsWith(packageFilename) => List(x.getParent)
 			case Leaf(x) => Nil
-			case Node(me, children) if children.contains{ x:TreeLike[Path] => x.label.endsWith(packageFilename) } => List(me)
+			case Node(me, children) if children.exists { x => x.label.endsWith(packageFilename) } => List(me)
 			case Node(me, children) => children.flatMap(packageMoDirectories)
 		}
 
@@ -35,7 +35,7 @@ object ModelicaProjectTree {
 
 	def singleFiles(tree:TreeLike[Path], packageDirectories: List[Path]): List[Path] = {
 		tree.filterElements { path =>
-			packageDirectories.forall(path.startsWith)
-		}
+			!packageDirectories.forall(path.startsWith)
+		}.filterNot(Files.isDirectory(_))
 	}
 }
