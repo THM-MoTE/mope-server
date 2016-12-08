@@ -23,6 +23,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
+import de.thm.mope.tree._
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
 import de.thm.mope.doc.DocumentationProvider
@@ -63,11 +64,14 @@ class ProjectManagerActor(description:ProjectDescription,
   val jumpProvider = context.actorOf(Props(new JumpToProvider(compiler)))
   val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
 
-  private var projectFiles = List[Path]()
+  private var projectFiles:TreeLike[Path] = FileSystemTree(rootDir, {p:Path => Files.isDirectory(p) || FileWatchingActor.moFileFilter(p)})
 
-  def getProjectFiles:Future[List[Path]] =
-    if(indexFiles) Future.successful(projectFiles)
-    else Future(FileWatchingActor.getFiles(rootDir, FileWatchingActor.moFileFilter).sorted)
+  // def getProjectFiles:Future[List[Path]] =
+  //   if(indexFiles) Future.successful(projectFiles)
+  //   else Future(FileWatchingActor.getFiles(rootDir, FileWatchingActor.moFileFilter).sorted)
+
+  def getProjectFiles:Future[TreeLike[Path]] =
+    Future.successful(projectFiles)
 
   private def getDefaultScriptPath:Future[Path] = Future {
     val defaultScript = description.buildScript.getOrElse("build.mos")
@@ -82,12 +86,7 @@ class ProjectManagerActor(description:ProjectDescription,
     if(Files.exists(p)) fn
     else Future.failed(new NotFoundException(s"Can't find file $p!"))
 
-  override def preStart() =
-    for {
-      files <- (fileWatchingActor ? GetFiles).mapTo[List[Path]]
-    } {
-      self ! InitialInfos(files)
-    }
+  override def preStart() = ()
 
  def errorInProjectFile(error:CompilerError): Boolean = {
     val path = Paths.get(error.file)
@@ -97,14 +96,15 @@ class ProjectManagerActor(description:ProjectDescription,
      error.file.endsWith(".mos")
    }
 
-  override def receive: Receive = {
-    case InitialInfos(files) =>
-      projectFiles = files.toList.sorted
-      context become initialized
-  }
+  // override def receive: Receive = {
+  //   case InitialInfos(files) =>
+  //     projectFiles = files.toList.sorted
+  //     context become initialized
+  // }
+  override def receive: Receive = initialized
 
   private def initialized: Receive =
-    forward.orElse(compile).
+    forward.orElse(compile)/*.
     orElse(updateFileIndex).
     orElse({
     case CheckModel(file) =>
@@ -113,7 +113,7 @@ class ProjectManagerActor(description:ProjectDescription,
         msg <- compiler.checkModelAsync(files, file)
         _ = log.debug("Checked model from {} with {}", file, msg:Any)
       } yield msg) pipeTo sender
-    })
+    })*/
 
   private def forward: Receive = {
     case x:CompletionRequest => completionActor forward x
@@ -126,8 +126,9 @@ class ProjectManagerActor(description:ProjectDescription,
     case CompileProject(file) =>
       withExists(file) {
         for {
-          files <- getProjectFiles
-          errors <- compiler.compileAsync(files, file)
+          tree <- getProjectFiles
+          _ = log.debug("compiling with project: {}", tree.label)
+          errors <- Future(compiler.compile(tree, file))
           filteredErrors = errors.filter(errorInProjectFile)
           _ = printDebug(filteredErrors)
         } yield filteredErrors
@@ -149,6 +150,7 @@ class ProjectManagerActor(description:ProjectDescription,
       } yield filteredErrors) pipeTo sender
   }
 
+/*
   private def updateFileIndex: Receive = {
     case NewFiles(files) =>
       projectFiles = (files ++ projectFiles).toList.sorted
@@ -160,7 +162,7 @@ class ProjectManagerActor(description:ProjectDescription,
       projectFiles = (p :: projectFiles).sorted
     case DeletedPath(p) =>
       projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
-  }
+  }*/
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
     log.debug("Compiled project {} with {}", description.path,
