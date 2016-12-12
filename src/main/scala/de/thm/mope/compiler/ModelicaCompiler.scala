@@ -20,6 +20,7 @@ package de.thm.mope.compiler
 import java.nio.file.Path
 
 import de.thm.mope.tree.TreeLike
+import de.thm.mope._
 import de.thm.mope.declaration.JumpToLike
 import de.thm.mope.doc.DocumentationLike
 import de.thm.mope.suggestion.CompletionLike
@@ -32,7 +33,7 @@ trait ModelicaCompiler
     with JumpToLike
     with DocumentationLike {
 
-  protected val isPackageMo:Path => Boolean = _.endsWith("package.mo")
+  protected val isPackageMo:PathFilter = _.endsWith("package.mo")
 
   /** Disconnects this compiler from his backend. */
   def stop(): Unit

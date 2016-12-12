@@ -19,7 +19,7 @@ package de.thm.mope.tree
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
-import de.thm.mope.server.FileWatchingActor.PathFilter
+import de.thm.mope._
 import de.thm.mope.utils.ResourceUtils
 
 import scala.collection.JavaConverters._
