@@ -23,6 +23,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
+import de.thm.mope._
 import de.thm.mope.tree._
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
@@ -64,14 +65,20 @@ class ProjectManagerActor(description:ProjectDescription,
   val jumpProvider = context.actorOf(Props(new JumpToProvider(compiler)))
   val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
 
-  private var projectFiles:TreeLike[Path] = FileSystemTree(rootDir, {p:Path => Files.isDirectory(p) || FileWatchingActor.moFileFilter(p)})
+  val treeFilter:PathFilter = { p =>
+    Files.isDirectory(p) || FileWatchingActor.moFileFilter(p)
+  }
 
-  // def getProjectFiles:Future[List[Path]] =
-  //   if(indexFiles) Future.successful(projectFiles)
-  //   else Future(FileWatchingActor.getFiles(rootDir, FileWatchingActor.moFileFilter).sorted)
+  def newProjectTree:Future[TreeLike[Path]] = Future {
+    FileSystemTree(rootDir, treeFilter)
+  }
 
-  def getProjectFiles:Future[TreeLike[Path]] =
-    Future.successful(projectFiles)
+  private var projectFiles:TreeLike[Path] = Leaf(null) //temporary set to null until in state initialized
+
+
+   def getProjectFiles:Future[TreeLike[Path]] =
+     if(indexFiles) Future.successful(projectFiles)
+     else newProjectTree
 
   private def getDefaultScriptPath:Future[Path] = Future {
     val defaultScript = description.buildScript.getOrElse("build.mos")
@@ -86,7 +93,9 @@ class ProjectManagerActor(description:ProjectDescription,
     if(Files.exists(p)) fn
     else Future.failed(new NotFoundException(s"Can't find file $p!"))
 
-  override def preStart() = ()
+  override def preStart() = {
+    newProjectTree.map(InitialInfos) pipeTo self
+  }
 
  def errorInProjectFile(error:CompilerError): Boolean = {
     val path = Paths.get(error.file)
@@ -96,16 +105,15 @@ class ProjectManagerActor(description:ProjectDescription,
      error.file.endsWith(".mos")
    }
 
-  // override def receive: Receive = {
-  //   case InitialInfos(files) =>
-  //     projectFiles = files.toList.sorted
-  //     context become initialized
-  // }
-  override def receive: Receive = initialized
+   override def receive: Receive = {
+     case InitialInfos(tree) =>
+       projectFiles = tree
+       context become initialized
+   }
 
   private def initialized: Receive =
-    forward.orElse(compile)/*.
-    orElse(updateFileIndex).
+    forward.orElse(compile).
+    orElse(updateFileIndex)/*.
     orElse({
     case CheckModel(file) =>
       withExists(file)(for {
@@ -150,19 +158,15 @@ class ProjectManagerActor(description:ProjectDescription,
       } yield filteredErrors) pipeTo sender
   }
 
-/*
   private def updateFileIndex: Receive = {
-    case NewFiles(files) =>
-      projectFiles = (files ++ projectFiles).toList.sorted
-    case NewPath(p) if Files.isDirectory(p) =>
-      (fileWatchingActor ? GetFiles(p)).
-        mapTo[List[Path]].
-        foreach{ files => self ! NewFiles(files) }
-    case NewPath(p) =>
-      projectFiles = (p :: projectFiles).sorted
-    case DeletedPath(p) =>
-      projectFiles = projectFiles.filterNot { path => path.startsWith(p) }
-  }*/
+    //directory content changed; rebuild tree
+    case NewPath(_) =>
+      newProjectTree.map(NewTree) pipeTo self
+    case DeletedPath(_) =>
+      newProjectTree.map(NewTree) pipeTo self
+    case NewTree(tree) =>
+      projectFiles = tree
+  }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
     log.debug("Compiled project {} with {}", description.path,
@@ -187,7 +191,6 @@ object ProjectManagerActor {
   case object CompileDefaultScript extends ProjectManagerMsg
   case class CompileScript(path:Path) extends ProjectManagerMsg
   case class CheckModel(path:Path) extends ProjectManagerMsg
-  private[ProjectManagerActor] case class InitialInfos(files:Seq[Path])
-  private[ProjectManagerActor] case class UpdatedCompilerErrors(errors:Seq[CompilerError])
-  private[ProjectManagerActor] case class NewFiles(files:Seq[Path])
+  private[ProjectManagerActor] case class InitialInfos(files:TreeLike[Path])
+  private[ProjectManagerActor] case class NewTree(tree:TreeLike[Path])
 }
