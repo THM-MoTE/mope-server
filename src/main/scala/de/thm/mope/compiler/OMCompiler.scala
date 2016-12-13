@@ -252,7 +252,8 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  def parseErrorMsg(msg:String): Seq[CompilerError] =
+  def parseErrorMsg(msg:String): Seq[CompilerError] = {
+    log.debug("parsing OM error: {}", msg)
     msgParser.parse(msg) match {
       case Success(v) => v
       case Failure(ex) =>
@@ -263,6 +264,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
           FilePosition(0, 0),
           "Couldn't understand compiler message."))
     }
+  }
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
     val res = omc.cd(dir)
