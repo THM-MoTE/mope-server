@@ -65,6 +65,8 @@ trait ModelicaCompiler
     */
   def checkModel(files:List[Path], path:Path): String
 
+  def checkModel(projectTree:TreeLike[Path], path:Path): String = ???
+
   /** Future-wrapped version of checkModel() */
   def checkModelAsync(files:List[Path], path:Path)(
     implicit context:ExecutionContext): Future[String] =

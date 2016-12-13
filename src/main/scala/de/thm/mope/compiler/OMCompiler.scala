@@ -155,6 +155,16 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
+  override def checkModel(projectTree:TreeLike[Path], path:Path): String = {
+    parseFiles(projectTree) { _ =>
+      val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
+      modelnameOpt.
+        map(omc.checkModel(_)).
+        map(killTrailingQuotes).
+        getOrElse("")
+    }
+  }
+
   override def getClasses(className: String): Set[(String, Kind.Value)] = {
     val classNames = omc.getList("getClassNames", className,
       java.lang.Boolean.valueOf(false),

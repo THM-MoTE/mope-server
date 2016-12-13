@@ -113,15 +113,15 @@ class ProjectManagerActor(description:ProjectDescription,
 
   private def initialized: Receive =
     forward.orElse(compile).
-    orElse(updateFileIndex)/*.
+    orElse(updateFileIndex).
     orElse({
     case CheckModel(file) =>
       withExists(file)(for {
-        files <- getProjectFiles
-        msg <- compiler.checkModelAsync(files, file)
+        tree <- getProjectFiles
+        msg <- Future(compiler.checkModel(tree, file))
         _ = log.debug("Checked model from {} with {}", file, msg:Any)
       } yield msg) pipeTo sender
-    })*/
+    })
 
   private def forward: Receive = {
     case x:CompletionRequest => completionActor forward x
