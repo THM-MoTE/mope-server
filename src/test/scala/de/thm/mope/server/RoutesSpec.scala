@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.testkit.{ScalatestRouteTest, RouteTestTimeout}
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import de.thm.mope.TestHelpers._
@@ -51,6 +51,8 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
   val timeout:Duration = 3 seconds
 
+  private implicit val routesTimeout = RouteTestTimeout(5 second span)
+
   override def beforeAll() = {
     Files.createDirectory(projPath)
   }
@@ -75,7 +77,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return a valid project-id for POST /mope/connect" in {
       postRequest ~> service.routes ~> check {
-        Thread.sleep(2000)
         responseAs[String] shouldEqual "0"
       }
     }
@@ -233,7 +234,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(invalidFile.toString)).compactPrint))
           Thread.sleep(8000) //wait till CREATE_EVENT is received (note: MacOS seems to be slow in publishing events)
           compileRequest ~> service.routes ~> check {
-            Thread.sleep(5000)
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]].size should be >= (1)
           }
@@ -247,7 +247,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
-            Thread.sleep(5000)
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]] shouldBe empty
           }
@@ -274,7 +273,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
-            Thread.sleep(5000)
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]] shouldBe empty
           }
