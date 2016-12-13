@@ -66,7 +66,8 @@ class ProjectManagerActor(description:ProjectDescription,
   val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
 
   val treeFilter:PathFilter = { p =>
-    Files.isDirectory(p) || FileWatchingActor.moFileFilter(p)
+    Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
+    p.endsWith(description.outputDirectory)
   }
 
   def newProjectTree:Future[TreeLike[Path]] = Future {
