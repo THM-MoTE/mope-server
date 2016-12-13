@@ -100,26 +100,14 @@ class ProjectManagerActorSpec
     "contain only existent files" in {
       val fileList = manager.getProjectFiles
       val files = Await.result(fileList, 10 seconds)
-    //  files.toSet shouldEqual allMoFiles.toSet
-    }
-
-    "contain existent files which are sorted" in {
-      val fileList = manager.getProjectFiles
-      val files = Await.result(fileList, 10 seconds)
-    //  files shouldEqual allMoFiles.sorted
+      files.filterElements(Files.isRegularFile(_)).toSet shouldEqual allMoFiles.toSet
     }
 
     "remove files if they got deleted" in {
       deletedFiles.foreach(Files.delete(_))
       val fileList = manager.getProjectFiles
       val files = Await.result(fileList, 10 seconds)
-    //  files.toSet shouldEqual remainingFiles.toSet
-    }
-
-    "contain sorted files even if some file got deleted" in {
-      val fileList = manager.getProjectFiles
-      val files = Await.result(fileList, 10 seconds)
-      files shouldEqual remainingFiles.sorted
+      files.filterElements(Files.isRegularFile(_)).toSet shouldEqual remainingFiles.toSet
     }
 
     "return 1 compile error for invalid file" in {
