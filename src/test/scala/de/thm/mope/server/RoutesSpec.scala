@@ -25,7 +25,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
-import de.thm.mope._
+import de.thm.mope.TestHelpers._
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.ClassComment

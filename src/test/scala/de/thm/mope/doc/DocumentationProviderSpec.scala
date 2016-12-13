@@ -20,6 +20,7 @@ package de.thm.mope.doc
 import java.nio.file.Files
 
 import akka.testkit.TestActorRef
+import de.thm.mope.TestHelpers
 import de.thm.mope.ActorSpec
 import de.thm.mope.compiler.OMCompiler
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
@@ -33,7 +34,7 @@ class DocumentationProviderSpec extends ActorSpec {
   val testRef = TestActorRef[DocumentationProvider](new DocumentationProvider(compiler))
 
   override def afterAll: Unit = {
-    de.thm.mope.removeDirectoryTree(path)
+    TestHelpers.removeDirectoryTree(path)
   }
 
   "DocumentationProvider" should {

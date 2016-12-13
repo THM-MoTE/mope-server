@@ -20,7 +20,7 @@ package de.thm.mope.server
 import java.nio.file._
 
 import akka.testkit.TestActorRef
-import de.thm.mope._
+import de.thm.mope.TestHelpers._
 import de.thm.mope.compiler._
 import de.thm.mope.position.FilePosition
 import de.thm.mope.project.ProjectDescription
@@ -28,6 +28,8 @@ import de.thm.mope.server.ProjectManagerActor._
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.position._
 import de.thm.mope.doc._
+import de.thm.mope.ActorSpec
+import de.thm.mope.TestHelpers._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps

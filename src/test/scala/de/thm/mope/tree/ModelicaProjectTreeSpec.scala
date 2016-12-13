@@ -20,7 +20,7 @@ import java.nio.file._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 import org.scalatest.Inspectors._
 
-import de.thm.mope._
+import de.thm.mope.TestHelpers
 
 class ModelicaProjectTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 	import ModelicaProjectTree._
@@ -61,7 +61,7 @@ class ModelicaProjectTreeSpec extends WordSpec with Matchers with BeforeAndAfter
 		files.foreach(Files.createFile(_))
 	}
 	override def afterAll(): Unit = {
-		removeDirectoryTree(projectPath)
+		TestHelpers.removeDirectoryTree(projectPath)
 	}
 
 	"The method 'packageMoDirectories'" should {

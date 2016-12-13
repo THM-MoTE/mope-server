@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,7 @@ package de.thm.mope.declaration
 import java.nio.file.Files
 
 import akka.testkit.TestActorRef
+import de.thm.mope.TestHelpers
 import de.thm.mope.ActorSpec
 import de.thm.mope.compiler.OMCompiler
 import de.thm.mope.position.FileWithLine
@@ -34,7 +35,7 @@ class JumpToProviderSpec extends ActorSpec {
   val completionActor = testRef.underlyingActor
 
   override def afterAll: Unit = {
-    de.thm.mope.removeDirectoryTree(path)
+    TestHelpers.removeDirectoryTree(path)
   }
 
   "JumpToProvider" should {

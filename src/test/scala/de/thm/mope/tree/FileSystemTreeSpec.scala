@@ -20,8 +20,7 @@ package de.thm.mope.tree
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 import org.scalatest.Inspectors._
 import java.nio.file._
-
-import de.thm.mope._
+import de.thm.mope.TestHelpers
 
 class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 	import FileSystemTree._
@@ -60,7 +59,7 @@ class FileSystemTreeSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 		files.foreach(Files.createFile(_))
 	}
 	override def afterAll(): Unit = {
-		removeDirectoryTree(path)
+		TestHelpers.removeDirectoryTree(path)
 	}
 
 	"A FSTree" should {
