@@ -66,6 +66,31 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
+  private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
+    /** 1. load all package.mo files
+      * 2. load all non-package.mo files
+      */
+
+    def parseFileList(files: Seq[Path]): Seq[CompilerError] = {
+      log.debug("parseFiles files {}", files)
+      for {
+        file <- files
+        errors <- parseResult(omc.call("loadFile", convertPath(file)))
+      } yield {
+        log.info("parsing returned: {}", errors)
+        errors
+      }
+    }
+
+    withOutputDir(outputDir) {
+      val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
+      val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
+      val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
+      val parseErrors = parseFileList(pckMoFiles) ++ parseFileList(plainFiles)
+      fn(parseErrors)
+    }
+  }
+
   override def compile(files: List[Path], openedFile:Path): Seq[CompilerError] = {
     files.headOption match {
       case Some(path) =>
@@ -88,30 +113,16 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
-    def parseFiles(files: Seq[Path]): Seq[CompilerError] = {
-      log.debug("parseFiles files {}", files)
-      for {
-        file <- files
-        errors <- parseResult(omc.call("loadFile", convertPath(file)))
-      } yield {
-        log.info("parsing returned: {}", errors)
-        errors
-      }
-    }
-
     /** 1. load all package.mo files
-      * 3. load all non-package.mo files
-      * 4. typecheck
+      * 2. load all non-package.mo files
+      * 3. typecheck
       */
-    val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
-    val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
-    val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
-
-    val modelNameOp: Option[String] = ScriptingHelper.getModelName(openedFile)
-    val parseErrors = parseFiles(pckMoFiles) ++ parseFiles(plainFiles)
-    modelNameOp.
-      map(typecheckIfEmpty(parseErrors, _)).
-      getOrElse(parseErrors)
+     parseFiles(projectTree) { parseErrors =>
+      val modelNameOp: Option[String] = ScriptingHelper.getModelName(openedFile)
+      modelNameOp.
+        map(typecheckIfEmpty(parseErrors, _)).
+        getOrElse(parseErrors)
+    }
   }
 
 
