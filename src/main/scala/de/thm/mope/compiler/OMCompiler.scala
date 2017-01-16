@@ -26,6 +26,7 @@ import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
+import omc.LibraryLoader
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -45,6 +46,14 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
+  val rootDir = rootProjectFile.getParent
+
+  val loaderOpt = {
+    val importFile = rootDir.resolve(LibraryLoader.importFileName)
+    log.info(if(Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
+    if(Files.exists(importFile)) Some(new LibraryLoader(rootDir))
+    else None
+  }
 
   omc.connect()
   IOUtils.createDirectory(outputDir)
@@ -68,8 +77,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
-    /** 1. load all package.mo files
-      * 2. load all non-package.mo files
+    /** 1. load all external libraries, if they exist
+      * 2. load all package.mo files
+      * 3. load all non-package.mo files
       */
 
     def parseFileList(files: Seq[Path]): Seq[CompilerError] = {
@@ -87,6 +97,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
       val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
       val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
+
+      loaderOpt.foreach(_.loadLibraries(omc))
+
       val parseErrors = parseFileList(pckMoFiles) ++ parseFileList(plainFiles)
       fn(parseErrors)
     }
