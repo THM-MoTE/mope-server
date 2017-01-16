@@ -37,7 +37,7 @@ class EnsembleHandler(config:Config, blockingExecutor: ExecutionContext) {
         val stdout = versionCmd.!!
         helpRegex.findFirstIn(stdout) match {
           case Some(v) =>
-            log.info("MoVE Version {} detected.", v)
+            log.info("{} detected.", v)
             Some(jar)
           case None =>
             log.warn(createError(jar))
