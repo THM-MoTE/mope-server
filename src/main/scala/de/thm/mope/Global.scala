@@ -64,7 +64,7 @@ object Global extends FallbackConfig {
     }
 
 
-  def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {
+  def readValuesFromResource(path:URL)(filter: Filter[String]): List[String] = {
     Source.fromURL(path, encoding.displayName).getLines.flatMap {
       case s:String if filter(s) => List(s)
       case a:Any => Nil

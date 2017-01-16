@@ -17,6 +17,10 @@
 
 package de.thm.mope.server
 
+import org.slf4j.{LoggerFactory}
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Level
+
 import akka.actor.ActorSystem
 import akka.event.{LogSource, Logging}
 import akka.stream.ActorMaterializer
@@ -28,12 +32,6 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 trait ServerSetup {
-
-  /* Route java.util.logging into slf4j */
- // remove existing handlers attached to j.u.l root logger
- org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
- // add SLF4JBridgeHandler to j.u.l's root logger
- org.slf4j.bridge.SLF4JBridgeHandler.install()
 
   val serverName = "mope-server"
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))

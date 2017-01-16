@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,7 +26,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
 import de.thm.mope.project.InternalProjectConfig
 import de.thm.mope.utils.actors.UnhandledReceiver
-import ews.EnhancedWatchService
+import de.thm.mope.utils.ThreadUtils
+import ews._
 
 import scala.concurrent.Future
 
@@ -43,32 +44,31 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
     StandardWatchEventKinds.ENTRY_DELETE
   )
 
-  private val callback = new BiConsumer[Path, WatchEvent.Kind[_]] {
-    override def accept(path: Path, kind: Kind[_]): Unit = kind match {
-      case StandardWatchEventKinds.ENTRY_CREATE =>
-        interestee ! NewPath(path)
-      case StandardWatchEventKinds.ENTRY_DELETE =>
-        interestee ! DeletedPath(path)
+  private val listener = new WatchServiceListener() {
+    override def created(p:Path):Unit = {
+      interestee ! NewPath(p)
     }
+    override def deleted(p:Path):Unit = {
+      interestee ! DeletedPath(p)
+    }
+    override def modified(p:Path):Unit = ()
   }
 
-  private val dirFilter = new Predicate[Path] {
-    override def test(dir: Path): Boolean =
-      !Files.isHidden(dir) &&
-      dir.getFileName.toString != outputDirName
-  }
+  private val filter = new ews.PathFilter() {
+    override def acceptDirectory(dir:Path): Boolean =
+      !Files.isHidden(dir) && dir.getFileName.toString != outputDirName
 
-  private val modelicaFileFilter = new Predicate[Path] {
-    override def test(file: Path): Boolean =
-      if(Files.isDirectory(file)) dirFilter.test(file)
+    override def acceptFile(file:Path): Boolean =
+      if(Files.isDirectory(file)) acceptDirectory(file)
       else moFileFilter(file)
   }
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
-  private val runningFuture = watchService.start(projConfig.blockingExecutor,callback, dirFilter, modelicaFileFilter)
+
+  private val runningFuture = projConfig.blockingExecutor.submit(watchService.setup(listener, filter))
 
   private def files(path:Path) =
-    getFiles(path, moFileFilter).sorted
+    getFiles(path, filter.acceptFile).sorted
 
   override def receive: Receive = {
     case GetFiles =>
@@ -84,6 +84,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 }
 
 object FileWatchingActor {
+  import de.thm._
   sealed trait FileWatchingMsg
   case object GetFiles extends FileWatchingMsg
   case class GetFiles(root:Path) extends FileWatchingMsg
@@ -95,26 +96,24 @@ object FileWatchingActor {
   case class DeletedPath(path:Path)
   case class ModifiedPath(path:Path)
 
-  type PathFilter = Path => Boolean
-
   def moFileFilter(path:Path):Boolean = {
     !Files.isHidden(path) &&
       path.toString.endsWith(".mo")
   }
 
-  def getFiles(root:Path, filter:PathFilter): List[Path] = {
+  def getFiles(root:Path, filter:mope.PathFilter): List[Path] = {
     val visitor = new AccumulateFiles(filter)
     Files.walkFileTree(root, visitor)
     visitor.getFiles
   }
 
-  def getDirs(path:Path, filter: PathFilter): List[Path] = {
+  def getDirs(path:Path, filter: mope.PathFilter): List[Path] = {
     val visitor = new AccumulateDirs(filter)
     Files.walkFileTree(path, visitor)
     visitor.getDirs
   }
 
-  private class AccumulateFiles(filter:PathFilter) extends SimpleFileVisitor[Path] {
+  private class AccumulateFiles(filter:mope.PathFilter) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
     override def visitFile(file:Path,
                            attr:BasicFileAttributes): FileVisitResult = {
@@ -128,7 +127,7 @@ object FileWatchingActor {
     def getFiles = buffer
   }
 
-  private class AccumulateDirs(filter:PathFilter) extends SimpleFileVisitor[Path] {
+  private class AccumulateDirs(filter:mope.PathFilter) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
 
     override def preVisitDirectory(dir:Path,
