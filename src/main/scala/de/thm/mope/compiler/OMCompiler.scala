@@ -26,7 +26,7 @@ import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
-import omc.LibraryLoader
+import omc.{LibraryLoader, LoadLibraryException}
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -98,9 +98,21 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
       val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
 
-      loaderOpt.foreach(_.loadLibraries(omc))
+      val libErrors =
+        loaderOpt.map { loader =>
+          try {
+            loader.loadLibraries(omc)
+            Nil
+          } catch {
+            case ex:LoadLibraryException =>
+              log.warn("Coudln't load all libraries")
+              //transform exception into compiler warning
+              for(error <- ex.errors.asScala)
+                yield CompilerError("Warning", "", FilePosition(0,0), FilePosition(0,0), error)
+          }
+        }.getOrElse(Nil)
 
-      val parseErrors = parseFileList(pckMoFiles) ++ parseFileList(plainFiles)
+      val parseErrors = libErrors ++ parseFileList(pckMoFiles) ++ parseFileList(plainFiles)
       fn(parseErrors)
     }
   }
