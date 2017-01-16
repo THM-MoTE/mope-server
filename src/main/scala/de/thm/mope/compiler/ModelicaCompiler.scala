@@ -41,11 +41,13 @@ trait ModelicaCompiler
   /** Compiles the given `files`, typechecks the `openedFile` and returns found errors.
     * `openedFile` should be the currently opened file inside the editor.
     */
+  @deprecated("Use 'compile(projectTree:TreeLike[Path])' instead", "0.6.X")
   def compile(files:List[Path], openedFile:Path): Seq[CompilerError]
 
   def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = ???
 
   /** Future-wrapped version of compile() */
+  @deprecated("Use 'compile(projectTree:TreeLike[Path])' instead", "0.6.X")
   def compileAsync(files:List[Path], openedFile:Path)(
     implicit context:ExecutionContext): Future[Seq[CompilerError]] =
     Future(compile(files, openedFile))
