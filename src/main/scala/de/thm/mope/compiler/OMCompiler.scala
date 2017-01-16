@@ -49,6 +49,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   omc.connect()
   IOUtils.createDirectory(outputDir)
 
+  @deprecated("Use 'parseFiles(TreeLike)' instead", "0.6.X")
   def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
     if(files.exists(isPackageMo)) {
       withOutputDir(outputDir) {
