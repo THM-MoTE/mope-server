@@ -39,8 +39,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
     val forceEnglish = Global.config.getBoolean("forceEnglish")
-    if(forceEnglish) new OMCClient(executableName, Global.usLocale)
-    else new OMCClient(executableName)
+    val suffixProvider = new CustomIORNameProvider("mope", true)
+    if(forceEnglish) new OMCClient(executableName, Global.usLocale, suffixProvider)
+    else new OMCClient(executableName, suffixProvider)
   }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
