@@ -294,7 +294,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
           "",
           FilePosition(0, 0),
           FilePosition(0, 0),
-          "Couldn't understand compiler message."))
+          s"Couldn't understand compiler:\n$msg"))
     }
   }
 
