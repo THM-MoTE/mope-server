@@ -272,12 +272,17 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] = {
+    log.debug("$model is instantiatable: [}]", notInstantiatable(model))
     if(xs.nonEmpty) xs
+    else if(notInstantiatable(model)) Seq()
     else {
       val res = omc.checkAllModelsRecursive(model)
       parseErrorMsg(res)
     }
   }
+
+  private def notInstantiatable(model:String):Boolean =
+    omc.is_("Partial", model) || omc.is_("Function", model)
 
   def parseErrorMsg(msg:String): Seq[CompilerError] = {
     log.debug("parsing OM error: {}", msg)
