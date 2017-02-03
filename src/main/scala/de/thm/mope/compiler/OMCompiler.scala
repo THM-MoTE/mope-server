@@ -163,8 +163,8 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   override def compileScript(path:Path): Seq[CompilerError] = {
     val startDir = path.getParent
+    omc.sendExpression("clear()")
     withOutputDir(startDir) {
-      omc.sendExpression("clear()")
       val resScript = omc.sendExpression(s"""runScript(${convertPath(path)})""")
       log.debug("runScript returned {}", resScript)
       parseResult(resScript)
