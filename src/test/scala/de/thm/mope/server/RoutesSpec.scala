@@ -33,6 +33,7 @@ import de.thm.mope.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.mope.suggestion.Suggestion
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion$}
+import de.thm.mope.Global
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -44,6 +45,7 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     override def actorSystem = system
     override implicit lazy val materializer:ActorMaterializer = ActorMaterializer()
     override lazy val projectsManager: ActorRef = system.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+    override val ensembleHandler = new EnsembleHandler(Global.config, blockingDispatcher)
   }
 
   val tmpPath = Files.createTempDirectory("moie")
