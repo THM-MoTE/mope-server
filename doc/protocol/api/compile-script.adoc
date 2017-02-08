@@ -1,6 +1,9 @@
 === Compiling a script
 Compiles a Modelica script from the project identified by the given `id`.
 
+IMPORTANT: Even if this function is called compileScript, the compiler is going to execute the given script.
+Don't use this function for bigger simulations, this could kill the server process.
+
 - **URL:** `/mope/project/:id/compileScript`
 
 - **Method:** `POST`

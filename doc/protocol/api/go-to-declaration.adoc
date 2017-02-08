@@ -1,0 +1,30 @@
+=== Find the source of a type
+Returns the source/path of the given type.
+Currently only models, classes, packages and functions with full-qualified names are supported.
+
+- **URL:** `/mope/project/:id/declaration?class=:className`
+
+- **Method:** `GET`
+
+- **URL Parameters:**
+   * **Required** `id=[integer]`
+   * **Required** `className=[string]`
+
+- **Data Parameters:** Empty
+
+==== Success Response
+ - **Code** `200 OK`
+ - **Content** A `FileWithLine`-object containing the source of the type.
+
+==== Error Response
+ - **Cause** Given id is unknown.
+ - **Code** `404 NotFound`
+ - **Content** `unknown project-id :id`
+
+ - **Cause** Parameter class is missing.
+ - **Code** `404 NotFound`
+ - **Content** `Request is missing required query parameter 'class'`
+
+ - **Cause** Given className can't be found
+ - **Code** `404 NotFound`
+ - **Content** `class :className not found`

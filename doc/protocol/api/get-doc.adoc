@@ -1,0 +1,25 @@
+=== Get documentation of a class
+Returns the documentation of the given classname.
+
+- **URL:** `/mope/project/:id/doc?class=:className`
+
+- **Method:** `GET`
+
+- **URL Parameters:**
+   * **Required** `id=[integer]`
+   * **Required** `className=[string]`
+
+- **Data Parameters:** Empty
+
+==== Success Response
+ - **Code** `200 OK`
+ - **Content** An HTML-document containing the rendered documentation.
+
+==== Error Response
+ - **Cause** Given id is unknown.
+ - **Code** `404 NotFound`
+ - **Content** `unknown project-id :id`
+
+ - **Cause** Parameter class is missing.
+ - **Code** `404 NotFound`
+ - **Content** `Request is missing required query parameter 'class'`

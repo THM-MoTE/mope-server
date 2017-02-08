@@ -1,0 +1,14 @@
+=== Stopping the server
+Stops the server-process discarding all running projects.
+
+CAUTION: This function is deprecated and shouldn't be used anymore!
+
+- **URL:** `/mope/stop-server`
+- **Method:** `POST`
+
+- **URL Parameters:** Empty
+- **Data Parameters:** Empty
+
+==== Success Response
+- **Code** `202 Accepted`
+- **Content** Empty
