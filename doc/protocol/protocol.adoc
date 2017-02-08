@@ -9,6 +9,19 @@ include::api/compile-script.adoc[]
 
 include::api/check-model.adoc[]
 
+include::api/completion.adoc[]
+
+include::api/get-doc.adoc[]
+
+include::api/get-type.adoc[]
+
+include::api/go-to-declaration.adoc[]
+
+include::api/open-move.adoc[]
+
 include::api/disconnect.adoc[]
+
+include::api/stop-server.adoc[]
+
 
 include::api/common-types.adoc[]
