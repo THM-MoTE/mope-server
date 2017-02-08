@@ -1,5 +1,7 @@
 = Mo|E Protocol V 0.6
 :author: Nicola Justus
+:toc: left
+:source-highlighter: highlightjs
 
 include::api/connect.adoc[]
 
