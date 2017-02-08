@@ -11,7 +11,7 @@ Returns the type and comment of the given property.
 - **Data Parameters:** An object containing the file, position and property name.
   `de.thm.mope.suggestion.TypeRequest`.
 
-[source, js]
+[source, json]
 ----
 {
   "file": <String>, //absolute path to the file which contains the word/symbol

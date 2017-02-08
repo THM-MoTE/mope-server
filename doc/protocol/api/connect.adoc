@@ -10,7 +10,8 @@ Connects a client to the server and starts a manager for the given project.
 - **Data Parameters:**
   The content of the `mope-project.json` file. This file is located at the /-directory of the project.
   This object defines several project-specific configurations and looks like this:
-[source,js]
+
+[source,json]
 ----
 {
   "path": <String>, //absolute path to the project
@@ -20,6 +21,7 @@ Connects a client to the server and starts a manager for the given project.
   "buildScript": <String>
 }
 ----
+
 Gets decoded as `de.thm.mope.project.ProjectDescription` inside the server.
 
 ==== Success Response
