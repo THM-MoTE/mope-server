@@ -2,29 +2,25 @@
 Returns the source/path of the given type.
 Currently only models, classes, packages and functions with full-qualified names are supported.
 
-- **URL:** `/mope/project/:id/declaration?class=:className`
+----
+GET /mope/project/:id/typeOf
+----
 
-- **Method:** `GET`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+| id | Project ID | y | integer
+| className | The model name for which the declaration is queried. | y | string
+|===
 
-- **URL Parameters:**
-   * **Required** `id=[integer]`
-   * **Required** `className=[string]`
+==== Data Parameters
+Empty
 
-- **Data Parameters:** Empty
-
-==== Success Response
- - **Code** `200 OK`
- - **Content** A `FileWithLine`-object containing the source of the type.
-
-==== Error Response
- - **Cause** Given id is unknown.
- - **Code** `404 NotFound`
- - **Content** `unknown project-id :id`
-
- - **Cause** Parameter class is missing.
- - **Code** `404 NotFound`
- - **Content** `Request is missing required query parameter 'class'`
-
- - **Cause** Given className can't be found
- - **Code** `404 NotFound`
- - **Content** `class :className not found`
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**200 OK**# | A `FileWithLine`-object containing the source of the type. | FileWithLine
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Parameter class is missing. | string
+| [red]#**404 NotFound**# | Given className can't be found | string
+|===

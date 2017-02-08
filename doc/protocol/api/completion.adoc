@@ -1,15 +1,19 @@
 === Retrieving code completions
 Returns possible code completions for the given word/symbol.
 
-- **URL:** `/mope/project/:id/completion`
+----
+POST /mope/project/:id/completion
+----
 
-- **Method:** `POST`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+| id | Project ID | y | integer
+|===
 
-- **URL Parameters:** id=[integer]
-
-- **Data Parameters:**
-  An object which contains the position and the word that should get completed.
-  Gets decoded as `de.thm.mope.suggestion.CompletionRequest` inside the server.
+==== Data Parameters
+An object which contains the position and the word that should get completed.
+Gets decoded as `de.thm.mope.suggestion.CompletionRequest` inside the server.
 
 [source,json]
 ----
@@ -20,10 +24,12 @@ Returns possible code completions for the given word/symbol.
 }
 ----
 
-==== Success Response
-- **Code** `200 OK`
-- **Content** An array containing all possible completions for the word.
-
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**200 OK**#
+| An array containing all possible completions for the word.
+a|
 [source,json]
 ----
 [
@@ -32,8 +38,5 @@ Returns possible code completions for the given word/symbol.
   ...
 ]
 ----
-
-==== Error Response
-- **Cause** Given id is unknown.
-- **Code** `404 NotFound`
-- **Content** `unknown project-id :id`
+| [red]#**404 NotFound**# | Given id is unknown. | string
+|===

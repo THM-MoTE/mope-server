@@ -1,25 +1,24 @@
 === Get documentation of a class
 Returns the documentation of the given classname.
 
-- **URL:** `/mope/project/:id/doc?class=:className`
+----
+GET /mope/project/:id/doc?class=:className
+----
 
-- **Method:** `GET`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+| id | Project ID | y | integer
+| className | The model name for which the documentation is queried. | y | string
+|===
 
-- **URL Parameters:**
-   * **Required** `id=[integer]`
-   * **Required** `className=[string]`
+==== Data Parameters
+Empty
 
-- **Data Parameters:** Empty
-
-==== Success Response
- - **Code** `200 OK`
- - **Content** An HTML-document containing the rendered documentation.
-
-==== Error Response
- - **Cause** Given id is unknown.
- - **Code** `404 NotFound`
- - **Content** `unknown project-id :id`
-
- - **Cause** Parameter class is missing.
- - **Code** `404 NotFound`
- - **Content** `Request is missing required query parameter 'class'`
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**200 OK**# | An HTML-document containing the rendered documentation. | ..
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Parameter class is missing. | string
+|===

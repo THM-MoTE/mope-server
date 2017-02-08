@@ -3,16 +3,21 @@ Opens the given file in the Modelica Vector graphics Editor (MoVE).
 
 NOTE: This is a BETA function.
 
-- **URL:** `mope/ensemble/move`
-- **Method:** `POST`
-- **URL Parameters:** Empty
-- **Data Parameters:**
-  An `FilePath`-object with a path to the script which should get compiled.
+----
+POST mope/ensemble/move
+----
 
-==== Success Response
-- **Code** `204 NoContent`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+|===
 
-==== Error Response
-- **Cause** The MoVE executable isn't known by the server process.
-- **Code** 400 BadRequest
-- **Content** `MoVE unknown...`
+==== Data Parameters
+An `FilePath`-object with a path to the script which should get compiled.
+
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**204 NoContent**# | . | .
+| [red]#**400 BadRequest**# | The MoVE executable isn't known by the server process. | string
+|===

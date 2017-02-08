@@ -3,12 +3,20 @@ Stops the server-process discarding all running projects.
 
 CAUTION: This function is deprecated and shouldn't be used anymore!
 
-- **URL:** `/mope/stop-server`
-- **Method:** `POST`
+----
+POST mope/stop-server
+----
 
-- **URL Parameters:** Empty
-- **Data Parameters:** Empty
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+|===
 
-==== Success Response
-- **Code** `202 Accepted`
-- **Content** Empty
+==== Data Parameters
+Empty
+
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**202 Accepted**# | Empty content | .
+|===

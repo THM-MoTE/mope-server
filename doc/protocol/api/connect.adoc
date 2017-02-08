@@ -1,15 +1,18 @@
 === Connecting to the server
 Connects a client to the server and starts a manager for the given project.
 
-- **URL:** `/mope/connect`
+----
+POST /mope/connect
+----
 
-- **Method:** `POST`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+|===
 
-- **URL Parameters:** Empty
-
-- **Data Parameters:**
-  The content of the `mope-project.json` file. This file is located at the /-directory of the project.
-  This object defines several project-specific configurations and looks like this:
+==== Data Parameters
+The content of the `mope-project.json` file. This file is located at the /-directory of the project.
+This object defines several project-specific configurations and looks like this:
 
 [source,json]
 ----
@@ -24,20 +27,15 @@ Connects a client to the server and starts a manager for the given project.
 
 Gets decoded as `de.thm.mope.project.ProjectDescription` inside the server.
 
-==== Success Response
-  - **Code** `200 OK`
-  - **Content** ID which identifies the project. For example: `1`
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**200 OK**# | ID which identifies the project. For example: `1` | integer
+| [red]#**400 BadRequest**# | The data-field doesn't contain a valid object. | string
+| [red]#**400 BadRequest**# | The data-field isn't a valid ProjectDescription. | string
+|===
 
-==== Error Response
-  - **Cause** The data-field doesn't contain a valid object.
-  - **Code** `400 BadRequest`
-  - **Content**
-  Akka-generated error message which states that it couldn't decode the
-  object. Similar like this: `The request content was malformed..`
-
-  - **Cause** The data-field isn't a valid ProjectDescription.
-  The fields of the given object have to meet this criterias:
-    * The `path`-field must be a full path and a directory
-    * The optional `buildScript`-field must be a regular file with a `.mos` extension.
-  - **Code** `400 BadRequest`
-  - **Content** A message describing what's wrong.
+==== Notes
+* A valid `ProjectDescription` must match this criterias:
+  ** The `path`-field must be a full path and a directory
+  ** The optional `buildScript`-field must be a regular file with a `.mos` extension.

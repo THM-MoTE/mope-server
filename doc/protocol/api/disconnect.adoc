@@ -4,20 +4,22 @@ manager of the project if there is no user for the project left.
 If this is the last connected client and the flag `exitOnLastDisconnect`
 in the server configuration file is active the whole server-process stops.
 
-- **URL:** `/mope/project/:id/disconnect`
+----
+POST /mope/project/:id/disconnect
+----
 
-- **Method:** `POST`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+| id | Project ID | y | integer
+|===
 
-- **URL Parameters:**
-   * **Required** `id=[integer]`
+==== Data Parameters
+Empty
 
-- **Data Parameters:** Empty
-
-==== Success Response
-  - **Code** `204 NoContent`
-  - **Content** Empty
-
-==== Error Response
-  - **Cause** Given id is unknown.
-  - **Code** `404 NotFound`
-  - **Content** `unknown project-id :id`
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**204 NoContent**# | Empty | ..
+| [red]#**404 NotFound**# | Given id is unknown. | string
+|===

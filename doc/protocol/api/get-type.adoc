@@ -1,15 +1,19 @@
 === Get type of a property
 Returns the type and comment of the given property.
 
-- **URL:** `/mope/project/:id/typeOf`
+----
+POST /mope/project/:id/typeOf
+----
 
-- **Method:** `POST`
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+| id | Project ID | y | integer
+|===
 
-- **URL Parameters:**
-   * **Required** `id=[integer]`
-
-- **Data Parameters:** An object containing the file, position and property name.
-  `de.thm.mope.suggestion.TypeRequest`.
+==== Data Parameters
+An object containing the file, position and property name.
+Gets decoded as `de.thm.mope.suggestion.TypeRequest` inside the server.
 
 [source, json]
 ----
@@ -20,15 +24,10 @@ Returns the type and comment of the given property.
 }
 ----
 
-==== Success Response
-- **Code** `200 OK`
-- **Content** An `TypeOf`-object containing the property's name, it's type and it's comment if it exists.
-
-==== Error Response
- - **Cause** Given id is unknown.
- - **Code** `404 NotFound`
- - **Content** `unknown project-id :id`
-
- - **Cause** Given property can't be found
- - **Code** 404 Not Found
- - **Content** `type of :property not found`
+==== Responses
+|===
+| Code | Description | Schema
+| [green]#**200 OK**# | An `TypeOf`-object containing the property's name, it's type and it's comment if it exists. | TypeOf
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Given property can't be found. | string
+|===
