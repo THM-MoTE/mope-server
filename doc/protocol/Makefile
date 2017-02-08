@@ -22,3 +22,6 @@ clean:
 	rm *.toc
 	rm *.out
 	rm $(PDFFILE)
+
+html:
+	asciidoctor protocol.adoc
