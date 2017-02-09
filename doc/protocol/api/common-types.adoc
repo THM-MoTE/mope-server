@@ -17,6 +17,7 @@ Gets decoded as `de.thm.mope.compiler.CompilerError` inside the server.
 }
 ----
 
+[[FilePath]]
 ==== FilePath
 A path to a file.
 Gets decoded as `de.thm.mope.position.FilePath` inside the server.
@@ -28,7 +29,8 @@ Gets decoded as `de.thm.mope.position.FilePath` inside the server.
 }
 ----
 
-==== File-Position
+[[FilePosition]]
+==== FilePosition
 Describes a position inside of a file. Contains a line and a column.
 Gets decoded as `de.thm.mope.position.FilePosition` inside the server.
 
@@ -40,6 +42,7 @@ Gets decoded as `de.thm.mope.position.FilePosition` inside the server.
 }
 ----
 
+[[FileWithLine]]
 ==== FileWithLine
 A path to a file and the line containing the searched value.
 Gets decoded as `de.thm.mope.position.FileWithLine` inside the server.
@@ -75,6 +78,7 @@ Representation is `de.thm.mope.suggestion.Suggestion` inside the server.
 }
 ----
 
+[[TypeOf]]
 ==== TypeOf
 The type of a property.
 Representation is `de.thm.mope.suggestion.TypeOf` inside the server.

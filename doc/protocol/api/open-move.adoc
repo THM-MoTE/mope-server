@@ -14,7 +14,7 @@ POST mope/ensemble/move
 |===
 
 ==== Data Parameters
-An `FilePath`-object with a path to the script which should get compiled.
+An <<FilePath>>-object with a path to the script which should get compiled.
 
 ==== Responses
 |===

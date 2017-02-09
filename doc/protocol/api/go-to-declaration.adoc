@@ -21,7 +21,7 @@ Empty
 |===
 | Code | Description | Schema
 
-| [green]#**200 OK**# | A `FileWithLine`-object containing the source of the type. | FileWithLine
+| [green]#**200 OK**# | A <<FileWithLine>>-object containing the source of the type. | FileWithLine
 | [red]#**404 NotFound**# | Given id is unknown. | string
 | [red]#**404 NotFound**# | Parameter class is missing. | string
 | [red]#**404 NotFound**# | Given className can't be found | string

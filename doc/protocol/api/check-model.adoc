@@ -14,7 +14,7 @@ POST /mope/project/:id/checkModel
 |===
 
 ==== Data Parameters
-An `FilePath`-object with a path to the currently opened file.
+An <<FilePath>>-object with a path to the currently opened file.
 
 
 ==== Responses
