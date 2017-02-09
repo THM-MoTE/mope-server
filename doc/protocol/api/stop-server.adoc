@@ -10,6 +10,7 @@ POST mope/stop-server
 ==== URL Parameters
 |===
 | Name | Description | Required | Schema
+
 |===
 
 ==== Data Parameters
@@ -18,5 +19,6 @@ Empty
 ==== Responses
 |===
 | Code | Description | Schema
+
 | [green]#**202 Accepted**# | Empty content | .
 |===

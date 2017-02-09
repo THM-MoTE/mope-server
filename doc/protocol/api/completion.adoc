@@ -8,6 +8,7 @@ POST /mope/project/:id/completion
 ==== URL Parameters
 |===
 | Name | Description | Required | Schema
+
 | id | Project ID | y | integer
 |===
 
@@ -27,6 +28,7 @@ Gets decoded as `de.thm.mope.suggestion.CompletionRequest` inside the server.
 ==== Responses
 |===
 | Code | Description | Schema
+
 | [green]#**200 OK**#
 | An array containing all possible completions for the word.
 a|

@@ -8,6 +8,7 @@ POST /mope/connect
 ==== URL Parameters
 |===
 | Name | Description | Required | Schema
+
 |===
 
 ==== Data Parameters
@@ -30,6 +31,7 @@ Gets decoded as `de.thm.mope.project.ProjectDescription` inside the server.
 ==== Responses
 |===
 | Code | Description | Schema
+
 | [green]#**200 OK**# | ID which identifies the project. For example: `1` | integer
 | [red]#**400 BadRequest**# | The data-field doesn't contain a valid object. | string
 | [red]#**400 BadRequest**# | The data-field isn't a valid ProjectDescription. | string

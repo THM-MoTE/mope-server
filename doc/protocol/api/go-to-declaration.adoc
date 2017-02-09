@@ -9,6 +9,7 @@ GET /mope/project/:id/typeOf
 ==== URL Parameters
 |===
 | Name | Description | Required | Schema
+
 | id | Project ID | y | integer
 | className | The model name for which the declaration is queried. | y | string
 |===
@@ -19,6 +20,7 @@ Empty
 ==== Responses
 |===
 | Code | Description | Schema
+
 | [green]#**200 OK**# | A `FileWithLine`-object containing the source of the type. | FileWithLine
 | [red]#**404 NotFound**# | Given id is unknown. | string
 | [red]#**404 NotFound**# | Parameter class is missing. | string

@@ -8,6 +8,7 @@ POST /mope/project/:id/typeOf
 ==== URL Parameters
 |===
 | Name | Description | Required | Schema
+
 | id | Project ID | y | integer
 |===
 
@@ -27,6 +28,7 @@ Gets decoded as `de.thm.mope.suggestion.TypeRequest` inside the server.
 ==== Responses
 |===
 | Code | Description | Schema
+
 | [green]#**200 OK**# | An `TypeOf`-object containing the property's name, it's type and it's comment if it exists. | TypeOf
 | [red]#**404 NotFound**# | Given id is unknown. | string
 | [red]#**404 NotFound**# | Given property can't be found. | string
