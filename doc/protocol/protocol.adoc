@@ -4,6 +4,17 @@
 :sectnums:
 :source-highlighter: coderay
 
+== Introduction
+This document describes the protocol between Mo|E-Server process and clients.
+Clients are going to communicate with the server process by sending HTTP calls to the server.
+The server does nothing without a initial _connect_ request. After a _connect_ request the server
+is ready to compile Modelica files and Modelica Script files. A _disconnect_ request stops the server
+from working with the project.
+
+== Protocol
+All requests and responses are using *JSON-Strings* as data.
+Detailed error messages are returned as _plain text_.
+
 include::api/connect.adoc[]
 
 include::api/compile.adoc[]
