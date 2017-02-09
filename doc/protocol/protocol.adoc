@@ -1,6 +1,7 @@
 = Mo|E Protocol V 0.6
 :author: Nicola Justus
 :toc: left
+:icons: font
 :sectnums:
 :source-highlighter: coderay
 
