@@ -1,8 +1,19 @@
 # Changelog of Mo|E-Server
+## Version 0.6.2-pre
+- protocol documentation now in AsciiDoc
+- internal project representation now as *(filesystem) tree*; not as file list
+- adds opening a file in MoVE via `POST mope/ensemble/move`
+
+### Bugfixes
+- resolve home directory at runtime
+- don't typecheck functions & partial models
+- allow errors with OMC-specific paths containing `\/` path delimiters
+
+
 ## Version 0.6
 **Alternative writing of Mo|E is now MoPE and mope!**
 
-Majore changes:
+Major changes:
 - Config-Keys are all in Camel case
 - Remove unused `filewatcher-polling-timeout` from mope.conf
 - Programinformations (like name & version) now generated from within sbt
