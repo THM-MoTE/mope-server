@@ -34,7 +34,7 @@ lazy val root = Project(id = "moie-server", base = file(".")).
     parallelExecution in Test := false,
     aggregate in Test := false
   ).
-  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject).
+  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject, Dependencies.recentlyProject).
   aggregate(Dependencies.corbaProject)
 
 mainClass in assembly := (mainClass in Compile).value
