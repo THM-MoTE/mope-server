@@ -30,6 +30,8 @@ The following guide is for developers:
 export JAVA_HOME=<path-to-java>
 ----
 +
+TIP: There is a script which automates step 4 till 6 and 8 available: link:tools/setup.sh[setup.sh]
+
 4. Because MoPE uses sub projects you need to clone all sub projects and this project into
 one directory. This should look like this:
 +
@@ -85,3 +87,17 @@ If you messed up your configuration just kill the whole ```~/.moie``` directory.
 == Creating a jar
 You can create an executable-jar using the `sbt assembly` command. This command packages
 everything - including all dependencies - in one jar which is executable using `java -jar <jar>`.
+
+
+== REST-API / Protocol documentation
+A documentation for the REST-API can be found in `doc/protocol/`.
+The documentation is in `asciidoc` and can be converted into html or pdf by executing
+`make html` & `make pdf` in the `protocl` directory.
+
+# Notes
+  - The idea of an server-process and several editors that are communicating with
+  the server isn't new. This project is heavily inspired by the http://ensime.github.io/[ENSIME-project].
+  ENSIME is a convenient way to develop Scala projects. If you are a Scala developer please give it a try.
+
+NOTE: Our main goal is to provide a similar development environment for Modelica
+like ENSIME for Scala.
