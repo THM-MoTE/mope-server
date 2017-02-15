@@ -24,6 +24,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
 import de.thm.mope.Global
 import de.thm.mope.utils.actors.UnhandledReceiver
 import de.thm.recent._
+import JsProtocol._
 
 import scala.concurrent.Future
 
@@ -54,6 +55,7 @@ class RecentFilesActor
 			log.debug("increment priority of {}", path)
 			become(withRecent(recent.incrementPriority(path)))
 		case PoisonPill => //TODO write recent to 'recentFilesPath'
+			Files.write(Global.recentFilesPath, recent.toJson.getBytes(Global.encoding))
 	}
 }
 
