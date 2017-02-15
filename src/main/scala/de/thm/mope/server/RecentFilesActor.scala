@@ -49,7 +49,10 @@ class RecentFilesActor
 
 	private def withRecent(recent:Recent[Path]):Receive = {
 		case GetRecentFiles => Future(recent.recentElementsByPriority) pipeTo sender
-		case AddPath(path) => become(withRecent(recent.incrementPriority(path)))
+		case AddStr(fileStr) =>
+			val path = Paths.get(fileStr)
+			log.debug("increment priority of {}", path)
+			become(withRecent(recent.incrementPriority(path)))
 		case PoisonPill => //TODO write recent to 'recentFilesPath'
 	}
 }
@@ -57,5 +60,5 @@ class RecentFilesActor
 object RecentFilesActor {
 	case object GetRecentFiles
 	case class Initialized(r:Recent[Path])
-	case class AddPath(p:Path)
+	case class AddStr(p:String)
 }

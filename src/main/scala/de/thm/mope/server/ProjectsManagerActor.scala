@@ -66,6 +66,7 @@ class ProjectsManagerActor
       if(errors.isEmpty) {
         val id = register.add(description)(newManager)
         log.debug("Client registered for id:{}", id)
+        recentFilesHandler ! AddStr(description.path)
         sender ! Right(ProjectId(id))
       } else sender ! Left(errors)
     case ProjectId(id) =>
