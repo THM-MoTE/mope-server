@@ -17,22 +17,45 @@
 
 package de.thm.mope.server
 
-import java.nio.file.Paths
+import java.nio.file.{Files, Path, Paths}
+
+import akka.pattern.pipe
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import de.thm.mope.Global
 import de.thm.mope.utils.actors.UnhandledReceiver
 import de.thm.recent._
+
+import scala.concurrent.Future
 
 class RecentFilesActor
 	extends Actor
 	with UnhandledReceiver
 	with ActorLogging {
+
 	import RecentFilesActor._
+	import context._
+
+	override def preStart(): Unit = {
+		val recent =
+			if(Files.exists(Global.recentFilesPath)) Recent.fromInputStream[Path](Files.newInputStream(Global.recentFilesPath))
+			else Recent.fromList(List[Path]())
+
+		self ! Initialized(recent)
+	}
 
 	override def receive:Receive = {
-		case GetRecentFiles => println("got call to recent files")
+		case Initialized(recent) => become(withRecent(recent))
+	}
+
+	private def withRecent(recent:Recent[Path]):Receive = {
+		case GetRecentFiles => Future(recent.recentElementsByPriority) pipeTo sender
+		case AddPath(path) => become(withRecent(recent.incrementPriority(path)))
+		case PoisonPill => //TODO write recent to 'recentFilesPath'
 	}
 }
 
 object RecentFilesActor {
 	case object GetRecentFiles
+	case class Initialized(r:Recent[Path])
+	case class AddPath(p:Path)
 }

@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -33,10 +33,13 @@ class ProjectsManagerActor
   with ActorLogging {
 
   import ProjectsManagerActor._
+  import RecentFilesActor._
 
   private val register = new ProjectRegister()
   private val compilerFactory = new CompilerFactory(Global.config)
   private val indexFiles = Global.config.getBoolean("indexFiles")
+
+  private val recentFilesHandler = context.actorOf(Props(new RecentFilesActor()), name = s"recentFilesHandler")
 
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
     register.get(id) map {
@@ -57,6 +60,7 @@ class ProjectsManagerActor
   }
 
   override def receive: Receive = {
+    case GetRecentFiles => recentFilesHandler forward GetRecentFiles
     case description:ProjectDescription =>
       val errors = ProjectDescription.validate(description)
       if(errors.isEmpty) {
