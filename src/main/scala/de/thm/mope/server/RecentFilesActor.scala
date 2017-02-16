@@ -36,26 +36,37 @@ class RecentFilesActor
 	import RecentFilesActor._
 	import context._
 
+	var recent = Recent.fromList(List[Path]())
+
 	override def preStart(): Unit = {
 		val recent =
 			if(Files.exists(Global.recentFilesPath)) Recent.fromInputStream[Path](Files.newInputStream(Global.recentFilesPath))
 			else Recent.fromList(List[Path]())
 
+		log.info("Initialized with file {}", Global.recentFilesPath)
+		log.debug("Recent files are {}", recent.recentElements)
 		self ! Initialized(recent)
 	}
 
 	override def receive:Receive = {
-		case Initialized(recent) => become(withRecent(recent))
+		case Initialized(newRecent) =>
+			log.debug("initialized with {}", newRecent)
+			recent = newRecent
+			become(initialized)
+		case PoisonPill => log.info("got poisonpill in 'receive'")
 	}
 
-	private def withRecent(recent:Recent[Path]):Receive = {
+	private def initialized:Receive = {
 		case GetRecentFiles => Future(recent.recentElementsByPriority) pipeTo sender
 		case AddStr(fileStr) =>
 			val path = Paths.get(fileStr)
 			log.debug("increment priority of {}", path)
-			become(withRecent(recent.incrementPriority(path)))
-		case PoisonPill => //TODO write recent to 'recentFilesPath'
-			Files.write(Global.recentFilesPath, recent.toJson.getBytes(Global.encoding))
+			recent = recent.incrementPriority(path)
+	}
+
+	override def postStop():Unit = {
+		log.debug("Writing {} recent files into {}", recent.recentElements.size, Global.recentFilesPath)
+		Files.write(Global.recentFilesPath, recent.toJson.getBytes(Global.encoding))
 	}
 }
 

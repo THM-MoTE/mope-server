@@ -82,7 +82,9 @@ class ProjectsManagerActor
       log.info("Client {} disconnected; remaining clients {}", id, register.clientCount)
   }
 
-  override def postStop(): Unit = log.info("stopping")
+  override def postStop(): Unit = {
+    log.info("stopping")
+  }
 }
 
 object ProjectsManagerActor {
