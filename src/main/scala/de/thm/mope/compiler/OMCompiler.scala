@@ -272,7 +272,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] = {
-    log.debug("$model is instantiatable: [}]", notInstantiatable(model))
+    log.debug(s"$model is instantiatable: [{}]", !notInstantiatable(model))
     if(xs.nonEmpty) xs
     else if(notInstantiatable(model)) Seq()
     else {

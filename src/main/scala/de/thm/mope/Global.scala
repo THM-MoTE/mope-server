@@ -73,6 +73,7 @@ object Global extends FallbackConfig {
 
   lazy val encoding = Charset.forName("UTF-8")
   lazy val (configFileURL, configDidExist) = getConfigFile("mope.conf")
+  lazy val recentFilesPath = configDirPath.resolve("recent-files.json")
   lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
 }

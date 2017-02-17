@@ -32,6 +32,8 @@ include::api/get-type.adoc[]
 
 include::api/go-to-declaration.adoc[]
 
+include::api/recent-files.adoc[]
+
 include::api/open-move.adoc[]
 
 include::api/recent-files.adoc[]

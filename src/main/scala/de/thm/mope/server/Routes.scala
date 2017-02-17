@@ -18,6 +18,7 @@
 package de.thm.mope.server
 
 import java.util.NoSuchElementException
+import java.nio.file.Path
 
 import akka.actor.{ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
@@ -35,10 +36,13 @@ import de.thm.mope.position.{FilePath, FileWithLine}
 import de.thm.mope.project._
 import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
+import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import de.thm.mope.templates.TemplateEngine
 import de.thm.mope.templates.TemplateEngine._
 import de.thm.mope.utils.IOUtils
+
+import de.thm.recent.JsProtocol._
 
 import scala.concurrent.Future
 
@@ -114,6 +118,10 @@ trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
             shutdown("received `stop-server`")
             complete(StatusCodes.Accepted)
           }
+        } ~
+        (path("recent-files") & get) {
+          val lstFuture = (projectsManager ? GetRecentFiles).mapTo[Seq[Path]]
+          onSuccess(lstFuture) { lst => complete(lst) }
         } ~
         projectRoutes ~
         ensembleRoutes
