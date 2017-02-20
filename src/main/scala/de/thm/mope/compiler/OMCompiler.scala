@@ -26,7 +26,7 @@ import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
-import omc.{LibraryLoader, LoadLibraryException}
+import omc.{ImportHandler, LoadLibraryException}
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -50,9 +50,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   val rootDir = rootProjectFile.getParent
 
   val loaderOpt = {
-    val importFile = rootDir.resolve(LibraryLoader.importFileName)
+    val importFile = rootDir.resolve(ImportHandler.importFileName)
     log.info(if(Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
-    if(Files.exists(importFile)) Some(new LibraryLoader(rootDir))
+    if(Files.exists(importFile)) Some(new ImportHandler(rootDir))
     else None
   }
 
