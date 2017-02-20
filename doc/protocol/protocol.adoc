@@ -36,6 +36,8 @@ include::api/recent-files.adoc[]
 
 include::api/open-move.adoc[]
 
+include::api/recent-files.adoc[]
+
 include::api/disconnect.adoc[]
 
 include::api/stop-server.adoc[]
