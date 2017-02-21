@@ -42,23 +42,6 @@ class SuggestionProvider(compiler:CompletionLike)
   import context.dispatcher
   implicit val mat = ActorMaterializer(namePrefix = Some("suggestion-stream"))
 
-  def filterLines(line:String):Boolean = !line.isEmpty
-
-  val ignoredModifiers =
-    "(?:" + List("(?:parameter)",
-      "(?:discrete)",
-      "(?:input)",
-      "(?:output)",
-      "(?:flow)").mkString("|") + ")"
-  val typeRegex = """(\w[\w\-\_\.]*)"""
-  val identRegex = """(\w[\w\-\_]*)"""
-  val commentRegex = """"([^"]+)";"""
-
-  val variableRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
-  val variableCommentRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
-
   val keywords =
     Global.readValuesFromResource(
         getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _).toSet
@@ -169,40 +152,6 @@ class SuggestionProvider(compiler:CompletionLike)
       via(withParameters).
       via(toCompletionResponse)
 
-  private def lines(file:String) =
-    FileIO.fromPath(Paths.get(file)).
-      via(Framing.delimiter(ByteString("\n"), 8192, true)).
-      map(_.utf8String)
-
-  private def nameEquals(word:String) =
-    Flow[(String, String, Option[String])].filter {
-      case (_, name, _) => name == word
-    }
-
-  private def typeOf(filename:String, word:String, lineNo:Int): Source[TypeOf, _] = {
-    val toTypeOf =
-      Flow[(String, String, Option[String])].map {
-        case (tpe, name, comment) => TypeOf(name, tpe, comment)
-      }
-
-    identRegex.r.
-      findFirstIn(word).
-      map { ident =>
-        lines(filename).
-          take(lineNo).
-          via(onlyVariables).
-          via(nameEquals(ident)).
-          via(toTypeOf)
-      }.getOrElse(Source.empty)
-  }
-
-  private def localVariables(filename:String, word:String, lineNo:Int): Source[Suggestion, _] = {
-    val possibleLines = lines(filename).take(lineNo)
-    possibleLines.
-      via(onlyVariables).
-      via(variableResponse)
-  }
-
   def memberAccess(filename:String, word:String, lineNo:Int) = {
     val srcFile =
       Flow[TypeOf].map { tpe =>
@@ -225,12 +174,6 @@ class SuggestionProvider(compiler:CompletionLike)
     }
   }
 
-  private def onlyVariables =
-    Flow[String].collect {
-      case variableCommentRegex(tpe,name,comment) => (tpe, name, Some(comment))
-      case variableRegex(tpe, name) => (tpe, name, None)
-    }
-
   val variableResponse =
     Flow[(String,String, Option[String])].map {
       case (tpe, name, commentOpt) =>
@@ -241,9 +184,4 @@ class SuggestionProvider(compiler:CompletionLike)
 
   val propertyResponse =
     variableResponse.map(x => x.copy(kind = Kind.Property))
-
-  def onlyStartsWith(word:String) =
-    Flow[Suggestion].filter { response =>
-      response.name.startsWith(word)
-    }
 }
