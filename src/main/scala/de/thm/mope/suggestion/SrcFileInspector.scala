@@ -52,7 +52,7 @@ class SrcFileInspector(srcFile:Path)(implicit mat: ActorMaterializer) {
       x.name == word
     }
 
-  def localVariables(word:String, lineNo:Int): Source[LocalVariable, _] = {
+  def localVariables(lineNo:Int): Source[LocalVariable, _] = {
     val possibleLines = lines.take(lineNo)
     possibleLines.
       via(onlyVariables)
