@@ -44,10 +44,10 @@ class SuggestionProvider(compiler:CompletionLike)
 
   val keywords =
     Global.readValuesFromResource(
-        getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _).toSet
+        getClass.getResource("/completion/keywords.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
   val types =
     Global.readValuesFromResource(
-        getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
+        getClass.getResource("/completion/types.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
 
   val logSuggestions: String => Set[Suggestion] => Set[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
@@ -74,16 +74,18 @@ class SuggestionProvider(compiler:CompletionLike)
       //searching for a possible not-completed class
       closestKeyWordType(word).
         merge(findMatchingClasses(word)).
-        merge(localVariables(filename, word, line)).
-        merge(memberAccess(filename, word, line)).
+        merge(localVariables(filename, line, word)).
+        //merge(memberAccess(filename, word, line)).
         toMat(toStartsWith(word))(Keep.right).
         run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
-      typeOf(filename, word, line).
+ /*     typeOf(filename, word, line).
         toMat(Sink.headOption)(Keep.right).
         run().
         map(logType(word)) pipeTo sender
+        */
+      sender ! Set[Suggestion]()
   }
 
   private def toSet[A] =
@@ -91,7 +93,7 @@ class SuggestionProvider(compiler:CompletionLike)
       case (set, elem) => set + elem
     }
 
-  private def toStartsWith(word:String) = onlyStartsWith(word).toMat(toSet)(Keep.right)
+  private def toStartsWith(word:String) = (new PrefixMatcher(word)).startsWith.toMat(toSet)(Keep.right)
 
   /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */
   private def withParameters: Flow[(String, Suggestion.Kind.Value), (String, Suggestion.Kind.Value, List[String]), NotUsed] =
@@ -113,6 +115,13 @@ class SuggestionProvider(compiler:CompletionLike)
         Suggestion(tpe, name, paramOpt, classComment, None)
     }
 
+
+  private def localVariables(filename:String, lineNo:Int, word:String):Source[Suggestion,_] =
+    (new SrcFileInspector(Paths.get(filename)))
+      .localVariables(word, lineNo)
+      .map { variable =>
+        Suggestion(Kind.Variable, variable.name, None, variable.docString, Some(variable.`type`))
+      }
 
 /** Returns all components/packages inside of `word`. */
   private def containingPackages(word:String): Source[Suggestion, NotUsed] =
@@ -137,13 +146,11 @@ class SuggestionProvider(compiler:CompletionLike)
       }
 
   private def findMatchingClasses(word:String): Source[Suggestion, NotUsed] = {
-    val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1)
+    val (parent, tpe) = sliceAtLastDot(word)
+    if(tpe.isEmpty)
       toCompletionResponse(word, Future(compiler.getGlobalScope()))
-    else {
-      val parentPackage = word.substring(0, pointIdx)
-      toCompletionResponse(word, compiler.getClassesAsync(parentPackage))
-    }
+    else
+      toCompletionResponse(word, compiler.getClassesAsync(parent))
   }
 
   private def toCompletionResponse(word:String, xs:Future[Set[(String, Kind.Value)]]): Source[Suggestion, NotUsed] =
@@ -160,9 +167,12 @@ class SuggestionProvider(compiler:CompletionLike)
       }.collect { case Some(file) => file }
 
     val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1) Source.empty
+    val (objectName, member) = sliceAtLastDot(word)
+    if(member.isEmpty) Source.empty
     else {
-      val objectName = word.substring(0, pointIdx)
+      //TODO fix this
+      Source.empty
+      /*
       typeOf(filename, objectName, lineNo).
         via(srcFile).
         flatMapConcat(lines).
@@ -171,6 +181,7 @@ class SuggestionProvider(compiler:CompletionLike)
         map { resp =>
           resp.copy(name = objectName+"."+resp.name)
         }
+        */
     }
   }
 
