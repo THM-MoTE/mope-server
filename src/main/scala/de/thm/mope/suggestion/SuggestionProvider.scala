@@ -80,12 +80,10 @@ class SuggestionProvider(compiler:CompletionLike)
         run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
- /*     typeOf(filename, word, line).
+      new SrcFileInspector(Paths.get(filename)).typeOf(word, line).
         toMat(Sink.headOption)(Keep.right).
         run().
         map(logType(word)) pipeTo sender
-        */
-      sender ! Set[Suggestion]()
   }
 
   private def toSet[A] =
