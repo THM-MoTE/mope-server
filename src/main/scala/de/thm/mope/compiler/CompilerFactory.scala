@@ -28,9 +28,7 @@ class CompilerFactory(config:Config) {
   require(availableCompilers.keys.exists(_ == compilerKey),
     s"The given compilerKey [$compilerKey] isn't a valid key!")
 
-  def getCompilerClass: Class[ModelicaCompiler] = {
-    availableCompilers(compilerKey).asInstanceOf[Class[ModelicaCompiler]]
-  }
+  def getCompilerClass: Class[_ <: ModelicaCompiler] = availableCompilers(compilerKey)
 
   def newCompiler(outputDir:Path): ModelicaCompiler = {
     val compilerClazz = getCompilerClass
