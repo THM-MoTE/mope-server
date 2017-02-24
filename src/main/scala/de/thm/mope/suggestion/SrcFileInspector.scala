@@ -33,7 +33,7 @@ class SrcFileInspector(srcFile:Path)(implicit mat: ActorMaterializer) {
   def typeOf(word:String, lineNo:Int): Source[TypeOf, _] = {
     val toTypeOf =
       Flow[LocalVariable].map {
-        case LocalVariable(name,tpe,comment) => TypeOf(name, tpe, comment)
+        case LocalVariable(tpe,name,comment) => TypeOf(name, tpe, comment)
       }
 
     identRegex.r.
