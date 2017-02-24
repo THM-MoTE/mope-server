@@ -20,20 +20,24 @@ package de.thm.mope.compiler
 import java.nio.file.{Files, Paths}
 
 import de.thm.mope.position.FilePosition
+import de.thm.mope.TestHelpers
 import org.scalatest._
 
-class MsgParserSpec extends FlatSpec with Matchers {
+class MsgParserSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
   val projPath = Files.createTempDirectory("moie")
+  val compiler = new OMCompiler("omc", projPath.resolve("target"))
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    compiler.stop()
+    TestHelpers.removeDirectoryTree(projPath)
+  }
 
   "Compiler" should "return no errors if filelist is empty" in {
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
     compiler.compile(Nil, Paths.get("")) shouldEqual Nil
-    compiler.stop()
   }
 
   "Compiler errors" should "get parsed" in {
-
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
 
     val msg = """
 Error processing file: ../circuit.mo
@@ -184,12 +188,9 @@ Execution failed!""".stripMargin
 """Incompatible components in connect statement: connect(resistor2.R, ground1.p)
 - resistor2.R has components Real(start = 1.0, quantity = "Resistance", unit = "Ohm")
 - ground1.p has components {i, v}""")))
-
-    compiler.stop()
   }
 
   "Multiple Compiler errors" must "get parsed as list" in {
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
     val msg10 = """
     Error processing file: ../ResistorTest.mo
     Notification: Automatically loaded package Modelica 3.2.1 due to uses annotation.
@@ -246,12 +247,9 @@ Error: Error occurred while flattening model myModel
         FilePosition(3,4), FilePosition(3,13),
         "Klasse Rl konnte nicht im Geltungsbereich von myModel gefunden werden.")
     ))
-
-    compiler.stop()
   }
 
   "Errors without position" should "get parsed" in {
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
     val msg1 =
 """
 Error processing file: /Users/testi/ResistorTest.mo
@@ -289,12 +287,9 @@ Execution failed!
         "Klasse ResistorTest konnte nicht im Geltungsbereich von <TOP> gefunden werden."
       )
     ))
-
-    compiler.stop()
   }
 
   "Notifications inside errors" should "get ignored" in {
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
 
     val msg = """
       |"[/Users/nico/Documents/mo-tests/build.mos:5:1-5:30:writable] Error: Klasse OpenModelica.Scripting.instntiateModel konnte nicht im Geltungsbereich von <global scope> (looking for a function or record) gefunden werden."
@@ -334,12 +329,9 @@ Execution failed!
       """.stripMargin
       val errors3 = compiler.parseErrorMsg(msg3)
       errors3.size should be (0)
-
-    compiler.stop()
   }
 
   "Script errors" should "get parsed" in {
-    val compiler = new OMCompiler("omc", projPath.resolve("target"))
     val msg = """
       |false
       |false
@@ -395,8 +387,6 @@ Error: Failed to load package moTests2 () using MODELICAPATH /Users/nico/Documen
       errors5.head should be (CompilerError(
         "Error", "/Users/nico/Documents/moTests2/test.mo", FilePosition(2,7), FilePosition(4,8),
         "Parse error: The identifier at start and end are different"))
-
-    compiler.stop()
   }
 
   "Messages with different path separators" should "get parsed" in {
