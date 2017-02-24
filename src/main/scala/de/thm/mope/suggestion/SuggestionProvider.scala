@@ -116,7 +116,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
   private def localVariables(filename:String, lineNo:Int, word:String):Source[Suggestion,_] =
     (new SrcFileInspector(Paths.get(filename)))
-      .localVariables(lineNo)
+      .localVariables(Some(lineNo))
       .map { variable =>
         Suggestion(Kind.Variable, variable.name, None, variable.docString, Some(variable.`type`))
       }
