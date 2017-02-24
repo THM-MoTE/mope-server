@@ -17,19 +17,17 @@
 
 package de.thm.mope.suggestion
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
-import akka.util.ByteString
 import de.thm.mope.Global
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
-import omc.corba.ScriptingHelper
 
 import scala.concurrent.Future
 
@@ -75,7 +73,7 @@ class SuggestionProvider(compiler:CompletionLike)
       closestKeyWordType(word).
         merge(findMatchingClasses(word)).
         merge(localVariables(filename, line, word)).
-        //merge(memberAccess(filename, word, line)).
+        merge(memberAccess(filename, word, line)).
         toMat(toStartsWith(word))(Keep.right).
         run().
         map(logSuggestions(word)) pipeTo sender
@@ -162,24 +160,24 @@ class SuggestionProvider(compiler:CompletionLike)
       Flow[TypeOf].map { tpe =>
         if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
         else None
-      }.collect { case Some(file) => file }
+      }.log("src file is")(log).collect { case Some(file) => file }
 
-    val pointIdx = word.lastIndexOf(".")
     val (objectName, member) = sliceAtLastDot(word)
     if(member.isEmpty) Source.empty
     else {
+      log.debug("obj name {} member {}", objectName, member:Any)
       //TODO fix this
       Source.empty
-      /*
-      typeOf(filename, objectName, lineNo).
-        via(srcFile).
-        flatMapConcat(lines).
-        via(onlyVariables).
-        via(propertyResponse).
-        map { resp =>
-          resp.copy(name = objectName+"."+resp.name)
+      new SrcFileInspector(Paths.get(filename))
+        .typeOf(objectName, lineNo)
+        .log("typeof")(log)
+        .via(srcFile)
+        .log("srcFile of")(log)
+        .flatMapConcat{ file => log.debug("src file {}", file); new SrcFileInspector(Paths.get(file)).localVariables(None) }
+        .log("local vars")(log)
+        .map { objectVariable =>
+          Suggestion(Kind.Property, objectName+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
         }
-        */
     }
   }
 
