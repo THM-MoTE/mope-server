@@ -160,23 +160,18 @@ class SuggestionProvider(compiler:CompletionLike)
       Flow[TypeOf].map { tpe =>
         if(!types.contains(tpe.`type`) || keywords.contains(tpe.`type`)) compiler.getSrcFile(tpe.`type`)
         else None
-      }.log("src file is")(log).collect { case Some(file) => file }
+      }.collect { case Some(file) => file }
 
     val (objectName, member) = sliceAtLastDot(word)
     if(member.isEmpty) Source.empty
     else {
-      log.debug("obj name {} member {}", objectName, member:Any)
-      //TODO fix this
       new SrcFileInspector(Paths.get(filename))
         .typeOf(objectName, lineNo)
-        .log("typeof")(log)
         .via(srcFile)
-        .log("srcFile of")(log)
-        .flatMapConcat{ file => log.debug("src file {}", file); new SrcFileInspector(Paths.get(file)).localVariables(None) }
-        .log("local vars")(log)
+        .flatMapConcat{ file => new SrcFileInspector(Paths.get(file)).localVariables(None) }
         .map { objectVariable =>
-          Suggestion(Kind.Property, objectName+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
-        }
+        Suggestion(Kind.Property, objectName+"."+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
+      }
     }
   }
 
