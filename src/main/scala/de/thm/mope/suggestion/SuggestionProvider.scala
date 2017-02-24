@@ -167,7 +167,6 @@ class SuggestionProvider(compiler:CompletionLike)
     else {
       log.debug("obj name {} member {}", objectName, member:Any)
       //TODO fix this
-      Source.empty
       new SrcFileInspector(Paths.get(filename))
         .typeOf(objectName, lineNo)
         .log("typeof")(log)
