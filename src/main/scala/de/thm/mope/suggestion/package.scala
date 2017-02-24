@@ -4,7 +4,7 @@ package object suggestion {
   def sliceAtLast(str:String,separator:String):(String, String) = {
     val idx = str.lastIndexOf(separator)
     if(idx != -1)
-      str.splitAt(idx)
+      (str.substring(0, idx), str.substring(idx+1))
     else (str, "")
   }
 
