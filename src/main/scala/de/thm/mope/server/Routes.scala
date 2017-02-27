@@ -32,7 +32,7 @@ import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo._
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
 import de.thm.mope.doc.{ClassComment, DocInfo, DocumentationProvider}
-import de.thm.mope.position.{FilePath, FileWithLine}
+import de.thm.mope.position._
 import de.thm.mope.project._
 import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
 import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
@@ -168,11 +168,11 @@ trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
           flatMap(optionToNotFoundExc(_, s"type of ${typeOf.word} is unknown"))
         }
       } ~
-      (path("declaration")  & get & parameters("class")) { clazz =>
-        withIdExists(id) { projectManager =>
-          (projectManager ? DeclarationRequest(clazz)).
+      path("declaration") {
+        postEntityWithId(as[CursorPosition], id) { (cursor, projectManager) =>
+          (projectManager ? DeclarationRequest(cursor)).
             mapTo[Option[FileWithLine]].
-            flatMap(optionToNotFoundExc(_, s"class $clazz not found"))
+            flatMap(optionToNotFoundExc(_, s"declaration of ${cursor.word} not found"))
         }
       } ~
       (path("doc") & get & parameters("class") & extractUri) { (clazz, uri) =>

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.thm.mope.declaration
+package de.thm.mope.position
 
-import de.thm.mope.position.CursorPosition
-
-case class DeclarationRequest(cursorPos:CursorPosition)
+case class CursorPosition(file:String,
+	                     position:FilePosition,
+	                     word:String)
