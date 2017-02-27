@@ -89,7 +89,31 @@ class SuggestionProvider(compiler:CompletionLike)
       case (set, elem) => set + elem
     }
 
-  private def toStartsWith(word:String) = (new PrefixMatcher(word)).startsWith.toMat(toSet)(Keep.right)
+  /** Filters all possible suggestions based on String#startsWith or Levenshtein distance */
+  private def toStartsWith(word:String):Sink[Suggestion, Future[Set[Suggestion]]] = {
+    val matcher = new PrefixMatcher(word)
+    /*
+      Creates the following graph:
+          -------> startswith ------
+          |                        |
+      in ->                        -> out
+          |                        |
+          -------> levenshtein -----
+       Each 'Suggestion' is filtered through startsWith AND the levenshtein distance.
+       They are accumulated into a Set afterwards. The Set is used for filtering duplicates.
+     */
+    val suggestionFilter = Flow.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+      val bcast = builder.add(Broadcast[Suggestion](2))
+      val merge = builder.add(Merge[Suggestion](2))
+
+      bcast.out(0) ~> matcher.startsWith ~> merge.in(0)
+      bcast.out(1) ~> matcher.levenshtein ~> merge.in(1)
+
+      FlowShape(bcast.in, merge.out)
+    })
+    suggestionFilter.toMat(toSet)(Keep.right)
+  }
 
   /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */
   private def withParameters: Flow[(String, Suggestion.Kind.Value), (String, Suggestion.Kind.Value, List[String]), NotUsed] =

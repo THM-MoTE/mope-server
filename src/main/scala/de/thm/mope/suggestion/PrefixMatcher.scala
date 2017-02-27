@@ -19,10 +19,29 @@ package de.thm.mope.suggestion
 
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
+import org.apache.commons.lang3.StringUtils
 
 class PrefixMatcher(prefix:String)(implicit mat: ActorMaterializer) {
   def startsWith =
     Flow[Suggestion].filter { suggestion =>
       suggestion.name.startsWith(prefix)
     }
+
+  def levenshtein =
+    Flow[Suggestion].filter { suggestion =>
+      val (objectName, suffixMember) = sliceAtLastDot(prefix)
+      val (suggestionObjectName, suggestionMember) = sliceAtLastDot(suggestion.name)
+      if(!suffixMember.isEmpty) {
+        //match on suffix of .
+        distance(suggestionMember, suffixMember)
+      }
+      else if(!objectName.isEmpty) {
+        //match on prefix of .
+        distance(suggestionObjectName, objectName)
+      }
+      else false
+    }
+
+  private def distance(str1:String,str2:String): Boolean =
+    StringUtils.getLevenshteinDistance(str1, str2) < Math.min(5, str1.length / 2)
 }
