@@ -11,6 +11,8 @@ MoPE uses the following sub projects:
   Java-implementation of OMC's CORBA interface
 - https://github.com/THM-MoTE/EnhancedWatchService[EnhancedWatchService] -
   Wrapper for Java WatchServices
+- https://github.com/THM-MoTE/recently[recently] -
+  Handles recently used files/projects
 
 
 == Developer setup
@@ -40,6 +42,7 @@ parent/
   - mope-server/
   - omc-java-api/
   - EnhancedWatchService/
+  - recently/
 ----
 +
 5. compile the `omc-java-api`:
