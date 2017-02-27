@@ -74,7 +74,9 @@ class JumpToProvider(jumpLike:JumpToLike)
         if(matcher.find())
           matcher.group(1) == model
         else false
-    }.map(_._2)
+    }
+    .map(_._2)
+    .map(_+1) //results in 0-based idx instead of line number
   }
 
   private def findVariable(cursorPos:CursorPosition): Future[Option[FileWithLine]] = {
