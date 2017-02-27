@@ -46,20 +46,7 @@ class JumpToProvider(jumpLike:JumpToLike)
   override def receive: Receive = {
     case DeclarationRequest(cursorPos) =>
       val possibleVariables = findVariable(cursorPos)
-      val possibleModel = Future {
-        val className = cursorPos.word
-        val lastPointIdx = className.lastIndexOf(".")
-        val modelname = if(lastPointIdx != -1) className.substring(lastPointIdx+1) else className
-        val fileOpt = for {
-          filename <- jumpLike.getSrcFile(className)
-          path = Paths.get(filename)
-          lineNo <- lineNrOfModel(path, modelname)
-        } yield FileWithLine(filename, lineNo)
-        val fileInfo = fileOpt.map(f => s"${f.path}:${f.line}").getOrElse("undefined")
-        log.debug("declaration of {} is {}", className, fileInfo:Any)
-        fileOpt
-      }
-
+      val possibleModel = findModel(cursorPos)
       (for {
         modelOpt <- possibleModel
         variableOpt <- possibleVariables
@@ -77,6 +64,22 @@ class JumpToProvider(jumpLike:JumpToLike)
     }
     .map(_._2)
     .map(_+1) //results in 0-based idx instead of line number
+  }
+
+  private def findModel(cursorPos:CursorPosition): Future[Option[FileWithLine]] = {
+    Future {
+      val className = cursorPos.word
+      val lastPointIdx = className.lastIndexOf(".")
+      val modelname = if(lastPointIdx != -1) className.substring(lastPointIdx+1) else className
+      val fileOpt = for {
+        filename <- jumpLike.getSrcFile(className)
+        path = Paths.get(filename)
+        lineNo <- lineNrOfModel(path, modelname)
+      } yield FileWithLine(filename, lineNo)
+      val fileInfo = fileOpt.map(f => s"${f.path}:${f.line}").getOrElse("undefined")
+      log.debug("declaration of {} is {}", className, fileInfo:Any)
+      fileOpt
+    }
   }
 
   private def findVariable(cursorPos:CursorPosition): Future[Option[FileWithLine]] = {
