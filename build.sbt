@@ -13,13 +13,13 @@ lazy val cleanConfig = taskKey[Unit]("Cleans user's config directory of mope")
 
 cleanConfig := IO.delete(configDir.value)
 
-sourceGenerators in Compile <+= Def.task {
+sourceGenerators in Compile += Def.task {
   val dir:File = (sourceManaged in Compile).value
   InfoGenerator.generateProjectInfo(dir, Seq(
     "name" -> (name in root).value,
     "version" -> (version in root).value,
     "organization" -> (organization in root).value))
-}
+}.taskValue
 
 lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
@@ -34,7 +34,7 @@ lazy val root = Project(id = "moie-server", base = file(".")).
     parallelExecution in Test := false,
     aggregate in Test := false
   ).
-  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject).
+  dependsOn(Dependencies.ewsProject, Dependencies.corbaProject, Dependencies.recentlyProject).
   aggregate(Dependencies.corbaProject)
 
 mainClass in assembly := (mainClass in Compile).value

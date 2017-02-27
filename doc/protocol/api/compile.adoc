@@ -1,0 +1,35 @@
+=== Compiling a project
+Compiles all files from the project identified by the given `id`.
+
+----
+POST /mope/project/:id/compile
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An <<FilePath>>-object with a path to the script which should get compiled.
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**#
+| An array containing compiler-errors.
+a|
+[source,json]
+----
+[
+  <Error-Object>,
+  <Error-Object>,
+  ...
+]
+----
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Given filepath is unknown. | string
+|===

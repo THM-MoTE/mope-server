@@ -20,7 +20,7 @@ package de.thm.mope.suggestion
 import java.nio.file.Files
 
 import akka.testkit.TestActorRef
-import de.thm.mope.ActorSpec
+import de.thm.mope.{ActorSpec, TestHelpers}
 import de.thm.mope.compiler.OMCompiler
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
@@ -36,7 +36,7 @@ class SuggestionProviderSpec extends ActorSpec {
   val completionActor = testRef.underlyingActor
 
   override def afterAll: Unit = {
-    de.thm.mope.removeDirectoryTree(path)
+    TestHelpers.removeDirectoryTree(path)
   }
   def simpleRequest(word:String) = CompletionRequest("unknown", FilePosition(0,0), word)
 

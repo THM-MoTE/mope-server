@@ -1,0 +1,24 @@
+=== Stopping the server
+Stops the server-process discarding all running projects.
+
+CAUTION: This function is deprecated and shouldn't be used anymore!
+
+----
+POST mope/stop-server
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+|===
+
+==== Data Parameters
+Empty
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**202 Accepted**# | Empty content | .
+|===

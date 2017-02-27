@@ -1,33 +1,35 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package de.thm.mope.compiler
 
-import spray.json._
-import DefaultJsonProtocol._
-import de.thm.mope.server.FileWatchingActor
-import de.thm.mope.server.JsonSupport
-import de.thm.mope.Global
-import de.thm.mope.utils.MonadImplicits._
-import java.nio.file.{Files, Path, Paths}
-import org.slf4j.LoggerFactory
-import omc.corba._
-import scala.sys.process._
+import java.nio.file.{Files, Path}
+
 import scala.language.postfixOps
+import scala.sys.process._
+
+import de.thm.mope.tree.TreeLike
+import de.thm.mope.Global
+import de.thm.mope.server.{JsonSupport, FileWatchingActor}
+import de.thm.mope.utils.MonadImplicits._
+import omc.corba._
+import org.slf4j.LoggerFactory
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
 class JMCompiler(executableName:String, outputDir:Path)
   extends ModelicaCompiler
@@ -47,6 +49,15 @@ class JMCompiler(executableName:String, outputDir:Path)
   }
 
   override def compile(files:List[Path], openedFile:Path): Seq[CompilerError] = {
+    val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
+    if(files.exists(isPackageMo))
+      compile(files, modelname, true)
+    else
+      compile(files, modelname, false)
+  }
+
+  override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
+    val files = projectTree.filterElements(Files.isRegularFile(_))
     val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
     if(files.exists(isPackageMo))
       compile(files, modelname, true)

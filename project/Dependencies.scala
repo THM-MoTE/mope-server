@@ -36,6 +36,7 @@ object Dependencies {
 
   val ewsProject = fromFile("../EnhancedWatchService")
   val corbaProject = fromFile("../omc-java-api/")
+  val recentlyProject = fromFile("../recently")
 
   val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib)
 }

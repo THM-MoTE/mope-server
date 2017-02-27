@@ -1,0 +1,43 @@
+=== Connecting to the server
+Connects a client to the server and starts a manager for the given project.
+
+----
+POST /mope/connect
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+|===
+
+==== Data Parameters
+The content of the `mope-project.json` file. This file is located at the /-directory of the project.
+This object defines several project-specific configurations and looks like this:
+
+[source,json]
+----
+{
+  "path": <String>, //absolute path to the project
+  "outputDirectory": <String>, //directory for compiler-generated files
+  //OPTIONAL: relative path to the mos-script that's used as default-script
+  //if empty ``build.mos'' will be assumed
+  "buildScript": <String>
+}
+----
+
+Gets decoded as `de.thm.mope.project.ProjectDescription` inside the server.
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**# | ID which identifies the project. For example: `1` | integer
+| [red]#**400 BadRequest**# | The data-field doesn't contain a valid object. | string
+| [red]#**400 BadRequest**# | The data-field isn't a valid ProjectDescription. | string
+|===
+
+==== Notes
+* A valid `ProjectDescription` must match this criterias:
+  ** The `path`-field must be a full path and a directory
+  ** The optional `buildScript`-field must be a regular file with a `.mos` extension.

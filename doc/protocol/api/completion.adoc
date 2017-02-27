@@ -1,0 +1,44 @@
+=== Retrieving code completions
+Returns possible code completions for the given word/symbol.
+
+----
+POST /mope/project/:id/completion
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An object which contains the position and the word that should get completed.
+Gets decoded as `de.thm.mope.suggestion.CompletionRequest` inside the server.
+
+[source,json]
+----
+{
+  "file": <String>, //absolute path to the file which contains the word/symbol
+  "position": <File-Position>, //the position of the word in the file
+  "word": <String> //word/symbol
+}
+----
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**#
+| An array containing all possible completions for the word.
+a|
+[source,json]
+----
+[
+  <Suggestion-Object>,
+  <Suggestion-Object>,
+  ...
+]
+----
+| [red]#**404 NotFound**# | Given id is unknown. | string
+|===

@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -84,6 +84,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 }
 
 object FileWatchingActor {
+  import de.thm._
   sealed trait FileWatchingMsg
   case object GetFiles extends FileWatchingMsg
   case class GetFiles(root:Path) extends FileWatchingMsg
@@ -95,26 +96,24 @@ object FileWatchingActor {
   case class DeletedPath(path:Path)
   case class ModifiedPath(path:Path)
 
-  type PathFilter = Path => Boolean
-
   def moFileFilter(path:Path):Boolean = {
     !Files.isHidden(path) &&
       path.toString.endsWith(".mo")
   }
 
-  def getFiles(root:Path, filter:PathFilter): List[Path] = {
+  def getFiles(root:Path, filter:mope.PathFilter): List[Path] = {
     val visitor = new AccumulateFiles(filter)
     Files.walkFileTree(root, visitor)
     visitor.getFiles
   }
 
-  def getDirs(path:Path, filter: PathFilter): List[Path] = {
+  def getDirs(path:Path, filter: mope.PathFilter): List[Path] = {
     val visitor = new AccumulateDirs(filter)
     Files.walkFileTree(path, visitor)
     visitor.getDirs
   }
 
-  private class AccumulateFiles(filter:PathFilter) extends SimpleFileVisitor[Path] {
+  private class AccumulateFiles(filter:mope.PathFilter) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
     override def visitFile(file:Path,
                            attr:BasicFileAttributes): FileVisitResult = {
@@ -128,7 +127,7 @@ object FileWatchingActor {
     def getFiles = buffer
   }
 
-  private class AccumulateDirs(filter:PathFilter) extends SimpleFileVisitor[Path] {
+  private class AccumulateDirs(filter:mope.PathFilter) extends SimpleFileVisitor[Path] {
     private var buffer = List[Path]()
 
     override def preVisitDirectory(dir:Path,

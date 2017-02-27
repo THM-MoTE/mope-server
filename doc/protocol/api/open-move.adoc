@@ -1,0 +1,25 @@
+=== Open a file in MoVE
+Opens the given file in the Modelica Vector graphics Editor (MoVE).
+
+NOTE: This is a BETA function.
+
+----
+POST mope/ensemble/move
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+|===
+
+==== Data Parameters
+An <<FilePath>>-object with a path to the script which should get compiled.
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**204 NoContent**# | . | .
+| [red]#**400 BadRequest**# | The MoVE executable isn't known by the server process. | string
+|===

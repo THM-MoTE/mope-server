@@ -1,0 +1,27 @@
+=== Checking a model
+Checks a model and returns the number of equations and variables.
+
+
+----
+POST /mope/project/:id/checkModel
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An <<FilePath>>-object with a path to the currently opened file.
+
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**# | A string containing the response from OMC. | string
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Given filepath is unknown. | string
+|===

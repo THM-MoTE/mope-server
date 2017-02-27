@@ -1,0 +1,35 @@
+=== Get type of a property
+Returns the type and comment of the given property.
+
+----
+POST /mope/project/:id/typeOf
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An object containing the file, position and property name.
+Gets decoded as `de.thm.mope.suggestion.TypeRequest` inside the server.
+
+[source, json]
+----
+{
+  "file": <String>, //absolute path to the file which contains the word/symbol
+  "position": <File-Position>, //the position of the word in the file
+  "word": <String> //propertyname
+}
+----
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**# | An <<TypeOf>>-object containing the property's name, it's type and it's comment if it exists. | TypeOf
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Given property can't be found. | string
+|===

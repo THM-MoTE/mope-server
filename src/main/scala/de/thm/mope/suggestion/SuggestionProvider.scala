@@ -17,19 +17,17 @@
 
 package de.thm.mope.suggestion
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
-import akka.util.ByteString
 import de.thm.mope.Global
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
-import omc.corba.ScriptingHelper
 
 import scala.concurrent.Future
 
@@ -42,29 +40,12 @@ class SuggestionProvider(compiler:CompletionLike)
   import context.dispatcher
   implicit val mat = ActorMaterializer(namePrefix = Some("suggestion-stream"))
 
-  def filterLines(line:String):Boolean = !line.isEmpty
-
-  val ignoredModifiers =
-    "(?:" + List("(?:parameter)",
-      "(?:discrete)",
-      "(?:input)",
-      "(?:output)",
-      "(?:flow)").mkString("|") + ")"
-  val typeRegex = """(\w[\w\-\_\.]*)"""
-  val identRegex = """(\w[\w\-\_]*)"""
-  val commentRegex = """"([^"]+)";"""
-
-  val variableRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*""".r
-  val variableCommentRegex =
-    s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
-
   val keywords =
     Global.readValuesFromResource(
-        getClass.getResource("/completion/keywords.conf").toURI.toURL)(filterLines _).toSet
+        getClass.getResource("/completion/keywords.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
   val types =
     Global.readValuesFromResource(
-        getClass.getResource("/completion/types.conf").toURI.toURL)(filterLines _).toSet
+        getClass.getResource("/completion/types.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
 
   val logSuggestions: String => Set[Suggestion] => Set[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
@@ -91,13 +72,13 @@ class SuggestionProvider(compiler:CompletionLike)
       //searching for a possible not-completed class
       closestKeyWordType(word).
         merge(findMatchingClasses(word)).
-        merge(localVariables(filename, word, line)).
+        merge(localVariables(filename, line, word)).
         merge(memberAccess(filename, word, line)).
         toMat(toStartsWith(word))(Keep.right).
         run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
-      typeOf(filename, word, line).
+      new SrcFileInspector(Paths.get(filename)).typeOf(word, line).
         toMat(Sink.headOption)(Keep.right).
         run().
         map(logType(word)) pipeTo sender
@@ -108,7 +89,31 @@ class SuggestionProvider(compiler:CompletionLike)
       case (set, elem) => set + elem
     }
 
-  private def toStartsWith(word:String) = onlyStartsWith(word).toMat(toSet)(Keep.right)
+  /** Filters all possible suggestions based on String#startsWith or Levenshtein distance */
+  private def toStartsWith(word:String):Sink[Suggestion, Future[Set[Suggestion]]] = {
+    val matcher = new PrefixMatcher(word)
+    /*
+      Creates the following graph:
+          -------> startswith ------
+          |                        |
+      in ->                        -> out
+          |                        |
+          -------> levenshtein -----
+       Each 'Suggestion' is filtered through startsWith AND the levenshtein distance.
+       They are accumulated into a Set afterwards. The Set is used for filtering duplicates.
+     */
+    val suggestionFilter = Flow.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+      val bcast = builder.add(Broadcast[Suggestion](2))
+      val merge = builder.add(Merge[Suggestion](2))
+
+      bcast.out(0) ~> matcher.startsWith ~> merge.in(0)
+      bcast.out(1) ~> matcher.levenshtein ~> merge.in(1)
+
+      FlowShape(bcast.in, merge.out)
+    })
+    suggestionFilter.toMat(toSet)(Keep.right)
+  }
 
   /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */
   private def withParameters: Flow[(String, Suggestion.Kind.Value), (String, Suggestion.Kind.Value, List[String]), NotUsed] =
@@ -130,6 +135,13 @@ class SuggestionProvider(compiler:CompletionLike)
         Suggestion(tpe, name, paramOpt, classComment, None)
     }
 
+
+  private def localVariables(filename:String, lineNo:Int, word:String):Source[Suggestion,_] =
+    (new SrcFileInspector(Paths.get(filename)))
+      .localVariables(Some(lineNo))
+      .map { variable =>
+        Suggestion(Kind.Variable, variable.name, None, variable.docString, Some(variable.`type`))
+      }
 
 /** Returns all components/packages inside of `word`. */
   private def containingPackages(word:String): Source[Suggestion, NotUsed] =
@@ -154,13 +166,11 @@ class SuggestionProvider(compiler:CompletionLike)
       }
 
   private def findMatchingClasses(word:String): Source[Suggestion, NotUsed] = {
-    val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1)
+    val (parent, tpe) = sliceAtLastDot(word)
+    if(tpe.isEmpty)
       toCompletionResponse(word, Future(compiler.getGlobalScope()))
-    else {
-      val parentPackage = word.substring(0, pointIdx)
-      toCompletionResponse(word, compiler.getClassesAsync(parentPackage))
-    }
+    else
+      toCompletionResponse(word, compiler.getClassesAsync(parent))
   }
 
   private def toCompletionResponse(word:String, xs:Future[Set[(String, Kind.Value)]]): Source[Suggestion, NotUsed] =
@@ -169,40 +179,6 @@ class SuggestionProvider(compiler:CompletionLike)
       via(withParameters).
       via(toCompletionResponse)
 
-  private def lines(file:String) =
-    FileIO.fromPath(Paths.get(file)).
-      via(Framing.delimiter(ByteString("\n"), 8192, true)).
-      map(_.utf8String)
-
-  private def nameEquals(word:String) =
-    Flow[(String, String, Option[String])].filter {
-      case (_, name, _) => name == word
-    }
-
-  private def typeOf(filename:String, word:String, lineNo:Int): Source[TypeOf, _] = {
-    val toTypeOf =
-      Flow[(String, String, Option[String])].map {
-        case (tpe, name, comment) => TypeOf(name, tpe, comment)
-      }
-
-    identRegex.r.
-      findFirstIn(word).
-      map { ident =>
-        lines(filename).
-          take(lineNo).
-          via(onlyVariables).
-          via(nameEquals(ident)).
-          via(toTypeOf)
-      }.getOrElse(Source.empty)
-  }
-
-  private def localVariables(filename:String, word:String, lineNo:Int): Source[Suggestion, _] = {
-    val possibleLines = lines(filename).take(lineNo)
-    possibleLines.
-      via(onlyVariables).
-      via(variableResponse)
-  }
-
   def memberAccess(filename:String, word:String, lineNo:Int) = {
     val srcFile =
       Flow[TypeOf].map { tpe =>
@@ -210,26 +186,18 @@ class SuggestionProvider(compiler:CompletionLike)
         else None
       }.collect { case Some(file) => file }
 
-    val pointIdx = word.lastIndexOf(".")
-    if(pointIdx == -1) Source.empty
+    val (objectName, member) = sliceAtLastDot(word)
+    if(member.isEmpty) Source.empty
     else {
-      val objectName = word.substring(0, pointIdx)
-      typeOf(filename, objectName, lineNo).
-        via(srcFile).
-        flatMapConcat(lines).
-        via(onlyVariables).
-        via(propertyResponse).
-        map { resp =>
-          resp.copy(name = objectName+"."+resp.name)
-        }
+      new SrcFileInspector(Paths.get(filename))
+        .typeOf(objectName, lineNo)
+        .via(srcFile)
+        .flatMapConcat{ file => new SrcFileInspector(Paths.get(file)).localVariables(None) }
+        .map { objectVariable =>
+        Suggestion(Kind.Property, objectName+"."+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
+      }
     }
   }
-
-  private def onlyVariables =
-    Flow[String].collect {
-      case variableCommentRegex(tpe,name,comment) => (tpe, name, Some(comment))
-      case variableRegex(tpe, name) => (tpe, name, None)
-    }
 
   val variableResponse =
     Flow[(String,String, Option[String])].map {
@@ -241,9 +209,4 @@ class SuggestionProvider(compiler:CompletionLike)
 
   val propertyResponse =
     variableResponse.map(x => x.copy(kind = Kind.Property))
-
-  def onlyStartsWith(word:String) =
-    Flow[Suggestion].filter { response =>
-      response.name.startsWith(word)
-    }
 }

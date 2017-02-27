@@ -64,7 +64,7 @@ object Global extends FallbackConfig {
     }
 
 
-  def readValuesFromResource(path:URL)(filter: String => Boolean): List[String] = {
+  def readValuesFromResource(path:URL)(filter: Filter[String]): List[String] = {
     Source.fromURL(path, encoding.displayName).getLines.flatMap {
       case s:String if filter(s) => List(s)
       case a:Any => Nil
@@ -73,6 +73,7 @@ object Global extends FallbackConfig {
 
   lazy val encoding = Charset.forName("UTF-8")
   lazy val (configFileURL, configDidExist) = getConfigFile("mope.conf")
+  lazy val recentFilesPath = configDirPath.resolve("recent-files.json")
   lazy val config: Config = ConfigFactory.parseURL(configFileURL).withFallback(fallbackConfig)
   lazy val usLocale = "en_US.UTF-8"
 }

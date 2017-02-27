@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,7 +20,7 @@ package de.thm.mope.server
 import java.nio.file._
 
 import akka.testkit.TestActorRef
-import de.thm.mope._
+import de.thm.mope.TestHelpers._
 import de.thm.mope.compiler._
 import de.thm.mope.position.FilePosition
 import de.thm.mope.project.ProjectDescription
@@ -28,6 +28,8 @@ import de.thm.mope.server.ProjectManagerActor._
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.position._
 import de.thm.mope.doc._
+import de.thm.mope.ActorSpec
+import de.thm.mope.TestHelpers._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -98,26 +100,14 @@ class ProjectManagerActorSpec
     "contain only existent files" in {
       val fileList = manager.getProjectFiles
       val files = Await.result(fileList, 10 seconds)
-      files.toSet shouldEqual allMoFiles.toSet
-    }
-
-    "contain existent files which are sorted" in {
-      val fileList = manager.getProjectFiles
-      val files = Await.result(fileList, 10 seconds)
-      files shouldEqual allMoFiles.sorted
+      files.filterElements(Files.isRegularFile(_)).toSet shouldEqual allMoFiles.toSet
     }
 
     "remove files if they got deleted" in {
       deletedFiles.foreach(Files.delete(_))
       val fileList = manager.getProjectFiles
       val files = Await.result(fileList, 10 seconds)
-      files.toSet shouldEqual remainingFiles.toSet
-    }
-
-    "contain sorted files even if some file got deleted" in {
-      val fileList = manager.getProjectFiles
-      val files = Await.result(fileList, 10 seconds)
-      files shouldEqual remainingFiles.sorted
+      files.filterElements(Files.isRegularFile(_)).toSet shouldEqual remainingFiles.toSet
     }
 
     "return 1 compile error for invalid file" in {

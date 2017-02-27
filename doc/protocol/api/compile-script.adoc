@@ -1,0 +1,38 @@
+=== Compiling a script
+Compiles a Modelica script from the project identified by the given `id`.
+
+IMPORTANT: Even if this function is called compileScript, the compiler is going to execute the given script.
+Don't use this function for bigger simulations, this could kill the server process.
+
+----
+POST /mope/project/:id/compileScript
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An <<FilePath>>-object with a path to the script which should get compiled.
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**#
+| An array containing compiler-errors.
+a|
+[source,json]
+----
+[
+  <Error-Object>,
+  <Error-Object>,
+  ...
+]
+----
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Given filepath is unknown. | string
+|===

@@ -34,7 +34,9 @@ class Server()
 
   override implicit lazy val actorSystem = ActorSystem("moie-system", akkaConfig)
   override implicit lazy val materializer = ActorMaterializer()
-  override lazy val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+  override val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+  override val ensembleHandler = new EnsembleHandler(Global.config, blockingDispatcher)
+
 
   val errors = validateConfig(Global.config)
   if(!Global.configDidExist) {

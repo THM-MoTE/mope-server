@@ -1,24 +1,10 @@
-TEXFILE = ./protocol.tex
-#BIBTEXINPUT = ./report.aux
-PDFFILE = ./protocol.pdf
+html:
+	asciidoctor protocol.adoc
 
-all: compile
+pdf:
+	asciidoctor-pdf protocol.adoc
 
-bib: compile
-	bibtex $(BIBTEXINPUT)
-	make compile
-	make compile
-
-compile:
-	pdflatex $(TEXFILE)
-	pdflatex $(TEXFILE)
-
-display: compile
-	open -a Preview $(PDFFILE)
-
-clean:
-	rm *.aux
-	rm *.log
-	rm *.toc
-	rm *.out
-	rm $(PDFFILE)
+install:
+	gem install asciidoctor
+	gem install coderay
+	gem install --pre asciidoctor-pdf

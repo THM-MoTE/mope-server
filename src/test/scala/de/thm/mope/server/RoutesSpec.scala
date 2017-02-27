@@ -22,10 +22,10 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.testkit.{ScalatestRouteTest, RouteTestTimeout}
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
-import de.thm.mope._
+import de.thm.mope.TestHelpers._
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.ClassComment
@@ -33,6 +33,7 @@ import de.thm.mope.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.mope.suggestion.Suggestion
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion$}
+import de.thm.mope.Global
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await
@@ -44,12 +45,15 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
     override def actorSystem = system
     override implicit lazy val materializer:ActorMaterializer = ActorMaterializer()
     override lazy val projectsManager: ActorRef = system.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+    override val ensembleHandler = new EnsembleHandler(Global.config, blockingDispatcher)
   }
 
   val tmpPath = Files.createTempDirectory("moie")
   val projPath = tmpPath.resolve("routes-test")
 
   val timeout:Duration = 3 seconds
+
+  private implicit val routesTimeout = RouteTestTimeout(5 second span)
 
   override def beforeAll() = {
     Files.createDirectory(projPath)
@@ -75,7 +79,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
 
     "return a valid project-id for POST /mope/connect" in {
       postRequest ~> service.routes ~> check {
-        Thread.sleep(2000)
         responseAs[String] shouldEqual "0"
       }
     }
@@ -246,7 +249,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
-            Thread.sleep(5000)
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]] shouldBe empty
           }
@@ -273,7 +275,6 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
             entity = HttpEntity(MediaTypes.`application/json`, filePathFormat.write(FilePath(validFile.toString)).compactPrint))
 
           compileRequest2 ~> service.routes ~> check {
-            Thread.sleep(5000)
             status shouldEqual StatusCodes.OK
             responseAs[List[CompilerError]] shouldBe empty
           }

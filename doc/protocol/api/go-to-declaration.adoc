@@ -1,0 +1,38 @@
+=== Find the source of a type
+Returns the source/path of the given type.
+Currently only models, classes, packages, functions and local variables are supported.
+
+----
+POST /mope/project/:id/declaration
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An object which contains the position and the word below the cursor.
+Gets decoded as `de.thm.mope.position.CursorPosition` inside the server.
+
+[source,json]
+----
+{
+  "file": <String>, //absolute path to the file which contains the word/symbol
+  "position": <File-Position>, //the position of the word (cursor position) in the file
+  "word": <String> //word/symbol
+}
+----
+
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**# | A <<FileWithLine>>-object containing the source of the type. | FileWithLine
+| [red]#**404 NotFound**# | Given id is unknown. | string
+| [red]#**404 NotFound**# | Parameter class is missing. | string
+| [red]#**404 NotFound**# | Given className can't be found | string
+|===

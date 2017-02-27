@@ -23,7 +23,10 @@ import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
 import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
+import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
+import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
+import omc.{ImportHandler, LoadLibraryException}
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import org.slf4j.LoggerFactory
@@ -36,18 +39,28 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
     val forceEnglish = Global.config.getBoolean("forceEnglish")
-    if(forceEnglish) new OMCClient(executableName, Global.usLocale)
-    else new OMCClient(executableName)
+    val suffixProvider = new CustomIORNameProvider("mope", true)
+    if(forceEnglish) new OMCClient(executableName, Global.usLocale, suffixProvider)
+    else new OMCClient(executableName, suffixProvider)
   }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
   require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
   val rootProjectFile = outputDir.getParent.resolve("package.mo")
+  val rootDir = rootProjectFile.getParent
+
+  val loaderOpt = {
+    val importFile = rootDir.resolve(ImportHandler.importFileName)
+    log.info(if(Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
+    if(Files.exists(importFile)) Some(new ImportHandler(rootDir))
+    else None
+  }
 
   omc.connect()
+  IOUtils.createDirectory(outputDir)
 
+  @deprecated("Use 'parseFiles(TreeLike)' instead", "0.6.X")
   def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
-    createOutputDir(outputDir)
     if(files.exists(isPackageMo)) {
       withOutputDir(outputDir) {
         //expect a package.mo in root-directory
@@ -61,6 +74,47 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
         val xs = loadAllFiles(files)
         fn(xs)
       }
+    }
+  }
+
+  private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
+    /** 1. load all external libraries, if they exist
+      * 2. load all package.mo files
+      * 3. load all non-package.mo files
+      */
+
+    def parseFileList(files: Seq[Path]): Seq[CompilerError] = {
+      log.debug("parseFiles files {}", files)
+      for {
+        file <- files
+        errors <- parseResult(omc.call("loadFile", convertPath(file)))
+      } yield {
+        log.info("parsing returned: {}", errors)
+        errors
+      }
+    }
+
+    withOutputDir(outputDir) {
+      val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
+      val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
+      val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
+
+      val libErrors =
+        loaderOpt.map { loader =>
+          try {
+            loader.loadLibraries(omc)
+            Nil
+          } catch {
+            case ex:LoadLibraryException =>
+              log.warn("Coudln't load all libraries")
+              //transform exception into compiler warning
+              for(error <- ex.errors.asScala)
+                yield CompilerError("Warning", "", FilePosition(0,0), FilePosition(0,0), error)
+          }
+        }.getOrElse(Nil)
+
+      val parseErrors = libErrors ++ parseFileList(pckMoFiles) ++ parseFileList(plainFiles)
+      fn(parseErrors)
     }
   }
 
@@ -85,6 +139,20 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
+  override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
+    /** 1. load all package.mo files
+      * 2. load all non-package.mo files
+      * 3. typecheck
+      */
+     parseFiles(projectTree) { parseErrors =>
+      val modelNameOp: Option[String] = ScriptingHelper.getModelName(openedFile)
+      modelNameOp.
+        map(typecheckIfEmpty(parseErrors, _)).
+        getOrElse(parseErrors)
+    }
+  }
+
+
   private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
     val fileList = asArray(files.map(convertPath).asJava)
     val expr = s"""loadFiles($fileList)"""
@@ -95,8 +163,8 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   override def compileScript(path:Path): Seq[CompilerError] = {
     val startDir = path.getParent
+    omc.sendExpression("clear()")
     withOutputDir(startDir) {
-      omc.sendExpression("clear()")
       val resScript = omc.sendExpression(s"""runScript(${convertPath(path)})""")
       log.debug("runScript returned {}", resScript)
       parseResult(resScript)
@@ -106,6 +174,16 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
 
   override def checkModel(files:List[Path], path: Path): String = {
     setupProject(files) { _ =>
+      val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
+      modelnameOpt.
+        map(omc.checkModel(_)).
+        map(killTrailingQuotes).
+        getOrElse("")
+    }
+  }
+
+  override def checkModel(projectTree:TreeLike[Path], path:Path): String = {
+    parseFiles(projectTree) { _ =>
       val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
       modelnameOpt.
         map(omc.checkModel(_)).
@@ -193,16 +271,21 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
-  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] =
+  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] = {
+    log.debug(s"$model is instantiatable: [{}]", !notInstantiatable(model))
     if(xs.nonEmpty) xs
-    else typecheckModel(model)
-
-  private def typecheckModel(model:String): Seq[CompilerError] = {
-    val res = omc.checkAllModelsRecursive(model)
-    parseErrorMsg(res)
+    else if(notInstantiatable(model)) Seq()
+    else {
+      val res = omc.checkAllModelsRecursive(model)
+      parseErrorMsg(res)
+    }
   }
 
-  def parseErrorMsg(msg:String): Seq[CompilerError] =
+  private def notInstantiatable(model:String):Boolean =
+    omc.is_("Partial", model) || omc.is_("Function", model)
+
+  def parseErrorMsg(msg:String): Seq[CompilerError] = {
+    log.debug("parsing OM error: {}", msg)
     msgParser.parse(msg) match {
       case Success(v) => v
       case Failure(ex) =>
@@ -211,12 +294,8 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
           "",
           FilePosition(0, 0),
           FilePosition(0, 0),
-          "Couldn't understand compiler message."))
+          s"Couldn't understand compiler:\n$msg"))
     }
-
-  private def createOutputDir(path:Path): Unit = {
-    if(!Files.exists(path))
-      Files.createDirectory(path)
   }
 
   private def withOutputDir[A](dir: Path)(f: => A): A = {
