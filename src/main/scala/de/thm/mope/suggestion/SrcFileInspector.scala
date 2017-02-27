@@ -22,18 +22,21 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.ByteString
 
+import de.thm.mope.utils.StreamUtils
 
 class SrcFileInspector(srcFile:Path)(implicit mat: ActorMaterializer) {
   import SrcFileInspector._
 
-  val lines = FileIO.fromPath(srcFile).
-    via(Framing.delimiter(ByteString("\n"), 8192, true)).
-    map(_.utf8String)
+  val lines = FileIO.fromPath(srcFile)
+    .via(Framing.delimiter(ByteString("\n"), 8192, true))
+    .map(_.utf8String)
+    .zip(StreamUtils.numbers.drop(1))
+    .map(_.swap)
 
   def typeOf(word:String, lineNo:Int): Source[TypeOf, _] = {
     val toTypeOf =
       Flow[LocalVariable].map {
-        case LocalVariable(tpe,name,comment) => TypeOf(name, tpe, comment)
+        case LocalVariable(_,tpe,name,comment) => TypeOf(name, tpe, comment)
       }
 
     identRegex.r.
@@ -61,9 +64,9 @@ class SrcFileInspector(srcFile:Path)(implicit mat: ActorMaterializer) {
   }
 
   def onlyVariables =
-    Flow[String].collect {
-      case variableCommentRegex(tpe,name,comment) => LocalVariable(tpe, name, Some(comment))
-      case variableRegex(tpe, name) => LocalVariable(tpe,name,None)
+    Flow[(Int, String)].collect {
+      case (lineNo, variableCommentRegex(tpe,name,comment)) => LocalVariable(lineNo, tpe, name, Some(comment))
+      case (lineNo, variableRegex(tpe, name)) => LocalVariable(lineNo, tpe,name,None)
     }
 }
 
@@ -85,5 +88,8 @@ object SrcFileInspector {
 
   def nonEmptyLines(line:String):Boolean = !line.isEmpty
 
-  case class LocalVariable(`type`:String, name:String, docString:Option[String])
+  case class LocalVariable(lineNo: Int,
+                          `type`:String,
+                          name:String,
+                          docString:Option[String])
 }
