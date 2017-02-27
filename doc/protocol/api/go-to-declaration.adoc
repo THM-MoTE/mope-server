@@ -1,9 +1,9 @@
 === Find the source of a type
 Returns the source/path of the given type.
-Currently only models, classes, packages and functions with full-qualified names are supported.
+Currently only models, classes, packages, functions and local variables are supported.
 
 ----
-GET /mope/project/:id/typeOf
+GET /mope/project/:id/declaration
 ----
 
 ==== URL Parameters
@@ -11,11 +11,21 @@ GET /mope/project/:id/typeOf
 | Name | Description | Required | Schema
 
 | id | Project ID | y | integer
-| className | The model name for which the declaration is queried. | y | string
 |===
 
 ==== Data Parameters
-Empty
+An object which contains the position and the word below the cursor.
+Gets decoded as `de.thm.mope.position.CursorPosition` inside the server.
+
+[source,json]
+----
+{
+  "file": <String>, //absolute path to the file which contains the word/symbol
+  "position": <File-Position>, //the position of the word (cursor position) in the file
+  "word": <String> //word/symbol
+}
+----
+
 
 ==== Responses
 |===
