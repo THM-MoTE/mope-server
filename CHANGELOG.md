@@ -3,6 +3,10 @@
 - protocol documentation now in AsciiDoc
 - internal project representation now as *(filesystem) tree*; not as file list
 - adds opening a file in MoVE via `POST mope/ensemble/move`
+- go to declaration now features local variables & go to declaration uses a new
+  protocol specification: `POST mope/project/:id/declaration`
+- suggestions are additionally matched using the levenshtein distance
+- adds retrieving recently used projects through `GET mope/recent-files`
 
 ### Bugfixes
 - resolve home directory at runtime
