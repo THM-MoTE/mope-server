@@ -1,5 +1,5 @@
 # Changelog of Mo|E-Server
-## Version 0.6.2-pre
+## Version 0.6.2
 - protocol documentation now in AsciiDoc
 - internal project representation now as *(filesystem) tree*; not as file list
 - adds opening a file in MoVE via `POST mope/ensemble/move`
