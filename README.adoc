@@ -3,6 +3,7 @@
 MoPE brings IDE-features for Modelica into your favourite Editor.
 
 NOTE: This is the server-process for MoPE.
+CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
 
 CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
 
