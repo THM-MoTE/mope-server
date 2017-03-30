@@ -1,5 +1,7 @@
 = MoPE - Modelica Integration for Editors
 
+image::https://rawgit.com/THM-MoTE/Logos/master/svgs/MoPE.svg[link="https://rawgit.com/THM-MoTE/Logos/master/svgs/MoPE.svg", align="center"]
+
 MoPE brings IDE-features for Modelica into your favourite Editor.
 
 NOTE: This is the server-process for MoPE.
