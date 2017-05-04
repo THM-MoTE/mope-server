@@ -21,7 +21,7 @@ sealed trait TreeLike[+Elem] {
   type Filter[X] = X => Boolean
   def foreach[U](f: Elem => U): Unit
 
-  def filterElements(p:Filter[Elem]): List[Elem] = this match {
+  def filterElements[E>:Elem](p:Filter[E]): List[Elem] = this match {
     case Leaf(e) if p(e) => List(e)
     case Leaf(e) => Nil
     case Node(e, children) =>
@@ -30,7 +30,7 @@ sealed trait TreeLike[+Elem] {
       else childs
   }
 
-  def find(p:Filter[Elem]):Option[Elem] = {
+  def find[E>:Elem](p:Filter[E]):Option[Elem] = {
     @annotation.tailrec
     def findInSubtrees(trees:List[TreeLike[Elem]]): Option[Elem] = trees match {
       case hd::tl =>
