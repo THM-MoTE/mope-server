@@ -5,7 +5,8 @@ object Dependencies {
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
 
-  private val akkaVersion = "2.4.6"
+  private val akkaVersion = "2.4.18"
+  private val akkaHTTPVersion = "10.0.6"
   private val akkaGroup = "com.typesafe.akka"
 
   val configLib = "com.typesafe" % "config" % "1.3.0"
@@ -16,22 +17,22 @@ object Dependencies {
   )
 
   val akka = Seq(
-    akkaGroup %% "akka-http-core" % akkaVersion,
-    akkaGroup %% "akka-http-experimental" % akkaVersion,
-    akkaGroup %% "akka-http-spray-json-experimental" % akkaVersion,
-    akkaGroup %% "akka-http-testkit" % akkaVersion % Test,
-    akkaGroup %% "akka-testkit" % akkaVersion % Test,
+    akkaGroup %% "akka-http-core" % akkaHTTPVersion,
+    //akkaGroup %% "akka-http-experimental" % akkaHTTPVersion,
+    akkaGroup %% "akka-http-spray-json" % akkaHTTPVersion,
+    akkaGroup %% "akka-http-testkit" % akkaHTTPVersion % Test,
+    // akkaGroup %% "akka-testkit" % akkaVersion % Test,
     akkaGroup %% "akka-slf4j" % akkaVersion
   )
 
-  private val scalaUtilsVersion = "1.0.4"
+  private val scalaUtilsVersion = "1.0.6"
   private val scalaUtilsGroup = "org.scala-lang.modules"
   val scalaUtils = Seq(
      scalaUtilsGroup %% "scala-parser-combinators" % scalaUtilsVersion
   )
 
   val testLib = Seq(
-      "org.scalatest" %% "scalatest" % "2.2.6" % Test
+      "org.scalatest" %% "scalatest" % "3.0.3" % Test
   )
 
   val ewsProject = fromFile("../EnhancedWatchService")
