@@ -59,24 +59,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   omc.connect()
   IOUtils.createDirectory(outputDir)
 
-  @deprecated("Use 'parseFiles(TreeLike)' instead", "0.6.X")
-  def setupProject[A](files: List[Path])(fn: Seq[CompilerError] => A):A = {
-    if(files.exists(isPackageMo)) {
-      withOutputDir(outputDir) {
-        //expect a package.mo in root-directory
-        if(Files.exists(rootProjectFile)) {
-          val xs = parseResult(omc.call("loadFile", convertPath(rootProjectFile)))
-          fn(xs)
-        } else throw new NotFoundException(s"Expected a root `package.mo`-file in ${rootProjectFile.getParent}")
-      }
-    } else {
-      withOutputDir(outputDir) {
-        val xs = loadAllFiles(files)
-        fn(xs)
-      }
-    }
-  }
-
   private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
     /** 1. load all external libraries, if they exist
       * 2. load all package.mo files
@@ -118,27 +100,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  override def compile(files: List[Path], openedFile:Path): Seq[CompilerError] = {
-    files.headOption match {
-      case Some(path) =>
-        try {
-          setupProject(files) { xs =>
-            val modelnameOpt: Option[String] = ScriptingHelper.getModelName(openedFile)
-            modelnameOpt.
-              map(typecheckIfEmpty(xs, _)).
-              getOrElse(xs)
-          }
-        } catch {
-          case e:NotFoundException => List(CompilerError("Error",
-            rootProjectFile.toString,
-            FilePosition(0, 0),
-            FilePosition(0, 0),
-            e.msg))
-        }
-      case None => Seq[CompilerError]()
-    }
-  }
-
   override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
     /** 1. load all package.mo files
       * 2. load all non-package.mo files
@@ -168,17 +129,6 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       val resScript = omc.sendExpression(s"""runScript(${convertPath(path)})""")
       log.debug("runScript returned {}", resScript)
       parseResult(resScript)
-    }
-  }
-
-
-  override def checkModel(files:List[Path], path: Path): String = {
-    setupProject(files) { _ =>
-      val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
-      modelnameOpt.
-        map(omc.checkModel(_)).
-        map(killTrailingQuotes).
-        getOrElse("")
     }
   }
 

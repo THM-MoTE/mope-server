@@ -41,16 +41,7 @@ trait ModelicaCompiler
   /** Compiles the given `files`, typechecks the `openedFile` and returns found errors.
     * `openedFile` should be the currently opened file inside the editor.
     */
-  @deprecated("Use 'compile(projectTree:TreeLike[Path])' instead", "0.6.X")
-  def compile(files:List[Path], openedFile:Path): Seq[CompilerError]
-
-  def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = ???
-
-  /** Future-wrapped version of compile() */
-  @deprecated("Use 'compile(projectTree:TreeLike[Path])' instead", "0.6.X")
-  def compileAsync(files:List[Path], openedFile:Path)(
-    implicit context:ExecutionContext): Future[Seq[CompilerError]] =
-    Future(compile(files, openedFile))
+  def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError]
 
   /** Executes the given script and returns found errors. */
   def compileScript(path:Path): Seq[CompilerError]
@@ -65,14 +56,7 @@ trait ModelicaCompiler
     * `files` are needed to compile all models.
     * This list should be identical to the `files` list in compile().
     */
-  def checkModel(files:List[Path], path:Path): String
-
-  def checkModel(projectTree:TreeLike[Path], path:Path): String = ???
-
-  /** Future-wrapped version of checkModel() */
-  def checkModelAsync(files:List[Path], path:Path)(
-    implicit context:ExecutionContext): Future[String] =
-    Future(checkModel(files, path))
+  def checkModel(projectTree:TreeLike[Path], path:Path): String
 
   override def getClassComment(className:String): Option[String] = getClassDocumentation(className)
 }

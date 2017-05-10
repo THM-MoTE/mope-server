@@ -48,14 +48,6 @@ class JMCompiler(executableName:String, outputDir:Path)
     scriptPath
   }
 
-  override def compile(files:List[Path], openedFile:Path): Seq[CompilerError] = {
-    val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
-    if(files.exists(isPackageMo))
-      compile(files, modelname, true)
-    else
-      compile(files, modelname, false)
-  }
-
   override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
     val files = projectTree.filterElements(Files.isRegularFile(_))
     val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
