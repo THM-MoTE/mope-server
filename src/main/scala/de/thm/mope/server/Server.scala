@@ -53,13 +53,13 @@ class Server()
   val bindingFuture =
     Http().bindAndHandle(routes, interface, port)
 
-  bindingFuture.onFailure {
-    case ex:Exception =>
+  bindingFuture onComplete {
+    case scala.util.Success(_) =>
+      serverlog.info("Server running at {}:{}", interface, port)
+    case scala.util.Failure(ex) =>
       serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
       actorSystem.terminate()
   }
-
-  bindingFuture.onSuccess { case _ => serverlog.info("Server running at {}:{}", interface, port) }
 
   if(applicationMode == ApplicationMode.Development) {
     Future {
