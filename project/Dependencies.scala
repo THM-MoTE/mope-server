@@ -35,9 +35,12 @@ object Dependencies {
       "org.scalatest" %% "scalatest" % "3.0.3" % Test
   )
 
+  val moteLib = Seq(
+    "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
+  )
+
   val ewsProject = fromFile("../EnhancedWatchService")
-  val corbaProject = fromFile("../omc-java-api/")
   val recentlyProject = fromFile("../recently")
 
-  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib)
+  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib)
 }
