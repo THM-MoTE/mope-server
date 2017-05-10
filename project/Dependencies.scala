@@ -39,8 +39,8 @@ object Dependencies {
     "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
   )
 
-  val ewsProject = fromFile("../EnhancedWatchService")
-  val recentlyProject = fromFile("../recently")
+  val ewsProject = fromGithub("https://github.com/THM-MoTE/EnhancedWatchService.git")
+  val recentlyProject = fromGithub("https://github.com/THM-MoTE/recently.git")
 
   val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib)
 }
