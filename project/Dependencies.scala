@@ -5,8 +5,8 @@ object Dependencies {
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
 
-  private val akkaVersion = "2.4.18"
-  private val akkaHTTPVersion = "10.0.6"
+  private val akkaVersion = "2.5.4"
+  private val akkaHTTPVersion = "10.0.10"
   private val akkaGroup = "com.typesafe.akka"
 
   val configLib = "com.typesafe" % "config" % "1.3.0"
