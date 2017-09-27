@@ -5,7 +5,7 @@ object Dependencies {
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
 
-  private val akkaVersion = "2.5.4"
+  private val akkaVersion = "2.4.19"
   private val akkaHTTPVersion = "10.0.10"
   private val akkaGroup = "com.typesafe.akka"
 
@@ -18,10 +18,9 @@ object Dependencies {
 
   val akka = Seq(
     akkaGroup %% "akka-http-core" % akkaHTTPVersion,
-    //akkaGroup %% "akka-http-experimental" % akkaHTTPVersion,
     akkaGroup %% "akka-http-spray-json" % akkaHTTPVersion,
     akkaGroup %% "akka-http-testkit" % akkaHTTPVersion % Test,
-    // akkaGroup %% "akka-testkit" % akkaVersion % Test,
+    akkaGroup %% "akka-testkit" % akkaVersion % Test,
     akkaGroup %% "akka-slf4j" % akkaVersion
   )
 
