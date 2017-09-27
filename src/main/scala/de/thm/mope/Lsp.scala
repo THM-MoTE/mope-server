@@ -9,7 +9,7 @@ import akka.util.ByteString
 import akka.stream.scaladsl._
 import spray.json._
 import com.typesafe.config.ConfigFactory
-import de.thm.mope.lsp.{LspServer, RpcMsg}
+import de.thm.mope.lsp.{LspServer, RequestMessage}
 
 object Lsp
     extends App
@@ -50,7 +50,7 @@ object Lsp
 
   log.debug("running the stream")
 
-  Source(List(RpcMsg(1, "compile", 50.toJson)))//, RpcMsg(2, "complete", "nico".toJson)))
+  Source(List(RequestMessage(1, "compile", 50.toJson)))//, RpcMsg(2, "complete", "nico".toJson)))
     .map { msg =>
       ByteString(s"""
          |Content-Type: text/utf-8

@@ -21,9 +21,9 @@ class LspServer(implicit val system:ActorSystem)
   val rpcParser = Flow[String].fold("")((acc,elem) => acc+elem)
     .filterNot(_.trim.isEmpty)
     .log("parsing")
-    .map { s => s.parseJson.convertTo[RpcMsg] }
+    .map { s => s.parseJson.convertTo[RequestMessage] }
 
-  def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcHandler[I,O]):Flow[ByteString,ByteString,NotUsed] = {
+  def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,NotUsed] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows)
     Flow[ByteString]
       .via(Framing.delimiter(ByteString("\n"), 8024, true))
