@@ -24,6 +24,7 @@ import de.thm.mope.doc.ClassComment
 import de.thm.mope.position._
 import de.thm.mope.project._
 import de.thm.mope.lsp._
+import de.thm.mope.lsp.messages.{RequestMessage, ResponseMessage}
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}

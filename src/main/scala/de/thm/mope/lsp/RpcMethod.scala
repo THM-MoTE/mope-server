@@ -1,7 +1,8 @@
 package de.thm.mope.lsp
 
 import akka.stream.scaladsl._
-import spray.json.{JsonFormat,JsValue}
+import de.thm.mope.lsp.messages.RequestMessage
+import spray.json.{JsValue, JsonFormat}
 
 case class RpcMethod[In:JsonFormat, Out:JsonFormat](
   methodName:String, next:Option[RpcMethod[_,_]] = None)(

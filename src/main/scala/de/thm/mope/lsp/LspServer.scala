@@ -6,6 +6,7 @@ import akka.event.Logging
 import akka.stream._
 import akka.util.ByteString
 import akka.stream.scaladsl._
+import de.thm.mope.lsp.messages.{RequestMessage, ResponseMessage}
 import spray.json._
 import de.thm.mope.server.JsonSupport
 import de.thm.mope.utils.StreamUtils

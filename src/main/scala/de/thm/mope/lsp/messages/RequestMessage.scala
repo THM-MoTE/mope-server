@@ -1,4 +1,4 @@
-package de.thm.mope.lsp
+package de.thm.mope.lsp.messages
 
 import spray.json.JsValue
 

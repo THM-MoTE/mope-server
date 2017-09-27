@@ -9,7 +9,8 @@ import akka.util.ByteString
 import akka.stream.scaladsl._
 import spray.json._
 import com.typesafe.config.ConfigFactory
-import de.thm.mope.lsp.{LspServer, RequestMessage}
+import de.thm.mope.lsp.LspServer
+import de.thm.mope.lsp.messages.RequestMessage
 
 object Lsp
     extends App
