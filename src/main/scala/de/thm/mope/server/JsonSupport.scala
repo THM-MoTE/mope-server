@@ -23,6 +23,7 @@ import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.ClassComment
 import de.thm.mope.position._
 import de.thm.mope.project._
+import de.thm.mope.lsp._
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
@@ -47,4 +48,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val typeOfFormat:RootJsonFormat[TypeOf] = jsonFormat3(TypeOf)
   implicit val typeRequestFormat:RootJsonFormat[TypeRequest] = jsonFormat3(TypeRequest)
   implicit val cursorPosFormat:RootJsonFormat[CursorPosition] = jsonFormat3(CursorPosition)
+  implicit val rpcFormat = jsonFormat4(RpcMsg)
+  implicit val respMsgFormat = jsonFormat3(ResponseMessage)
 }

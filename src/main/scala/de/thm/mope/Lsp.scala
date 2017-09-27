@@ -6,11 +6,37 @@ import akka.util.ByteString
 import akka.stream.scaladsl._
 import spray.json._
 import com.typesafe.config.ConfigFactory
+import de.thm.mope.lsp.{LspServer, RpcMsg}
 
 object Lsp
     extends App
-    with server.JsonSupport {
+    with server.JsonSupport
+    with lsp.Routes {
 
+  implicit val system = ActorSystem("lsp-test", ConfigFactory.load("/mope.conf"))
+  implicit val context =  system.dispatcher
+  implicit val mat = ActorMaterializer()
+
+  val server = new LspServer()
+
+  val pipeline = server.connectTo(routes)
+
+
+  Source(List(RpcMsg(1, "compile", 50.toJson), RpcMsg(2, "complete", "nico".toJson)))
+    .map { msg =>
+      ByteString(s"""
+         |Content-Type: text/utf-8
+         |Content-Length: 58
+         |
+         |${msg.toJson}
+       """.stripMargin)
+    }
+    .via(pipeline)
+    .map(_.utf8String)
+    .runForeach(println)
+    .onComplete(_ => system.terminate())
+
+/*
   case class RpcMsg(jsonrpc:String, id:Int, method:String, params:JsValue)
   implicit val rpcFormat = jsonFormat4(RpcMsg)
 
@@ -74,7 +100,7 @@ $body
     .mergeSubstreams
     .runForeach(println)
     .onComplete(_ => system.terminate())
-
+ */
  //  Source(0 until 50)
  //    .splitWhen(_%5==0)
  //    .fold(List.empty[Int])((acc,elem) => elem::acc)

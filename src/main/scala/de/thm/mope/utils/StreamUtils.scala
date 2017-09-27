@@ -22,4 +22,16 @@ import akka.stream.scaladsl._
 
 object StreamUtils {
   val numbers: Source[Int, _] = Source.unfold(0) { n => Some(n+1 -> n)}
+
+  def broadcastAll[In,Out,Mat](xs:List[Flow[In,Out,Mat]]):Flow[In,Out,akka.NotUsed] = Flow.fromGraph(GraphDSL.create() {
+    implicit builder: GraphDSL.Builder[akka.NotUsed] =>
+      import GraphDSL.Implicits._
+      val bcast = builder.add(Broadcast[In](xs.size))
+      val merge = builder.add(Merge[Out](xs.size))
+
+      for (flow <- xs) {
+        bcast ~> flow ~> merge
+      }
+      FlowShape(bcast.in, merge.out)
+  })
 }
