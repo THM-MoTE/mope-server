@@ -1,49 +1,77 @@
 package de.thm.mope
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream._
 import akka.util.ByteString
 import akka.stream.scaladsl._
+import spray.json._
+import com.typesafe.config.ConfigFactory
 
 object Lsp
-    extends App {
+    extends App
+    with server.JsonSupport {
 
-  val body = """{
-	"jsonrpc": "2.0",
-	"id": 1,
-	"method": "textDocument/didOpen",
-	"params": {
-		"test":1
-	}
-}
-""".getBytes("UTF-8")
+  case class RpcMsg(jsonrpc:String, id:Int, method:String, params:JsValue)
+  implicit val rpcFormat = jsonFormat4(RpcMsg)
+
+  val rpc = RpcMsg("2", 1, "open", JsNumber(3))
+
+  val body = rpc.toJson.toString
   val header = s"""Content-Type: text/utf-8
 Content-Length: ${body.size}
 
-""".getBytes("ASCII")
+$body
+"""
 
-  val msg = header ++ body //++ header
-
-  // println(new String(msg))
+  val msg = header.getBytes("UTF-8")
 
   val stream = new java.io.ByteArrayInputStream(msg)
 
-  implicit val system = ActorSystem("lsp-test")
+  val decider: Supervision.Decider = { e =>
+    system.log.error("Unhandled exception in stream", e)
+    Supervision.Resume
+  }
+
+  implicit val system = ActorSystem("lsp-test", ConfigFactory.load("/mope.conf"))
   implicit val context =  system.dispatcher
-  implicit val mat = ActorMaterializer()
+  implicit val mat = ActorMaterializer(ActorMaterializerSettings(system).withSupervisionStrategy(decider))
 
   val lengthRegex = """Content-Length:\s+(\d+)""".r
+  val headerRegex = """([\w-]+):\s+([\d\w-/]+)""".r
 
-  StreamConverters.fromInputStream(() => stream, 24)
+  val rpcParser = Flow[String].fold("")((acc,elem) => acc+elem)
+    //.filterNot(_.trim.isEmpty)
+    .map{s => println(s"before-json $s"); s}
+    .map { s => s.parseJson.convertTo[RpcMsg] }
+    .map{o => println(s"got obj $o"); o}
+    .map{o => o.params.convertTo[Int] }
+    .map{i => println(s"number $i"); i }
+
+  val consumeMsg = Flow.fromGraph(GraphDSL.create() { implicit builder:GraphDSL.Builder[akka.NotUsed] =>
+    import GraphDSL.Implicits._
+    val bcast = builder.add(Broadcast[String](2))
+    val header = builder.add(Flow[String].takeWhile(_.matches(headerRegex.regex)).to(Sink.ignore))
+    val body = builder.add(
+      Flow[String].fold("")((acc,elem) => acc+elem)
+      .filter(_.trim.isEmpty)
+      .map(s => rpcFormat.read(s.toJson))
+    )
+    bcast ~> header
+    bcast ~> body
+    FlowShape(bcast.in, body.out)
+  })
+
+  StreamConverters.fromInputStream(() => stream)
     .via(Framing.delimiter(ByteString("\n"), 8024, true))
     .map(_.utf8String)
-  // .map{str => println("inspect: "+str) ; str}
+   .map{str => println("inspect: "+str) ; str}
     .splitWhen(_.matches(lengthRegex.regex))
-  //fold together until size reached; turn into string & mergeSubstreams
-    .drop(1)
-    .fold("[sub]: ")((acc,elem) => acc+elem)
+      .dropWhile(s => s.matches(headerRegex.regex) || s.trim.isEmpty)
+      .map{str => println("after-split: "+str) ; str}
+      //.log("after-drop")
+    //fold together until size reached; turn into string & mergeSubstreams
+      .via(rpcParser)
     .mergeSubstreams
-    .filter(s => s.trim != "[sub]:")
     .runForeach(println)
     .onComplete(_ => system.terminate())
 
