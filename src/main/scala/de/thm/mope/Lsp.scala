@@ -12,6 +12,9 @@ import com.typesafe.config.ConfigFactory
 import de.thm.mope.lsp.LspServer
 import de.thm.mope.lsp.messages.RequestMessage
 
+import scala.concurrent.Future
+import scala.io.StdIn
+
 object Lsp
     extends App
     with server.JsonSupport
@@ -31,36 +34,37 @@ object Lsp
 
   val pipeline = server.connectTo(routes)
 
-//  val connection = Tcp().bindAndHandle(pipeline, interface, port)
-//
-//  connection.onComplete {
-//    case scala.util.Success(_) =>
-//      log.info("LSP-TCP-Server running at {}:{}", interface, port)
-//    case scala.util.Failure(ex) =>
-//      log.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
-//      system.terminate()
-//  }
-//
-//  Future {
-//    log.info("Press Enter to interrupt")
-//    StdIn.readLine()
-//    connection.
-//      flatMap(_.unbind()).
-//      onComplete(_ => system.terminate())
-//  }
+   val connection = Tcp().bindAndHandle(pipeline, interface, port)
 
-  log.debug("running the stream")
+   connection.onComplete {
+     case scala.util.Success(_) =>
+       log.info("LSP-TCP-Server running at {}:{}", interface, port)
+     case scala.util.Failure(ex) =>
+       log.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
+       system.terminate()
+   }
 
-  Source(List(RequestMessage(1, "compile", 50.toJson)))//, RpcMsg(2, "complete", "nico".toJson)))
-    .map { msg =>
-      ByteString(s"""
-         |Content-Type: text/utf-8
-         |Content-Length: 58
-         |
-         |${msg.toJson}""".stripMargin)
-    }
-    .via(pipeline)
-    .map(_.utf8String)
-    .runForeach(println)
-    .onComplete(_ => system.terminate())
+   Future {
+     log.info("Press Enter to interrupt")
+     StdIn.readLine()
+     connection.
+       flatMap(_.unbind()).
+       onComplete(_ => system.terminate())
+   }
+
+// log.debug("running the stream")
+//
+// Source(List(RequestMessage(1, "compile", 50.toJson,"2.0"), RequestMessage(2, "compile", 100.toJson,"2.0")))
+//   .map { msg =>
+//     val bs = ByteString(s"""\r\nContent-Type: text/utf-8\r
+//        |Content-Length: 58\r\n
+//        |${msg.toJson}""".stripMargin)
+//     println("input: "+bs.utf8String)
+//     bs
+//   }
+//   .via(pipeline)
+//   .map(_.utf8String)
+//   .runForeach(println)
+//   .onComplete(_ => system.terminate())
+
  }

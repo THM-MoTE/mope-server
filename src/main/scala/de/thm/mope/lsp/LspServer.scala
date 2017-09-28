@@ -16,39 +16,37 @@ class LspServer(implicit val system:ActorSystem)
 
   val lengthRegex = """Content-Length:\s+(\d+)""".r
   val headerRegex = """\s*([\w-]+):\s+([\d\w-\/]+)\s*""".r
-
   implicit val log = Logging(system, getClass)
 
   val rpcParser = Flow[String].fold("")((acc,elem) => acc+elem)
+    .map(_.replaceAll("""(\r\n?)""", "\n")) //replace windows linebreaks
     .filterNot(_.trim.isEmpty)
     .log("parsing")
     .map { s => s.parseJson.convertTo[RequestMessage] }
 
   def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,NotUsed] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows)
+
     Flow[ByteString]
       .via(Framing.delimiter(ByteString("\n"), 8024, true))
-      .map(_.utf8String)
-      .splitWhen(_.matches(lengthRegex.regex))
-      .filterNot(s => s.matches(headerRegex.regex))
-      .log("in")
-      .via(rpcParser)
-      .log("scala-obj")
+      .via(new ProtocolHandler())
+      .log("raw-json")
+      .map { s => s.parseJson.convertTo[RequestMessage] }
+      .log("parsed")
       .flatMapConcat { msg =>
         Source.single(msg)
           .via(handlers)
-        .map { params =>
-          ResponseMessage(msg.id,params).toJson.toString
-        }.map { body =>
+          .map { params =>
+            ResponseMessage(msg.id,params).toJson.toString
+          }.map { body =>
           s"""
-             |Content-Length: ${body.length}
-             |
-             |$body
-           """.stripMargin
+             |Content-Length: ${body.length}\r
+             |\r
+             |$body\r
+             """.stripMargin
         }
       }
-      .mergeSubstreams
-      .map(ByteString(_))
       .log("out")
+      .map(ByteString(_))
   }
 }
