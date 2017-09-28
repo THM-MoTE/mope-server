@@ -22,8 +22,9 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.position.FilePosition
+import org.scalatest.{Assertion, Inspectors, Matchers}
 
-object TestHelpers {
+object TestHelpers extends Matchers with Inspectors {
 
   def invalidFileError(file:Path) = CompilerError("Error",
     file.toRealPath().toString,
@@ -85,5 +86,10 @@ object TestHelpers {
         FileVisitResult.CONTINUE
       }
     })
+  }
+
+  def listAssert[A,B](xs:Traversable[A], ys:Traversable[B]): Assertion = {
+    xs should have size (ys.size)
+    xs shouldBe ys
   }
 }

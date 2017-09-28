@@ -18,15 +18,20 @@
 package de.thm.mope
 
 import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import akka.testkit.{ImplicitSender, TestKit}
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-abstract class ActorSpec extends TestKit(ActorSystem("specSystem"))
+abstract class ActorSpec extends TestKit(ActorSystem("specSystem", ConfigFactory.load("mope.conf")))
   with ImplicitSender
-  with WordSpecLike
-  with Matchers
+  with MopeSpec
   with BeforeAndAfterAll {
-    override def afterAll = {
+
+  implicit lazy val mat = ActorMaterializer()
+  implicit lazy val context = system.dispatcher
+
+  override def afterAll = {
       TestKit.shutdownActorSystem(system)
     }
   }
