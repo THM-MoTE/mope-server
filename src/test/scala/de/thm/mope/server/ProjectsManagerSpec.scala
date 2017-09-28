@@ -34,7 +34,7 @@ class ProjectsManagerSpec()
   extends ActorSpec {
 
   val timeout = 5 seconds
-  implicit val time = Timeout(timeout)
+  implicit val time = Timeout(5 seconds)
 
   val projPath = Files.createTempDirectory("moie")
   val projectPath = projPath.toAbsolutePath().toString()
