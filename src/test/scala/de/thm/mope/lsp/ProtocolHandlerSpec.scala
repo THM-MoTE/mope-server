@@ -16,14 +16,19 @@ class ProtocolHandlerSpec extends ActorSpec with JsonSupport {
   val inputElems = List.tabulate(5)(i => RequestMessage(2, "compile", (i+50).toJson) )
 
   val createMsg = Flow[RequestMessage]
-    .map { msg =>
+    .mapConcat { msg =>
       val payload = msg.toJson.prettyPrint
-      ByteString(s"""Content-Type: text/utf-8\r
-                   |Content-Length: ${payload.length}\r\n
-                   |""".stripMargin) ++ (payload+"\r\n").getBytes("UTF-8")
+      List(
+        ByteString("Content-Type: text/utf-8\r\n"),
+        ByteString(s"Content-Length: ${payload.length}\r\n"),
+        ByteString("\r\n"),
+        ByteString(payload),
+        ByteString("\r\n")
+      )
     }
+
   val pipeline = Flow[ByteString]
-    .via(Framing.delimiter(ByteString("\n"), 8024, true))
+    .via(Framing.delimiter(ByteString("\n"), Int.MaxValue, true))
     .via(new ProtocolHandler())
 
   "The LS-Protocol-Handler" should {
