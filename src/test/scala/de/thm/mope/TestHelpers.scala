@@ -22,9 +22,11 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.position.FilePosition
-import org.scalatest.{Assertion, Inspectors, Matchers}
+import org.scalatest.Inspectors._
+import org.scalatest.Matchers._
+import org.scalatest.Assertion
 
-object TestHelpers extends Matchers with Inspectors {
+object TestHelpers {
 
   def invalidFileError(file:Path) = CompilerError("Error",
     file.toRealPath().toString,
