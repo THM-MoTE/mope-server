@@ -22,13 +22,11 @@ class ProtocolHandlerSpec extends ActorSpec with JsonSupport {
         ByteString("Content-Type: text/utf-8\r\n"),
         ByteString(s"Content-Length: ${payload.length}\r\n"),
         ByteString("\r\n"),
-        ByteString(payload),
-        ByteString("\r\n")
+        ByteString(payload)
       )
     }
 
   val pipeline = Flow[ByteString]
-    .via(Framing.delimiter(ByteString("\n"), Int.MaxValue, true))
     .via(new ProtocolHandler())
 
   "The LS-Protocol-Handler" should {
@@ -61,6 +59,22 @@ class ProtocolHandlerSpec extends ActorSpec with JsonSupport {
 
       whenReady(fut) { seq =>
         listAssert(seq.map(_.parseJson.convertTo[RequestMessage]), inputElems)
+      }
+    }
+
+    "handle one message without a last linebreak" in {
+      val fut = Source.actorRef[RequestMessage](5, OverflowStrategy.dropNew)
+        .mapMaterializedValue { ref =>
+          Future {
+              Thread.sleep(200) //delay element
+              ref ! inputElems.head
+          }
+        }
+        .via(createMsg)
+        .via(pipeline)
+        .runWith(Sink.head)
+      whenReady(fut) { msg =>
+        msg.parseJson.convertTo[RequestMessage] should be (inputElems.head)
       }
     }
   }

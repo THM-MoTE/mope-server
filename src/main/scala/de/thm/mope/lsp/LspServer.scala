@@ -28,7 +28,6 @@ class LspServer(implicit val system:ActorSystem)
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows)
 
     Flow[ByteString]
-      .via(Framing.delimiter(ByteString("\n"), 8024, true))
       .via(new ProtocolHandler())
       .log("raw-json")
       .map { s => s.parseJson.convertTo[RequestMessage] }
