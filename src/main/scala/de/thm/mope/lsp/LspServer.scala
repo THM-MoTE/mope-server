@@ -36,14 +36,11 @@ class LspServer(implicit val system:ActorSystem)
         Source.single(msg)
           .via(handlers)
           .map { params =>
-            ResponseMessage(msg.id,params).toJson.toString
-          }.map { body =>
-          s"""
-             |Content-Length: ${body.length}\r
+            val body = ResponseMessage(msg.id,params).toJson.toString
+            s"""Content-Length: ${body.length}\r
              |\r
-             |$body\r
-             """.stripMargin
-        }
+             |$body""".stripMargin
+          }
       }
       .log("out")
       .map(ByteString(_))
