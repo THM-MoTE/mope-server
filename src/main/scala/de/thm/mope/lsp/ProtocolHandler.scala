@@ -21,7 +21,7 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
     new GraphStageLogic(shape) with StageLogging {
       var remainingBytes = 0
 //      var readPayload = false
-      var state:ByteString => Unit = readHeader
+      var state:ByteString => Unit = readHeader //are we reading header or payload?
       var headerBuffer = ByteString.empty
       var payloadBuffer = ByteString.empty
 
@@ -32,19 +32,21 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
           .toMap
       }
 
+      /** Reads headers and continues till it receives '\r\n\r\n'.
+        * Switches to readPayload afterwards.
+        */
       def readHeader(currentBuffer:ByteString): Unit = {
         val currentHeader = headerBuffer ++ currentBuffer
         val idx = currentHeader indexOfSlice separator
         log.debug("reading header: {} idx: {}", currentBuffer.utf8String, idx)
 
-        if(idx<0) { //there's not separator -> still reading header
+        if(idx<0) { //there's no separator -> still reading header
           headerBuffer ++= currentBuffer
           pull(in)
         } else {
           //split header & payload & continue with reading payload
           val (header, payload) = currentHeader.splitAt(idx)
           headerBuffer ++= header //now contains full header
-          //drop separator characters
           log.debug("header: {}",headerBuffer.utf8String)
           val headers = parseHeaders(headerBuffer)
           log.debug("parsed headers: {}",headers)
@@ -54,6 +56,9 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
         }
       }
 
+      /** Reads payload until remainingbytes <0.
+        * Switches into readHeaders afterwards.
+        */
       def readPayload(currentBuffer:ByteString):Unit = {
         log.debug("reading payload: {}", currentBuffer.utf8String)
         payloadBuffer ++= currentBuffer
