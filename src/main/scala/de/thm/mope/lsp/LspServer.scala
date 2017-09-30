@@ -14,27 +14,19 @@ import de.thm.mope.utils.StreamUtils
 class LspServer(implicit val system:ActorSystem)
     extends JsonSupport {
 
-  val lengthRegex = """Content-Length:\s+(\d+)""".r
-  val headerRegex = """\s*([\w-]+):\s+([\d\w-\/]+)\s*""".r
   implicit val log = Logging(system, getClass)
-
-  val rpcParser = Flow[String].fold("")((acc,elem) => acc+elem)
-    .map(_.replaceAll("""(\r\n?)""", "\n")) //replace windows linebreaks
-    .filterNot(_.trim.isEmpty)
-    .log("parsing")
-    .map { s => s.parseJson.convertTo[RequestMessage] }
 
   def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,NotUsed] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows)
 
     Flow[ByteString]
       .via(new ProtocolHandler())
-      .log("raw-json")
       .map { s => s.parseJson.convertTo[RequestMessage] }
-      .log("parsed")
+      .log("in")
       .flatMapConcat { msg =>
         Source.single(msg)
           .via(handlers)
+          .log("out")
           .map { params =>
             val body = ResponseMessage(msg.id,params).toJson.toString
             s"""Content-Length: ${body.length}\r
@@ -42,7 +34,6 @@ class LspServer(implicit val system:ActorSystem)
              |$body""".stripMargin
           }
       }
-      .log("out")
       .map(ByteString(_))
   }
 }
