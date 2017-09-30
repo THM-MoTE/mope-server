@@ -6,9 +6,9 @@ import spray.json._
 trait Routes extends JsonSupport {
 
   val initializeResponse =
-    Map(
+    Map[String, JsValue](
       "textDocumentSync" -> 0.toJson,
-      "completionProvider" -> JsObject("resolveProvider" -> false.toJson),
+      "completionProvider" -> JsObject("resolveProvider" -> false.toJson, "triggerCharacters" -> Seq(".").toJson),
       "definitionProvider" -> true.toJson,
     ).toJson
 
@@ -17,6 +17,6 @@ trait Routes extends JsonSupport {
   ) | RpcMethod("complete")(
     Flow[String].map(_.toUpperCase)
   ) | RpcMethod("initialize") (
-    Flow[JsValue].map(_ => initializeResponse)
+    Flow[JsValue].map(_ => JsObject("capabilities" ->initializeResponse))
   )
 }
