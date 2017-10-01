@@ -52,4 +52,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val rpcFormat = jsonFormat4(RequestMessage)
   implicit val respErrFormat = jsonFormat2(ResponseError.apply)
   implicit val respMsgFormat = jsonFormat4(ResponseMessage)
+  implicit val initParamsFormat = jsonFormat6(InitializeParams)
 }

@@ -2,6 +2,7 @@ package de.thm.mope.lsp
 import akka.stream.scaladsl._
 import de.thm.mope.server.JsonSupport
 import spray.json._
+import de.thm.mope.lsp.messages._
 
 trait Routes extends JsonSupport {
 
@@ -17,6 +18,8 @@ trait Routes extends JsonSupport {
   ) | RpcMethod("complete")(
     Flow[String].map(_.toUpperCase)
   ) | RpcMethod("initialize") (
-    Flow[JsValue].map(_ => JsObject("capabilities" ->initializeResponse))
+    Flow[InitializeParams].map { params =>
+      JsObject("capabilities" ->initializeResponse)
+    }
   )
 }
