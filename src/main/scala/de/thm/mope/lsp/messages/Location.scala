@@ -1,3 +1,5 @@
 package de.thm.mope.lsp.messages
 
-case class Location(uri:String, range:Range)
+import de.thm.mope.lsp._
+
+case class Location(uri:DocumentUri, range:Range)
