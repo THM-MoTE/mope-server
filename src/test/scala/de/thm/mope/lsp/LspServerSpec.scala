@@ -16,7 +16,7 @@ class LspServerSpec extends ActorSpec with JsonSupport {
   val inputElem = RequestMessage(2, "double", 50.toJson)
   val outputElem = ResponseMessage(inputElem.id, Some((50*2).toJson), None)
 
-  val handler = RpcMethod("double")(Flow[Int].map(_*2))
+  val handler = RpcMethod("double"){ i:Int => Future.successful(i*2) }
 
   val createMsg = Flow[RequestMessage]
     .mapConcat { msg =>
@@ -68,6 +68,14 @@ class LspServerSpec extends ActorSpec with JsonSupport {
         val msg = actualJson.parseJson.convertTo[ResponseMessage]
         msg.error.get.code should be (ErrorCodes.MethodNotFound)
         msg.error.get.message should be ("Method 'unknown' not found")
+      }
+    }
+    s"return error ${ErrorCodes.ParseError} for falsy json objects" in {
+      val elem = RequestMessage(2, "double", false.toJson)
+      whenReady(Source.single(elem).toMat(pipeline)(Keep.right).run()) { str =>
+        val actualJson = str.split("\r\n").last
+        val msg = actualJson.parseJson.convertTo[ResponseMessage]
+        msg.error.get.code should be (ErrorCodes.ParseError)
       }
     }
   }

@@ -4,8 +4,9 @@ import de.thm.mope.server.JsonSupport
 import spray.json._
 import de.thm.mope.lsp.messages._
 
-trait Routes extends JsonSupport {
+import scala.concurrent.Future
 
+trait Routes extends JsonSupport {
   val initializeResponse =
     Map[String, JsValue](
       "textDocumentSync" -> 0.toJson,
@@ -13,13 +14,12 @@ trait Routes extends JsonSupport {
       "definitionProvider" -> true.toJson,
     ).toJson
 
-  def routes = RpcMethod("compile")(
-    Flow[Int].map(_*2)
-  ) | RpcMethod("complete")(
-    Flow[String].map(_.toUpperCase)
-  ) | RpcMethod("initialize") (
-    Flow[InitializeParams].map { params =>
-      JsObject("capabilities" ->initializeResponse)
+  def routes = (RpcMethod("compile"){ i:Int => i*2 }
+  | RpcMethod("complete"){ s:String => s.toUpperCase }
+  | RpcMethod("initialize") { params: InitializeParams =>
+    JsObject("capabilities" -> initializeResponse)
+  } | RpcMethod("textDocument/completion") { params:TextDocumentPositionParams =>
+    JsArray()
     }
   )
 }
