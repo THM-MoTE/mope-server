@@ -17,19 +17,19 @@ case class InitializeParams(
 	 *
 	 * @deprecated in favour of rootUri.
 	 */
-	rootPath: String = null,
+	rootPath: Option[DocumentUri],
 
 	/**
 	 * The rootUri of the workspace. Is null if no
 	 * folder is open. If both `rootPath` and `rootUri` are set
 	 * `rootUri` wins.
 	 */
-	rootUri: DocumentUri = null,
+	rootUri: Option[DocumentUri],
 
 	/**
 	 * User provided initialization options.
 	 */
-	initializationOptions: JsValue = null,
+	initializationOptions: Option[JsValue],
 
 	/**
 	 * The capabilities provided by the client (editor or tool)
@@ -39,4 +39,8 @@ case class InitializeParams(
 	/**
 	 * The initial trace setting. If omitted trace is disabled ("off").
 	 */
-	trace: String = "off")
+	trace: String = "off") {
+	def projectFolder:String = {
+		rootUri.orElse(rootPath).get
+	}
+}

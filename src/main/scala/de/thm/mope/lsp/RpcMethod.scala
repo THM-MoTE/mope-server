@@ -9,7 +9,7 @@ import scala.util.{Failure, Success, Try}
 
 case class RpcMethod[In:JsonFormat, Out:JsonFormat](
   methodName:String, next:Option[RpcMethod[_,_]] = None)(
-  handler: In => Future[Out]) {
+  val handler: In => Future[Out]) {
 
   def |[I2:JsonFormat,O2:JsonFormat](other:RpcMethod[I2,O2]) = {
     RpcMethod(methodName, Some(other))(handler)

@@ -14,12 +14,11 @@ trait Routes extends JsonSupport {
       "definitionProvider" -> true.toJson,
     ).toJson
 
-  def routes = (RpcMethod("compile"){ i:Int => i*2 }
-  | RpcMethod("complete"){ s:String => s.toUpperCase }
-  | RpcMethod("initialize") { params: InitializeParams =>
-    JsObject("capabilities" -> initializeResponse)
-  } | RpcMethod("textDocument/completion") { params:TextDocumentPositionParams =>
+  def routes = RpcMethod("compile"){ i:Int => i*2 } |
+    RpcMethod("complete"){ s:String => s.toUpperCase } |
+    (RpcMethod("initialize") { params: InitializeParams =>
+      JsObject("capabilities" -> initializeResponse)
+    } | RpcMethod("textDocument/completion") { params:TextDocumentPositionParams =>
     JsArray()
-    }
-  )
+    })
 }

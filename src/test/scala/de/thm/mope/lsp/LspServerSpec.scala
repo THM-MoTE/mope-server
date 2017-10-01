@@ -16,7 +16,7 @@ class LspServerSpec extends ActorSpec with JsonSupport {
   val inputElem = RequestMessage(2, "double", 50.toJson)
   val outputElem = ResponseMessage(inputElem.id, Some((50*2).toJson), None)
 
-  val handler = RpcMethod("double"){ i:Int => Future.successful(i*2) }
+  val handler = RpcMethod("double", None){ i:Int => Future.successful(i*2) }
 
   val createMsg = Flow[RequestMessage]
     .mapConcat { msg =>
