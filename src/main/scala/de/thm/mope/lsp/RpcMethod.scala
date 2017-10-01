@@ -26,4 +26,10 @@ case class RpcMethod[In:JsonFormat, Out:JsonFormat](
       case None => flow::Nil
     }
   }
+  def methods:Set[String] = {
+    next match {
+      case Some(x) => x.methods + methodName
+      case None => Set(methodName)
+    }
+  }
 }

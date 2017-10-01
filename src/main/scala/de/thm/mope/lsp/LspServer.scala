@@ -18,6 +18,7 @@ class LspServer(implicit val system:ActorSystem)
 
   def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,NotUsed] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows)
+    val methods = userHandlers.methods
 
     Flow[ByteString]
       .via(new ProtocolHandler())
@@ -28,7 +29,7 @@ class LspServer(implicit val system:ActorSystem)
           .via(handlers)
           .log("out")
           .map { params =>
-            val body = ResponseMessage(msg.id,params).toJson.toString
+            val body = ResponseMessage(msg.id,Some(params), None).toJson.toString
             s"""Content-Length: ${body.length}\r
              |\r
              |$body""".stripMargin
