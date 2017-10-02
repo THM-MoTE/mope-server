@@ -18,7 +18,9 @@ trait Routes extends JsonSupport {
     RpcMethod("complete"){ s:String => s.toUpperCase } |
     (RpcMethod("initialize") { params: InitializeParams =>
       JsObject("capabilities" -> initializeResponse)
-    } | RpcMethod("textDocument/completion") { params:TextDocumentPositionParams =>
-    JsArray()
+    } | RpcMethod("textDocument/completion") { params: TextDocumentPositionParams =>
+      JsArray()
+    } | RpcMethod("textDocument/didSave") { params: DidSaveTextDocumentParams =>
+      JsArray()
     })
 }

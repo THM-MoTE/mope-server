@@ -14,11 +14,12 @@ import scala.concurrent.Future
 class LspServerSpec extends ActorSpec with JsonSupport {
 
   val inputElem = RequestMessage(2, "double", 50.toJson)
+  val notification = NotificationMessage("double", 50.toJson)
   val outputElem = ResponseMessage(inputElem.id, Some((50*2).toJson), None)
 
   val handler = RpcMethod("double", None){ i:Int => Future.successful(i*2) }
 
-  val createMsg = Flow[RequestMessage]
+  val createMsg = Flow[RpcMessage]
     .mapConcat { msg =>
       val payload = msg.toJson.prettyPrint
       List(
@@ -34,12 +35,10 @@ class LspServerSpec extends ActorSpec with JsonSupport {
     val server = new LspServer()
     val pipe = server.connectTo(handler)
 
-    val pipeline = Flow[RequestMessage]
+    val pipeline = Flow[RpcMessage]
       .via(createMsg)
       .via(pipe)
       .toMat(Sink.fold(""){ (acc,elem) => acc+elem.utf8String })(Keep.right)
-
-
 
     "return messages with \\r\\n line-terminators" in {
       whenReady(Source.single(inputElem).toMat(pipeline)(Keep.right).run()) { str =>
@@ -61,6 +60,12 @@ class LspServerSpec extends ActorSpec with JsonSupport {
         actualJson.parseJson.convertTo[ResponseMessage] should be (outputElem)
       }
     }
+    "not return a message on notifications" in {
+      whenReady(Source.single(notification).toMat(pipeline)(Keep.right).run()) { str =>
+        str should be ('empty)
+      }
+    }
+
     s"return error ${ErrorCodes.MethodNotFound} for unknown methods" in {
       val elem = RequestMessage(1, "unknown", 50.toJson)
       whenReady(Source.single(elem).toMat(pipeline)(Keep.right).run()) { str =>

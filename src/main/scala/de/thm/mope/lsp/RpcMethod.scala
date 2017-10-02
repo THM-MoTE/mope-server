@@ -1,7 +1,7 @@
 package de.thm.mope.lsp
 
 import akka.stream.scaladsl._
-import de.thm.mope.lsp.messages.RequestMessage
+import de.thm.mope.lsp.messages.RpcMessage
 import spray.json.{JsValue, JsonFormat}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,8 +15,8 @@ case class RpcMethod[In:JsonFormat, Out:JsonFormat](
     RpcMethod(methodName, Some(other))(handler)
   }
 
-  def toFlows(parallelism:Int)(implicit context:ExecutionContext):List[Flow[RequestMessage,Try[JsValue], akka.NotUsed]] = {
-    val flow = Flow[RequestMessage].filter { msg =>
+  def toFlows(parallelism:Int)(implicit context:ExecutionContext):List[Flow[RpcMessage,Try[JsValue], akka.NotUsed]] = {
+    val flow = Flow[RpcMessage].filter { msg =>
       msg.method == methodName
     }.mapAsync(parallelism) { msg =>
       Try(implicitly[JsonFormat[In]].read(msg.params))

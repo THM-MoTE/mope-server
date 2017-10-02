@@ -6,7 +6,7 @@ import akka.event.Logging
 import akka.stream._
 import akka.util.ByteString
 import akka.stream.scaladsl._
-import de.thm.mope.lsp.messages.{RequestMessage, ResponseError, ResponseMessage}
+import de.thm.mope.lsp.messages._
 import spray.json._
 import de.thm.mope.server.JsonSupport
 import de.thm.mope.utils.StreamUtils
@@ -38,15 +38,17 @@ class LspServer(implicit val system:ActorSystem)
 
     Flow[ByteString]
       .via(new ProtocolHandler())
-      .map { s => s.parseJson.convertTo[RequestMessage] }
+      .map { s => s.parseJson.convertTo[RpcMessage] }
       .log("in")
       .flatMapConcat { msg =>
         val toResponse =
           Flow[Try[JsValue]]
-            .map { tryV =>
+            .map(_ ->msg) //zip with message
+            .collect { case (tryV, RequestMessage(id,_,_,_)) =>
+              //don't create a resposne if it's a notification
               val body = tryV match {
-                case Failure(ex) => ResponseMessage(msg.id,None, Some(handleError(ex))).toJson.toString
-                case Success(value) => ResponseMessage(msg.id,Some(value), None).toJson.toString
+                case Failure(ex) => ResponseMessage(id,None, Some(handleError(ex))).toJson.toString
+                case Success(value) => ResponseMessage(id,Some(value), None).toJson.toString
               }
               s"""Content-Length: ${body.length}\r
                  |\r

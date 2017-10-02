@@ -29,6 +29,8 @@ import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
+import scala.util.Try
+
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val projectDescriptionFormat: RootJsonFormat[ProjectDescription] = jsonFormat3(ProjectDescription.apply)
   implicit val filePositionFormat:RootJsonFormat[FilePosition] = jsonFormat2(FilePosition)
@@ -51,13 +53,27 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val cursorPosFormat:RootJsonFormat[CursorPosition] = jsonFormat3(CursorPosition)
 
   // ========= LSP messages
+  implicit val rpcRequestFormat = jsonFormat4(RequestMessage)
+  implicit val rpcNotificationFormat = jsonFormat3(NotificationMessage)
+  implicit val rpcMessageFormat = new RootJsonFormat[RpcMessage] {
+    override def read(json: JsValue):RpcMessage =
+      Try[RpcMessage](rpcRequestFormat.read(json))
+        .orElse(Try(rpcNotificationFormat.read(json)))
+        .get
+
+    override def write(obj: RpcMessage): JsValue = obj match {
+      case x:RequestMessage => rpcRequestFormat.write(x)
+      case x:NotificationMessage => rpcNotificationFormat.write(x)
+    }
+  }
+
   implicit val positionFormat = jsonFormat2(Position)
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location)
-  implicit val rpcFormat = jsonFormat4(RequestMessage)
   implicit val respErrFormat = jsonFormat2(ResponseError.apply)
   implicit val respMsgFormat = jsonFormat4(ResponseMessage)
   implicit val initParamsFormat = jsonFormat6(InitializeParams)
   implicit val textDocIdentFormat = jsonFormat1(TextDocumentIdentifier)
   implicit val textDocumentPosFormat = jsonFormat2(TextDocumentPositionParams)
+  implicit val didSaveNotifyFormat = jsonFormat1(DidSaveTextDocumentParams)
 }
