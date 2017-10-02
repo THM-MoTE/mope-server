@@ -73,6 +73,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val positionFormat = jsonFormat2(Position)
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location)
+  implicit val diagnosticFormat = jsonFormat5(Diagnostic.apply)
   implicit val respErrFormat = jsonFormat2(ResponseError.apply)
   implicit val respMsgFormat = jsonFormat4(ResponseMessage)
   implicit val initParamsFormat = jsonFormat6(InitializeParams)

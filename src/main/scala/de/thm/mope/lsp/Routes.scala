@@ -48,6 +48,17 @@ trait Routes extends JsonSupport {
     } | request("textDocument/completion") { params: TextDocumentPositionParams =>
       Future.successful(JsArray())
     } | notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
-      Future.successful(())
+        askProjectManager(CompileProject(Paths.get(params.textDocument.uri))).mapTo[Seq[CompilerError]]
+        .map { seq =>
+          seq.map { //to lsp Diagnostic
+            case CompilerError("Error", file, start,end,msg) =>
+              (file, Diagnostic(Range(Position(start.line, start.column),Position(end.line, end.column)),
+                Diagnostic.Error, "", "", msg))
+          }
+          .foreach { //publish each error
+              case (fileName, diagnostic) =>
+                notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileName.toJson, "diagnostics" -> Seq(diagnostic).toJson)))
+          }
+        }
     })
 }
