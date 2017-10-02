@@ -2,16 +2,16 @@ package de.thm.mope.lsp
 
 import akka.stream.scaladsl._
 import de.thm.mope.lsp.messages.RpcMessage
-import spray.json.{JsValue, JsonFormat}
+import spray.json.{JsValue, JsonReader, JsonWriter}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-case class RpcMethod[In:JsonFormat, Out:JsonFormat](
+case class RpcMethod[In:JsonReader, Out:JsonWriter] private[lsp] (
   methodName:String, next:Option[RpcMethod[_,_]] = None)(
   val handler: In => Future[Out]) {
 
-  def |[I2:JsonFormat,O2:JsonFormat](other:RpcMethod[I2,O2]) = {
+  def |[I2:JsonReader,O2:JsonWriter](other:RpcMethod[I2,O2]) = {
     RpcMethod(methodName, Some(other))(handler)
   }
 
@@ -19,13 +19,13 @@ case class RpcMethod[In:JsonFormat, Out:JsonFormat](
     val flow = Flow[RpcMessage].filter { msg =>
       msg.method == methodName
     }.mapAsync(parallelism) { msg =>
-      Try(implicitly[JsonFormat[In]].read(msg.params))
+      Try(implicitly[JsonReader[In]].read(msg.params))
         .map(handler) match { //turns Try[Future[JsValue]] => Future[Try[JsValue]] a.k.a. 'sequence'
         case Success(fut) => fut.map(Success.apply)
         case Failure(ex) => Future.successful(Failure(ex))
       }
     }.map(_.map { out =>
-      implicitly[JsonFormat[Out]].write(out)
+      implicitly[JsonWriter[Out]].write(out)
     })
     next match {
       case Some(x) => flow::x.toFlows(parallelism)
