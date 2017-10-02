@@ -1,4 +1,5 @@
 package de.thm.mope.lsp
+import akka.actor.ActorRef
 import akka.stream.scaladsl._
 import de.thm.mope.server.JsonSupport
 import spray.json._
@@ -8,6 +9,9 @@ import scala.concurrent.Future
 
 trait Routes extends JsonSupport {
   import RpcMethod._
+
+  def notificationActor:Future[ActorRef]
+
   val initializeResponse =
     Map[String, JsValue](
       "textDocumentSync" -> 0.toJson,

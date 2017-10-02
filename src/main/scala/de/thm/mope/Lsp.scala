@@ -2,7 +2,7 @@ package de.thm.mope
 
 import java.util.Objects
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.stream._
 import akka.util.ByteString
@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import de.thm.mope.lsp.LspServer
 import de.thm.mope.lsp.messages.RequestMessage
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.io.StdIn
 
 object Lsp
@@ -32,7 +32,14 @@ object Lsp
 
   val server = new LspServer()
 
-  val pipeline = server.connectTo(routes)
+  val notifyActorPromise = Promise[ActorRef]()
+  override def notificationActor = notifyActorPromise.future
+
+  val pipeline = server.connectTo(routes).mapMaterializedValue { ref =>
+    //one's the actor is materialized; resolve the notification promise
+    notifyActorPromise.success(ref)
+    ref
+  }
 
    val connection = Tcp().bindAndHandle(pipeline, interface, port)
 
@@ -66,5 +73,4 @@ object Lsp
 //   .map(_.utf8String)
 //   .runForeach(println)
 //   .onComplete(_ => system.terminate())
-
- }
+}
