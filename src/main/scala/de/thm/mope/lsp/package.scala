@@ -2,6 +2,7 @@ package de.thm.mope
 
 package object lsp {
 	case class MethodNotFoundException(s:String) extends Exception(s)
+	case class InitializeException(s:String) extends Exception(s)
 	object ErrorCodes {
 		// Defined by JSON RPC
 		val ParseError = -32700;

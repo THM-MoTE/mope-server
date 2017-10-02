@@ -28,6 +28,9 @@ class LspServer(implicit val system:ActorSystem)
     case ex:MethodNotFoundException =>
       log.debug("got notfound error {}", ex)
       ResponseError(ErrorCodes.MethodNotFound, ex.getMessage)
+    case ex:InitializeException =>
+      log.debug("initialization failure {}", ex)
+      ResponseError(ErrorCodes.ServerNotInitialized, ex.getMessage)
     case ex =>
       log.error("Unhandled exception", ex)
       ResponseError(ErrorCodes.InternalError, ex.getMessage)
