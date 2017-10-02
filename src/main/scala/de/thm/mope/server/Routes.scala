@@ -49,8 +49,6 @@ import scala.concurrent.Future
 trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
   this: ServerSetup =>
 
-  def projectsManager: ActorRef
-
   private val exitOnLastDisconnect =
     Global.config.getBoolean("exitOnLastDisconnect")
 

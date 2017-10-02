@@ -17,11 +17,10 @@
 
 package de.thm.mope.server
 
-import org.slf4j.{LoggerFactory}
+import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.Level
-
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.event.{LogSource, Logging}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
@@ -59,4 +58,6 @@ trait ServerSetup {
   val port = config.getInt("http.port")
 
   serverlog.info("{} - Version {}", build.ProjectInfo.name, build.ProjectInfo.version)
+
+  def projectsManager: ActorRef
 }

@@ -1,13 +1,14 @@
 package de.thm.mope.lsp
 import akka.actor.ActorRef
 import akka.stream.scaladsl._
-import de.thm.mope.server.JsonSupport
+import de.thm.mope.server.{JsonSupport, ServerSetup}
 import spray.json._
 import de.thm.mope.lsp.messages._
 
 import scala.concurrent.Future
 
 trait Routes extends JsonSupport {
+  this: ServerSetup =>
   import RpcMethod._
 
   def notificationActor:Future[ActorRef]

@@ -2,8 +2,7 @@ package de.thm.mope
 
 import java.util.Objects
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.event.Logging
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream._
 import akka.util.ByteString
 import akka.stream.scaladsl._
@@ -11,24 +10,24 @@ import spray.json._
 import com.typesafe.config.ConfigFactory
 import de.thm.mope.lsp.LspServer
 import de.thm.mope.lsp.messages.RequestMessage
+import de.thm.mope.server.{ProjectsManagerActor, ServerSetup}
 
 import scala.concurrent.{Future, Promise}
 import scala.io.StdIn
 
 object Lsp
     extends App
-    with server.JsonSupport
-    with lsp.Routes {
+    with lsp.Routes
+    with ServerSetup {
 
-  val interface = "127.0.0.1"
-  val port = 9010
+  override val interface = "127.0.0.1"
+  override val port = 9010
 
   Objects.requireNonNull(getClass().getResource("/mope.conf"))
-  Objects.requireNonNull(getClass().getResource("/logback.xml"))
-  implicit val system = ActorSystem("lsp-test", ConfigFactory.load("mope.conf"))
-  implicit val context =  system.dispatcher
-  implicit val mat = ActorMaterializer()
-  val log = Logging(system, getClass)
+  Objects.requireNonNull(getClass().getResource("/serverlogback.xml"))
+  override implicit lazy val actorSystem = ActorSystem("lsp-test", ConfigFactory.load("mope.conf"))
+  override val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
+  override implicit lazy val materializer = ActorMaterializer()
 
   val server = new LspServer()
 
@@ -45,21 +44,21 @@ object Lsp
 
    connection.onComplete {
      case scala.util.Success(_) =>
-       log.info("LSP-TCP-Server running at {}:{}", interface, port)
+       serverlog.info("LSP-TCP-Server running at {}:{}", interface, port)
      case scala.util.Failure(ex) =>
-       log.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
-       system.terminate()
+       serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
+       actorSystem.terminate()
    }
 
    Future {
-     log.info("Press Enter to interrupt")
+     serverlog.info("Press Enter to interrupt")
      StdIn.readLine()
      connection.
        flatMap(_.unbind()).
-       onComplete(_ => system.terminate())
+       onComplete(_ => actorSystem.terminate())
    }
 
-// log.debug("running the stream")
+// serverlog.debug("running the stream")
 //
 // Source(List(RequestMessage(1, "compile", 50.toJson,"2.0"), RequestMessage(2, "compile", 100.toJson,"2.0")))
 //   .map { msg =>
@@ -72,5 +71,5 @@ object Lsp
 //   .via(pipeline)
 //   .map(_.utf8String)
 //   .runForeach(println)
-//   .onComplete(_ => system.terminate())
+//   .onComplete(_ => actorSystem.terminate())
 }
