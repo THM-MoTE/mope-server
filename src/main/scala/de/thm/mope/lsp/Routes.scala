@@ -7,6 +7,7 @@ import de.thm.mope.lsp.messages._
 import scala.concurrent.Future
 
 trait Routes extends JsonSupport {
+  import RpcMethod._
   val initializeResponse =
     Map[String, JsValue](
       "textDocumentSync" -> 0.toJson,
@@ -14,13 +15,13 @@ trait Routes extends JsonSupport {
       "definitionProvider" -> true.toJson,
     ).toJson
 
-  def routes = RpcMethod("compile"){ i:Int => i*2 } |
-    RpcMethod("complete"){ s:String => s.toUpperCase } |
-    (RpcMethod("initialize") { params: InitializeParams =>
-      JsObject("capabilities" -> initializeResponse)
-    } | RpcMethod("textDocument/completion") { params: TextDocumentPositionParams =>
-      JsArray()
-    } | RpcMethod("textDocument/didSave") { params: DidSaveTextDocumentParams =>
-      JsArray()
+  def routes = request("compile"){ i:Int => Future.successful(i*2) } |
+    request("complete"){ s:String => Future.successful(s.toUpperCase) } |
+    (request("initialize") { params: InitializeParams =>
+      Future.successful(JsObject("capabilities" -> initializeResponse))
+    } | request("textDocument/completion") { params: TextDocumentPositionParams =>
+      Future.successful(JsArray())
+    } | notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
+      Future.successful(())
     })
 }

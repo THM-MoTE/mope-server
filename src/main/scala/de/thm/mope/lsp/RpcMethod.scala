@@ -41,7 +41,6 @@ case class RpcMethod[In:JsonReader, Out:JsonWriter] private[lsp] (
 }
 
 object RpcMethod {
-  def apply[In:JsonFormat, Out:JsonFormat](methodName:String)(f:In=>Out): RpcMethod[In,Out] = {
-    RpcMethod[In,Out](methodName,None)(Future.successful[Out] _ compose f)
-  }
+  def notification[In:JsonReader](methodName:String)(f:In=>Future[Unit])(implicit unitWriter:JsonWriter[Unit]): RpcMethod[In,Unit] = RpcMethod(methodName, None)(f)
+  def request[In:JsonReader, Out:JsonWriter](methodName:String)(f:In=>Future[Out]): RpcMethod[In,Out] = RpcMethod(methodName, None)(f)
 }

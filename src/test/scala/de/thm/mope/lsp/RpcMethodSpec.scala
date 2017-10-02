@@ -3,11 +3,14 @@ package de.thm.mope.lsp
 import de.thm.mope.MopeSpec
 import de.thm.mope.server.JsonSupport
 
+import scala.concurrent.Future
+
 class RpcMethodSpec extends MopeSpec with JsonSupport {
+  import RpcMethod._
   "The RpcMethod" should {
-    val m1 = RpcMethod("test"){ i:Int => i*2 }
-    val m2 = RpcMethod("test2"){ s:String => s.toUpperCase }
-    val m3 = RpcMethod("test3"){ s:String => s.toUpperCase }
+    val m1 = request("test"){ i:Int => Future.successful(i*2) }
+    val m2 = request("test2"){ s:String => Future.successful(s.toUpperCase) }
+    val m3 = request("test3"){ s:String => Future.successful(s.toUpperCase) }
 
     "combine 2 methods using 'or'" in {
       (m1 | m2) should be (RpcMethod(m1.methodName, Some(m2))(m1.handler))
