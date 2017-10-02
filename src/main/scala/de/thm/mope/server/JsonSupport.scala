@@ -27,7 +27,7 @@ import de.thm.mope.lsp._
 import de.thm.mope.lsp.messages._
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
-import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
+import spray.json.{DefaultJsonProtocol, DeserializationException, JsObject, JsString, JsValue, JsonReader, JsonWriter, RootJsonFormat}
 
 import scala.util.Try
 
@@ -53,6 +53,9 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val cursorPosFormat:RootJsonFormat[CursorPosition] = jsonFormat3(CursorPosition)
 
   // ========= LSP messages
+  implicit val unitReader = new JsonWriter[Unit] {
+    override def write(obj: Unit) = JsObject()
+  }
   implicit val rpcRequestFormat = jsonFormat4(RequestMessage)
   implicit val rpcNotificationFormat = jsonFormat3(NotificationMessage)
   implicit val rpcMessageFormat = new RootJsonFormat[RpcMessage] {
