@@ -60,6 +60,25 @@ class LspServerSpec extends ActorSpec with JsonSupport {
         actualJson.parseJson.convertTo[ResponseMessage] should be (outputElem)
       }
     }
+
+    "send notifications downstream" in {
+      val msg = NotificationMessage("diagnostics", 100.toJson)
+      val server = new LspServer()
+      val pipeline = Source.actorRef[NotificationMessage](1, OverflowStrategy.dropBuffer) //delay stream completion; don't use this actor
+        .via(createMsg)
+        .viaMat(server.connectTo(handler))(Keep.right)
+        .take(1) //take 1 element and kill the not-used source actor
+        .toMat(Sink.fold(""){ (acc,elem) => acc+elem.utf8String })(Keep.both)
+
+      //start stream and send 1 element downstream
+      val (notificationActor, result) = pipeline.run()
+      notificationActor ! msg
+      whenReady(result) { str =>
+        val actualJson = str.split("\r\n").last
+        actualJson.parseJson.convertTo[NotificationMessage] should be (msg)
+      }
+    }
+
     "not return a message on notifications" in {
       whenReady(Source.single(notification).toMat(pipeline)(Keep.right).run()) { str =>
         str should be ('empty)

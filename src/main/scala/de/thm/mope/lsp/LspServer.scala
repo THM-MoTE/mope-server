@@ -1,7 +1,7 @@
 package de.thm.mope.lsp
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.stream._
 import akka.util.ByteString
@@ -19,6 +19,7 @@ class LspServer(implicit val system:ActorSystem)
   implicit val log = Logging(system, getClass)
   import system.dispatcher
   val parallelism = 4
+  val notificationBufferSize = 8024
 
   def handleError(ex:Throwable):ResponseError = ex match {
     case ex:DeserializationException =>
@@ -32,38 +33,44 @@ class LspServer(implicit val system:ActorSystem)
       ResponseError(ErrorCodes.InternalError, ex.getMessage)
   }
 
-  def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,NotUsed] = {
+  def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,ActorRef] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows(parallelism))
     val methods = userHandlers.methods
+
+    val notificationSource:Source[String, ActorRef] =
+      Source.actorRef[NotificationMessage](notificationBufferSize, OverflowStrategy.dropHead)
+      .map(_.toJson.toString)
 
     Flow[ByteString]
       .via(new ProtocolHandler())
       .map { s => s.parseJson.convertTo[RpcMessage] }
       .log("in")
       .flatMapConcat { msg =>
-        val toResponse =
+        val responseMessage =
           Flow[Try[JsValue]]
             .map(_ ->msg) //zip with message
             .collect { case (tryV, RequestMessage(id,_,_,_)) =>
               //don't create a resposne if it's a notification
-              val body = tryV match {
+              tryV match {
                 case Failure(ex) => ResponseMessage(id,None, Some(handleError(ex))).toJson.toString
                 case Success(value) => ResponseMessage(id,Some(value), None).toJson.toString
               }
-              s"""Content-Length: ${body.length}\r
-                 |\r
-                 |$body""".stripMargin
             }
 
         if(!methods.contains(msg.method)){
-          Source.single(Failure(MethodNotFoundException(s"Method '${msg.method}' not found"))).via(toResponse)
+          Source.single(Failure(MethodNotFoundException(s"Method '${msg.method}' not found"))).via(responseMessage)
         } else {
           Source.single(msg)
             .via(handlers)
             .log("out")
-            .via(toResponse)
+            .via(responseMessage)
         }
       }
-      .map(ByteString(_))
+      .mergeMat(notificationSource, true)(Keep.right)
+      .map { payloadStr =>
+        ByteString(s"""Content-Length: ${payloadStr.length}\r
+           |\r
+           |$payloadStr""".stripMargin)
+      }
   }
 }
