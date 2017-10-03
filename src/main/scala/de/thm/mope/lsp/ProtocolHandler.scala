@@ -57,6 +57,7 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
         * Switches into readHeaders afterwards.
         */
       def readPayload(currentBuffer:ByteString):Unit = {
+        //TODO: fix splitting bytebuffer into rest payload & start of other header
         payloadBuffer ++= currentBuffer
         remainingBytes -= currentBuffer.size
         if(remainingBytes < 0) {

@@ -77,5 +77,23 @@ class ProtocolHandlerSpec extends ActorSpec with JsonSupport {
         msg.parseJson.convertTo[RequestMessage] should be (inputElems.head)
       }
     }
+    "handle multiple mesasages in the same bytestring" in {
+      val (fst::sec::Nil) = inputElems.take(2).map(_.toJson.prettyPrint)
+      val input = ByteString(
+          s"""Content-Type: text/utf-8\r
+             |Content-Length: ${fst.length}\r
+             |\r
+             |${fst}Content-Type: text/utf-8\r
+             |Content-Length: ${sec.length}\r
+             |\r
+             |$sec
+           """.stripMargin)
+      val fut = Source.single(input)
+        .via(pipeline)
+        .runWith(Sink.seq)
+      whenReady(fut) { seq =>
+        listAssert(seq.map(_.parseJson.convertTo[RequestMessage]), inputElems.take(2))
+      }
+    }
   }
 }
