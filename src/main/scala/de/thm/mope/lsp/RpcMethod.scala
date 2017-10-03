@@ -11,8 +11,8 @@ case class RpcMethod[In:JsonReader, Out:JsonWriter] private[lsp] (
   methodName:String, next:Option[RpcMethod[_,_]] = None)(
   val handler: In => Future[Out]) {
 
-  def |[I2:JsonReader,O2:JsonWriter](other:RpcMethod[I2,O2]) = {
-    RpcMethod(methodName, Some(other))(handler)
+  def |:[I2:JsonReader,O2:JsonWriter](other:RpcMethod[I2,O2]) = {
+    RpcMethod(other.methodName, Some(this))(other.handler)
   }
 
   def toFlows(parallelism:Int)(implicit context:ExecutionContext):List[Flow[RpcMessage,Try[JsValue], akka.NotUsed]] = {

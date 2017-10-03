@@ -32,9 +32,9 @@ trait Routes extends JsonSupport {
       "definitionProvider" -> true.toJson,
     ).toJson
 
-  def routes = request("compile"){ i:Int => Future.successful(i*2) } |
-    request("complete"){ s:String => Future.successful(s.toUpperCase) } |
-    (request("initialize") { params: InitializeParams =>
+  def routes = request("compile"){ i:Int => Future.successful(i*2) } |:
+    request("complete"){ s:String => Future.successful(s.toUpperCase) } |:
+    request("initialize") { params: InitializeParams =>
       (projectsManager ? ProjectDescription(params.projectFolder, "target", None)).mapTo[Either[List[String], ProjectId]]
         .flatMap {
           case Left(lst) => Future.failed(InitializeException(lst.mkString("\n")))
@@ -45,9 +45,9 @@ trait Routes extends JsonSupport {
           projectManagerPromise.success(ref)
           JsObject("capabilities" -> initializeResponse)
         }
-    } | request("textDocument/completion") { params: TextDocumentPositionParams =>
+    } |: request("textDocument/completion") { params: TextDocumentPositionParams =>
       Future.successful(JsArray())
-    } | notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
+    } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
         askProjectManager(CompileProject(Paths.get(params.textDocument.uri))).mapTo[Seq[CompilerError]]
         .map { seq =>
           seq.map { //to lsp Diagnostic
@@ -60,5 +60,5 @@ trait Routes extends JsonSupport {
                 notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileName.toJson, "diagnostics" -> Seq(diagnostic).toJson)))
           }
         }
-    })
+    }
 }
