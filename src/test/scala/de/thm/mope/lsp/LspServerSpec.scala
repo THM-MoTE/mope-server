@@ -2,22 +2,25 @@ package de.thm.mope.lsp
 
 import akka.actor.PoisonPill
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{ Flow, Framing, Keep, Sink, Source }
+import akka.stream.scaladsl.{Flow, Framing, Keep, Sink, Source}
 import akka.util.ByteString
 import de.thm.mope.ActorSpec
 import de.thm.mope.lsp.messages._
 import de.thm.mope.server.JsonSupport
 import spray.json._
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 
 class LspServerSpec extends ActorSpec with JsonSupport {
 
   val inputElem = RequestMessage(2, "double", 50.toJson)
-  val notification = NotificationMessage("double", 50.toJson)
+  val notification = NotificationMessage("notify", 50.toJson)
   val outputElem = ResponseMessage(inputElem.id, Some((50*2).toJson), None)
 
-  val handler = RpcMethod("double", None){ i:Int => Future.successful(i*2) }
+  val fut = Promise[Int]()
+  val handler =
+    RpcMethod.request("double"){ i:Int => Future.successful(i*2) } |:
+    RpcMethod.notification("notify")  { i:Int => fut.success(i); Future.successful(()) }
 
   val createMsg = Flow[RpcMessage]
     .mapConcat { msg =>
@@ -82,6 +85,14 @@ class LspServerSpec extends ActorSpec with JsonSupport {
     "not return a message on notifications" in {
       whenReady(Source.single(notification).toMat(pipeline)(Keep.right).run()) { str =>
         str should be ('empty)
+      }
+    }
+    "call notification handler" in {
+      whenReady(Source.single(notification).toMat(pipeline)(Keep.right).run()) { str =>
+        str should be ('empty)
+      }
+      whenReady(fut.future) {
+        _ should be (notification.params.convertTo[Int])
       }
     }
 

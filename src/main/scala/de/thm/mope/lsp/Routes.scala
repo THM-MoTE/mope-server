@@ -27,7 +27,7 @@ trait Routes extends JsonSupport {
 
   val initializeResponse =
     Map[String, JsValue](
-      "textDocumentSync" -> 0.toJson,
+      "textDocumentSync" -> 2.toJson,
       "completionProvider" -> JsObject("resolveProvider" -> false.toJson, "triggerCharacters" -> Seq(".").toJson),
       "definitionProvider" -> true.toJson,
     ).toJson
