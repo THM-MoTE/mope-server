@@ -24,7 +24,7 @@ object Lsp
   override val port = 9010
 
   Objects.requireNonNull(getClass().getResource("/mope.conf"))
-  Objects.requireNonNull(getClass().getResource("/serverlogback.xml"))
+  Objects.requireNonNull(getClass().getResource("/logback.xml"))
   override implicit lazy val actorSystem = ActorSystem("lsp-test", ConfigFactory.load("mope.conf"))
   override val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
   override implicit lazy val materializer = ActorMaterializer()
