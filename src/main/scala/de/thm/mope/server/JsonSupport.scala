@@ -76,7 +76,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val diagnosticFormat = jsonFormat5(Diagnostic.apply)
   implicit val respErrFormat = jsonFormat2(ResponseError.apply)
   implicit val respMsgFormat = jsonFormat4(ResponseMessage)
-  implicit val initParamsFormat = jsonFormat6(InitializeParams)
+  implicit val initParamsFormat = jsonFormat5(InitializeParams)
   implicit val textDocIdentFormat = jsonFormat1(TextDocumentIdentifier)
   implicit val textDocumentPosFormat = jsonFormat2(TextDocumentPositionParams)
   implicit val didSaveNotifyFormat = jsonFormat1(DidSaveTextDocumentParams)

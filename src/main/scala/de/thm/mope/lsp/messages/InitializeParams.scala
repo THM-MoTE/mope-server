@@ -34,12 +34,7 @@ case class InitializeParams(
 	/**
 	 * The capabilities provided by the client (editor or tool)
 	 */
-	capabilities: JsValue,
-
-	/**
-	 * The initial trace setting. If omitted trace is disabled ("off").
-	 */
-	trace: String = "off") {
+	capabilities: JsValue) {
 	def projectFolder:String = {
 		rootUri.orElse(rootPath).get
 	}
