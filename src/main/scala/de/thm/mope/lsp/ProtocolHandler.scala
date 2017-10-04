@@ -47,7 +47,7 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
           headerBuffer ++= header //now contains full header
           val headers = parseHeaders(headerBuffer)
           log.debug("headers: {}",headers)
-          remainingBytes = headers("Content-Length").toInt+separator.size
+          remainingBytes = headers("Content-Length").toInt+separator.size //read length given in header + length(\r\n\r\n)
           state = readPayload
           readPayload(payload)
         }
@@ -57,20 +57,19 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
         * Switches into readHeaders afterwards.
         */
       def readPayload(currentBuffer:ByteString):Unit = {
-        //TODO: fix splitting bytebuffer into rest payload & start of other header
+        //split into payload & possible next msg
         val (head,rest) = currentBuffer.splitAt(remainingBytes)
         payloadBuffer ++= head
         remainingBytes -= currentBuffer.size
-        log.debug("head: {}, rest: {} rem: {}", head.utf8String,rest.utf8String, remainingBytes)
         if(remainingBytes <= 0) {
-          //reset buffers & push downstream
+          //payload complete: push downstream, reset buffers & continue reading header from remaining buffer
           log.debug("payload: {}", payloadBuffer.utf8String)
           emit(out, payloadBuffer.utf8String)
           headerBuffer = ByteString.empty
           payloadBuffer = ByteString.empty
           remainingBytes = 0
           state = readHeader
-          readHeader(rest)
+          readHeader(rest) //read header from remaining buffer
         } else {
           pull(in)
         }
@@ -78,43 +77,7 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
 
 
       setHandler(in, new InHandler {
-        override def onPush(): Unit = {
-          /*
-           val bufferedLine = grab(in)
-           val line = bufferedLine.utf8String
-           log.debug("In: {}", line)
-           line match {
-           case headerRegex("Content-Length", n) =>
-           //new message with payload size
-           remainingBytes = n.toInt
-           log.debug("New remaining: {}", remainingBytes)
-           case headerRegex(k, v) =>
-           //TODO: handle other headers
-           //a header we don't care about (currently only encoding = utf-8 is available)
-           log.debug("Ignore unknown header: {}", line)
-           case s if s.trim.isEmpty =>
-           //delimiter between header & payload
-           readPayload = true
-           case _ if readPayload && remainingBytes > 0 =>
-           //actual payload - read until remaining <= 0
-           remainingBytes -= (bufferedLine.size + 1) //+ line terminator
-           buffer ++= bufferedLine
-           log.debug("New Buffer: {} remaining: {}", buffer.utf8String, remainingBytes)
-           if (remainingBytes <= 0) {
-           //to utf-8 & kill \r & trim whitespace
-           val jsonPayload = buffer.utf8String.replaceAllLiterally("\\r", "")
-           //val jsonString = if (jsonPayload.endsWith("}")) jsonPayload else jsonPayload + "}"
-           log.debug("final json: {}", jsonPayload)
-           buffer = ByteString.empty
-           readPayload = false
-           push(out, jsonPayload)
-           }
-           }
-           pull(in)
-           */
-          val buffer = grab(in)
-          state(buffer)
-        }
+        override def onPush(): Unit = state(grab(in))
       })
 
       setHandler(out, new OutHandler {
