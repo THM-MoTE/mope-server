@@ -12,6 +12,7 @@ import de.thm.mope.lsp.messages._
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectManagerActor.CompileProject
 import de.thm.mope.server.ProjectsManagerActor.ProjectId
+import de.thm.mope.suggestion.{CompletionRequest, Suggestion}
 
 import scala.concurrent.{Future, Promise}
 
@@ -47,7 +48,13 @@ trait Routes extends JsonSupport {
           JsObject("capabilities" -> initializeResponse)
         }
     } |: request("textDocument/completion") { params: TextDocumentPositionParams =>
-      Future.successful(JsArray())
+      askProjectManager(params.toCompletionRequest).mapTo[Set[Suggestion]]
+      .map { set =>
+        val items = set.map { sug =>
+          CompletionItem(sug)
+        }.toList
+        JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
+      }
     } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
         askProjectManager(CompileProject(Paths.get(params.textDocument.uri))).mapTo[Seq[CompilerError]]
         .map { seq =>

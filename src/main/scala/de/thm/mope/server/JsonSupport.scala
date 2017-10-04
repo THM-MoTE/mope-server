@@ -55,6 +55,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val cursorPosFormat:RootJsonFormat[CursorPosition] = jsonFormat3(CursorPosition)
 
   // ========= LSP messages
+  //TODO: move into separate trait
   implicit val unitReader = new JsonWriter[Unit] {
     override def write(obj: Unit) = JsObject()
   }
@@ -81,6 +82,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location)
   implicit val diagnosticFormat = jsonFormat5(Diagnostic.apply)
+  implicit val completionFormat = jsonFormat3(CompletionItem.apply)
   implicit val respErrFormat = jsonFormat2(ResponseError.apply)
   implicit val respMsgFormat = jsonFormat4(ResponseMessage)
   implicit val initParamsFormat = jsonFormat5(InitializeParams)
