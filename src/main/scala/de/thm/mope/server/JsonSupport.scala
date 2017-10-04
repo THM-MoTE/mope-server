@@ -77,6 +77,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
     override def read(json: JsValue) = new URI(json.convertTo[String])
   }
 
+  implicit val positionFormat = jsonFormat2(Position.apply)
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location)
   implicit val diagnosticFormat = jsonFormat5(Diagnostic.apply)
