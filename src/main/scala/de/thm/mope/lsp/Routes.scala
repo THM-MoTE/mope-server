@@ -1,4 +1,5 @@
 package de.thm.mope.lsp
+import java.net.URI
 import java.nio.file.Paths
 
 import akka.actor.ActorRef
@@ -35,7 +36,7 @@ trait Routes extends JsonSupport {
   def routes = request("compile"){ i:Int => Future.successful(i*2) } |:
     request("complete"){ s:String => Future.successful(s.toUpperCase) } |:
     request("initialize") { params: InitializeParams =>
-      (projectsManager ? ProjectDescription(params.projectFolder, "target", None)).mapTo[Either[List[String], ProjectId]]
+      (projectsManager ? ProjectDescription(params.projectFolder.getRawPath, "target", None)).mapTo[Either[List[String], ProjectId]]
         .flatMap {
           case Left(lst) => Future.failed(InitializeException(lst.mkString("\n")))
           case Right(id) => (projectsManager ? id).mapTo[Option[ActorRef]].map(_.get) //must be defined
@@ -52,8 +53,8 @@ trait Routes extends JsonSupport {
         .map { seq =>
           seq.map { //to lsp Diagnostic
             case CompilerError("Error", file, start,end,msg) =>
-              (file, Diagnostic(Range(Position(start.line, start.column),Position(end.line, end.column)),
-                Diagnostic.Error, "", "", msg))
+              (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
+                Diagnostic.Error, file, file, msg))
           }
           .foreach { //publish each error
               case (fileName, diagnostic) =>

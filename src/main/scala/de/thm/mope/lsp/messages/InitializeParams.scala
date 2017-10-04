@@ -1,5 +1,7 @@
 package de.thm.mope.lsp.messages
 
+import java.net.URI
+
 import de.thm.mope.lsp._
 import spray.json.JsValue
 
@@ -35,7 +37,7 @@ case class InitializeParams(
 	 * The capabilities provided by the client (editor or tool)
 	 */
 	capabilities: JsValue) {
-	def projectFolder:String = {
+	def projectFolder:URI = {
 		rootUri.orElse(rootPath).get
 	}
 }

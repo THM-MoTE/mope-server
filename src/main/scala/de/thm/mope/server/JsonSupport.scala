@@ -17,6 +17,8 @@
 
 package de.thm.mope.server
 
+import java.net.URI
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
@@ -70,7 +72,11 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
     }
   }
 
-  implicit val positionFormat = jsonFormat2(Position)
+  implicit val documentUriFormat = new RootJsonFormat[DocumentUri] {
+    override def write(obj: DocumentUri):JsValue = JsString(obj.toString)
+    override def read(json: JsValue) = new URI(json.convertTo[String])
+  }
+
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location)
   implicit val diagnosticFormat = jsonFormat5(Diagnostic.apply)
