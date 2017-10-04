@@ -47,7 +47,7 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
           headerBuffer ++= header //now contains full header
           val headers = parseHeaders(headerBuffer)
           log.debug("headers: {}",headers)
-          remainingBytes = headers("Content-Length").toInt
+          remainingBytes = headers("Content-Length").toInt+separator.size
           state = readPayload
           readPayload(payload)
         }
@@ -58,15 +58,19 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
         */
       def readPayload(currentBuffer:ByteString):Unit = {
         //TODO: fix splitting bytebuffer into rest payload & start of other header
-        payloadBuffer ++= currentBuffer
+        val (head,rest) = currentBuffer.splitAt(remainingBytes)
+        payloadBuffer ++= head
         remainingBytes -= currentBuffer.size
-        if(remainingBytes < 0) {
+        log.debug("head: {}, rest: {} rem: {}", head.utf8String,rest.utf8String, remainingBytes)
+        if(remainingBytes <= 0) {
           //reset buffers & push downstream
+          log.debug("payload: {}", payloadBuffer.utf8String)
+          emit(out, payloadBuffer.utf8String)
           headerBuffer = ByteString.empty
           payloadBuffer = ByteString.empty
+          remainingBytes = 0
           state = readHeader
-          log.debug("payload: {}", currentBuffer.utf8String)
-          push(out, currentBuffer.utf8String)
+          readHeader(rest)
         } else {
           pull(in)
         }
