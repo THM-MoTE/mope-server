@@ -15,6 +15,7 @@ import de.thm.mope.server.ProjectsManagerActor.ProjectId
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion}
 
 import scala.concurrent.{Future, Promise}
+import scala.reflect.ClassTag
 
 trait Routes extends JsonSupport {
   this: ServerSetup =>
@@ -27,9 +28,10 @@ trait Routes extends JsonSupport {
 
     //manager of initialized project
   val projectManagerPromise = Promise[ActorRef]
-  def askProjectManager(x:Any):Future[Any] =
+  def askProjectManager[S:ClassTag](x:Any):Future[S] =
     projectManagerPromise.future
     .flatMap(_ ? x)
+    .mapTo[S]
 
   val initializeResponse =
     Map[String, JsValue](
@@ -51,16 +53,20 @@ trait Routes extends JsonSupport {
           projectManagerPromise.success(ref)
           JsObject("capabilities" -> initializeResponse)
         }
-    } |: request("textDocument/completion") { params: TextDocumentPositionParams =>
-      askProjectManager(params.toCompletionRequest).mapTo[Set[Suggestion]]
-      .map { set =>
-        val items = set.map { sug =>
-          CompletionItem(sug)
-        }.toList
-        JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
+    } |: request[TextDocumentPositionParams, JsObject]("textDocument/completion") { case TextDocumentPositionParams(textDocument, position) =>
+      (bufferActor ? BufferContentActor.GetWord(position)).mapTo[Option[String]]
+      .flatMap {
+        case Some(word) =>
+          askProjectManager[Set[Suggestion]](CompletionRequest(textDocument.uri.getRawPath, position.filePosition,word))
+            .map { set =>
+              val items = set.map(CompletionItem(_)).toList
+              JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
+            }
+        case None =>
+          Future.successful(JsObject("isIncomplete" -> false.toJson, "items" -> Seq.empty[CompletionItem].toJson))
       }
     } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
-        askProjectManager(CompileProject(params.textDocument.path)).mapTo[Seq[CompilerError]]
+        askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
         .map { seq =>
           seq.map { //to lsp Diagnostic
             case CompilerError("Error", file, start,end,msg) =>
