@@ -7,7 +7,7 @@ import de.thm.mope.suggestion.CompletionRequest
 
 package object messages {
 	type DocumentUri = URI
-	case class TextDocumentIdentifier (uri: DocumentUri)
+	case class TextDocumentIdentifier (uri: DocumentUri, version:Option[Int])
 	case class TextDocumentPositionParams(textDocument: TextDocumentIdentifier, position: Position) {
 		def toCompletionRequest:CompletionRequest = {
 			val line = Files.readAllLines(Paths.get(textDocument.uri)).get(position.line)
