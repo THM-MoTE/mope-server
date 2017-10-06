@@ -4,6 +4,7 @@ import de.thm.mope.suggestion.Suggestion
 
 case class CompletionItem(label:String,
                          kind:Int,
+                          insertText:String,
                          documentation:Option[String])
 
 object CompletionItem {
@@ -28,7 +29,7 @@ object CompletionItem {
     val Reference = 18
   }
 
-  def apply(sug:Suggestion):CompletionItem = {
+  def apply(word:String, sug:Suggestion):CompletionItem = {
     val kind = sug.kind match {
       case Suggestion.Kind.Variable => CompletionItemKind.Variable
       case Suggestion.Kind.Function => CompletionItemKind.Function
@@ -39,6 +40,8 @@ object CompletionItem {
            Suggestion.Kind.Class |
            Suggestion.Kind.Type => CompletionItemKind.Class
     }
-    CompletionItem(sug.name, kind, sug.classComment)
+    val idxDot = sug.name.lastIndexOf(".")
+    val insertText = if(idxDot != -1) sug.name.drop(idxDot+1) else sug.name
+    CompletionItem(sug.name, kind, insertText, sug.classComment)
   }
 }

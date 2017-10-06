@@ -59,7 +59,7 @@ trait Routes extends JsonSupport {
         case Some(word) =>
           askProjectManager[Set[Suggestion]](CompletionRequest(textDocument.uri.getRawPath, position.filePosition,word))
             .map { set =>
-              val items = set.map(CompletionItem(_)).toList
+              val items = set.map(CompletionItem(word,_)).toList
               JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
             }
         case None =>
