@@ -82,15 +82,19 @@ trait Routes extends JsonSupport {
         askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
         .map { seq =>
           //TODO: send empty errors to client to clear the error list
-          seq.map { //to lsp Diagnostic
-            case CompilerError("Error", file, start,end,msg) =>
-              (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
-                Diagnostic.Error, file, file, msg))
-          }
-          .foreach { //publish each error
-              case (fileName, diagnostic) =>
-                notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileName.toJson, "diagnostics" -> Seq(diagnostic).toJson)))
-          }
+           val errMap = seq.map { //to lsp Diagnostic
+              case CompilerError("Error", file, start,end,msg) =>
+                (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
+                  Diagnostic.Error, file, file, msg))
+              case CompilerError("Warning", file, start,end,msg) =>
+                (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
+                  Diagnostic.Warning, file, file, msg))
+            }.groupBy(_._1)
+
+           errMap.foreach { case (fileUri, errors) =>
+             val diagnostics = errors.map(_._2)
+             notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileUri.toJson, "diagnostics" -> diagnostics.toJson)))
+           }
         }
     } |: notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
       bufferActor ! BufferContentActor.BufferContent(change.textDocument.path, change.contentChanges.head.text)
