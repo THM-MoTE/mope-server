@@ -20,6 +20,8 @@ trait Routes extends JsonSupport {
   this: ServerSetup =>
   import RpcMethod._
 
+  //TODO: split notificatinos & requests into 2 handlers
+
   def notificationActor:Future[ActorRef]
   lazy val bufferActor = actorSystem.actorOf(Props[BufferContentActor], "BCA")
 
@@ -58,7 +60,7 @@ trait Routes extends JsonSupport {
         JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
       }
     } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
-        askProjectManager(CompileProject(Paths.get(params.textDocument.uri))).mapTo[Seq[CompilerError]]
+        askProjectManager(CompileProject(params.textDocument.path)).mapTo[Seq[CompilerError]]
         .map { seq =>
           seq.map { //to lsp Diagnostic
             case CompilerError("Error", file, start,end,msg) =>
@@ -70,5 +72,8 @@ trait Routes extends JsonSupport {
                 notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileName.toJson, "diagnostics" -> Seq(diagnostic).toJson)))
           }
         }
+    } |: notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
+      bufferActor ! BufferContentActor.BufferContent(change.textDocument.path, change.contentChanges.head.text)
+      Future.successful(())
     }
 }

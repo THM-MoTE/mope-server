@@ -37,5 +37,11 @@ class BufferContentActorSpec
       actor ! BufferContentActor.GetContentRange()
       expectMsg(content)
     }
+
+    "replace the content" in {
+      val contentMsg = BufferContentActor.BufferContent(Paths.get("test.file"), content.concat("testitestitesti"))
+      actor ! contentMsg
+      actor.underlyingActor.currentContent should be (contentMsg)
+    }
   }
 }

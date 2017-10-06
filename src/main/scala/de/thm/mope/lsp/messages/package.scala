@@ -1,13 +1,15 @@
 package de.thm.mope.lsp
 
 import java.net.URI
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
 
 import de.thm.mope.suggestion.CompletionRequest
 
 package object messages {
 	type DocumentUri = URI
-	case class TextDocumentIdentifier (uri: DocumentUri, version:Option[Int])
+	case class TextDocumentIdentifier (uri: DocumentUri, version:Option[Int]) {
+		def path:Path = Paths.get(uri)
+	}
 	case class TextDocumentPositionParams(textDocument: TextDocumentIdentifier, position: Position) {
 		def toCompletionRequest:CompletionRequest = {
 			val line = Files.readAllLines(Paths.get(textDocument.uri)).get(position.line)
@@ -15,4 +17,6 @@ package object messages {
 		}
 	}
 	case class DidSaveTextDocumentParams(textDocument: TextDocumentIdentifier)
+	case class DidChangeTextDocumentParams(textDocument: TextDocumentIdentifier, contentChanges:Seq[TextDocumentContentChangeEvent])
+	case class TextDocumentContentChangeEvent(range:Option[Range], rangeLength:Option[Int], text:String)
 }

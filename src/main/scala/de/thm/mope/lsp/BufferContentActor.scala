@@ -13,15 +13,21 @@ class BufferContentActor
   override def receive:Receive = {
     case x:BufferContent =>
       currentContent = x
+      log.debug("Initialized content: {}", currentContent.content)
       context.become(initialized)
   }
 
   private def initialized:Receive = {
+    case x:BufferContent =>
+      currentContent = x
+      log.debug("New content: {}", currentContent.content)
     case GetContentRange(Some(range)) =>
       val containingLines = currentContent.lines.slice(range.start.line,range.end.line+1)
       val firstLine = containingLines.head.drop(range.start.character)
       val lastLine = containingLines.last.take(range.end.character)
-      sender ! ((firstLine :: containingLines.tail.init) :+ lastLine).mkString("\n")
+      val content = ((firstLine :: containingLines.tail.init) :+ lastLine).mkString("\n")
+      log.debug("Content-Range: {}", content)
+      sender ! content
     case GetContentRange(None) => sender ! currentContent.content
   }
 }

@@ -89,4 +89,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val textDocIdentFormat = jsonFormat2(TextDocumentIdentifier)
   implicit val textDocumentPosFormat = jsonFormat2(TextDocumentPositionParams)
   implicit val didSaveNotifyFormat = jsonFormat1(DidSaveTextDocumentParams)
+  implicit val documentChangeEvFormat = jsonFormat3(TextDocumentContentChangeEvent)
+  implicit val documentChangeParFormat = jsonFormat2(DidChangeTextDocumentParams)
 }
