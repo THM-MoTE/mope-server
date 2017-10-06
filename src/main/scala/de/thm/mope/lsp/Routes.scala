@@ -6,13 +6,16 @@ import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.stream.scaladsl._
 import de.thm.mope.compiler.CompilerError
-import de.thm.mope.server.{JsonSupport, ServerSetup}
+import de.thm.mope.declaration.DeclarationRequest
+import de.thm.mope.server.{JsonSupport, NotFoundException, ServerSetup}
 import spray.json._
 import de.thm.mope.lsp.messages._
+import de.thm.mope.position.{CursorPosition, FileWithLine}
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectManagerActor.CompileProject
 import de.thm.mope.server.ProjectsManagerActor.ProjectId
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion}
+import de.thm.mope.utils._
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
@@ -65,9 +68,20 @@ trait Routes extends JsonSupport {
         case None =>
           Future.successful(JsObject("isIncomplete" -> false.toJson, "items" -> Seq.empty[CompletionItem].toJson))
       }
+    } |: request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
+      (for {
+          optWord <- (bufferActor ? BufferContentActor.GetWord(position)).mapTo[Option[String]]
+          word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
+          optFile <- askProjectManager[Option[FileWithLine]](DeclarationRequest(CursorPosition(textDocument.uri.getRawPath, position.filePosition, word)))
+          file <- optionToNotFoundExc(optFile, s"Can't find a definition :(")
+        } yield Seq(Location(file)))
+        .recover {
+          case NotFoundException(_) => Seq.empty[Location]
+        }
     } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
         askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
         .map { seq =>
+          //TODO: send empty errors to client to clear the error list
           seq.map { //to lsp Diagnostic
             case CompilerError("Error", file, start,end,msg) =>
               (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
