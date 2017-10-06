@@ -40,6 +40,7 @@ import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import de.thm.mope.templates.TemplateEngine
 import de.thm.mope.templates.TemplateEngine._
+import de.thm.mope.utils._
 import de.thm.mope.utils.IOUtils
 
 import de.thm.recent.JsProtocol._

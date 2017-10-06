@@ -49,10 +49,4 @@ trait ErrorHandling {
         complete(HttpResponse(StatusCodes.InternalServerError, entity=ex.getMessage))
       }
   }
-
-  def optionToNotFoundExc[A](opt:Option[A], excMsg:String)(implicit execContext: ExecutionContext): Future[A] =
-    opt match {
-      case Some(a) => Future.successful(a)
-      case None => Future.failed(new NotFoundException(excMsg))
-    }
 }
