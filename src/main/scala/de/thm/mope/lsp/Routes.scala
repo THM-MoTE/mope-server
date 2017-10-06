@@ -2,7 +2,7 @@ package de.thm.mope.lsp
 import java.net.URI
 import java.nio.file.Paths
 
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.stream.scaladsl._
 import de.thm.mope.compiler.CompilerError
@@ -21,6 +21,8 @@ trait Routes extends JsonSupport {
   import RpcMethod._
 
   def notificationActor:Future[ActorRef]
+  lazy val bufferActor = actorSystem.actorOf(Props[BufferContentActor], "BCA")
+
     //manager of initialized project
   val projectManagerPromise = Promise[ActorRef]
   def askProjectManager(x:Any):Future[Any] =
@@ -29,7 +31,7 @@ trait Routes extends JsonSupport {
 
   val initializeResponse =
     Map[String, JsValue](
-      "textDocumentSync" -> 2.toJson,
+      "textDocumentSync" -> 1.toJson,
       "completionProvider" -> JsObject("resolveProvider" -> false.toJson, "triggerCharacters" -> Seq(".").toJson),
       "definitionProvider" -> true.toJson,
     ).toJson
