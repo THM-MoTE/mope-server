@@ -37,6 +37,10 @@ class BufferContentActorSpec
       actor ! BufferContentActor.GetContentRange()
       expectMsg(content)
     }
+    "return the word around a specific position" in {
+      actor ! BufferContentActor.GetWord(Position(1,5))
+      expectMsg(Some("awesome"))
+    }
 
     "replace the content" in {
       val contentMsg = BufferContentActor.BufferContent(Paths.get("test.file"), content.concat("testitestitesti"))

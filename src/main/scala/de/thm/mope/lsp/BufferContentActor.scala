@@ -3,12 +3,16 @@ package de.thm.mope.lsp
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
 import java.nio.file.Path
 
+import de.thm.mope.lsp.messages.Position
+
 class BufferContentActor
     extends Actor
     with ActorLogging {
   import BufferContentActor._
 
   var currentContent:BufferContent = null
+
+  val wordPattern = """[\w\d\.\-]+""".r
 
   override def receive:Receive = {
     case x:BufferContent =>
@@ -29,6 +33,13 @@ class BufferContentActor
       log.debug("Content-Range: {}", content)
       sender ! content
     case GetContentRange(None) => sender ! currentContent.content
+    case GetWord(Position(lineIdx,charIdx)) =>
+      log.debug("matches: {}", wordPattern.findAllIn(currentContent.lines(lineIdx)).toList)
+      val word = wordPattern
+        .findAllIn(currentContent.lines(lineIdx)).matchData
+        .find { m => m.start <= charIdx && m.end>=charIdx }
+        .map { m => m.toString }
+      sender ! word
   }
 }
 
@@ -37,5 +48,6 @@ object BufferContentActor {
     lazy val lines:List[String] = content.split('\n').toList
   }
   case class GetContentRange(range:Option[messages.Range]=None)
+  case class GetWord(pos:Position)
 }
 
