@@ -11,7 +11,7 @@ import spray.json._
 
 import scala.concurrent.Future
 
-class ProtocolHandlerSpec extends ActorSpec with JsonSupport {
+class ProtocolHandlerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
   val inputElems = List.tabulate(5)(i => RequestMessage(2, "compile", (i+50).toJson) )
 

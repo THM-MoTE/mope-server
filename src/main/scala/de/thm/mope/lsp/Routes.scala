@@ -20,7 +20,7 @@ import de.thm.mope.utils._
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 
-trait Routes extends JsonSupport {
+trait Routes extends JsonSupport with LspJsonSupport {
   this: ServerSetup =>
   import RpcMethod._
 

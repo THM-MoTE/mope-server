@@ -11,7 +11,7 @@ import spray.json._
 
 import scala.concurrent.{Future, Promise}
 
-class LspServerSpec extends ActorSpec with JsonSupport {
+class LspServerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
   val inputElem = RequestMessage(2, "double", 50.toJson)
   val notification = NotificationMessage("notify", 50.toJson)

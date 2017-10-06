@@ -14,7 +14,8 @@ import de.thm.mope.utils.StreamUtils
 import scala.util._
 
 class LspServer(implicit val system:ActorSystem)
-    extends JsonSupport {
+    extends JsonSupport
+      with LspJsonSupport {
 
   implicit val log = Logging(system, getClass)
   import system.dispatcher
