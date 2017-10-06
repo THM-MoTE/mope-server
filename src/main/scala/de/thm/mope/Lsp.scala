@@ -57,19 +57,4 @@ object Lsp
        flatMap(_.unbind()).
        onComplete(_ => actorSystem.terminate())
    }
-
-// serverlog.debug("running the stream")
-//
-// Source(List(RequestMessage(1, "compile", 50.toJson,"2.0"), RequestMessage(2, "compile", 100.toJson,"2.0")))
-//   .map { msg =>
-//     val bs = ByteString(s"""\r\nContent-Type: text/utf-8\r
-//        |Content-Length: 58\r\n
-//        |${msg.toJson}""".stripMargin)
-//     println("input: "+bs.utf8String)
-//     bs
-//   }
-//   .via(pipeline)
-//   .map(_.utf8String)
-//   .runForeach(println)
-//   .onComplete(_ => actorSystem.terminate())
 }
