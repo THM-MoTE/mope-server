@@ -23,6 +23,9 @@ import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 abstract class ActorSpec extends TestKit(ActorSystem("specSystem", ConfigFactory.load("mope.conf")))
   with ImplicitSender
   with MopeSpec
@@ -30,6 +33,7 @@ abstract class ActorSpec extends TestKit(ActorSystem("specSystem", ConfigFactory
 
   implicit lazy val mat = ActorMaterializer()
   implicit lazy val context = system.dispatcher
+  implicit lazy val timeout = 5 seconds
 
   override def afterAll = {
       TestKit.shutdownActorSystem(system)
