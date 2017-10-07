@@ -19,7 +19,7 @@ class LspServer(implicit val system:ActorSystem)
 
   implicit val log = Logging(system, getClass)
   import system.dispatcher
-  val parallelism = 4
+  val parallelism = 4 //FIXME: move into conf file
   val notificationBufferSize = 8024
 
   def handleError(ex:Throwable):ResponseError = ex match {
