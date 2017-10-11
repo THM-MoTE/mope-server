@@ -1,3 +1,6 @@
+fork in run := true
+connectInput in run := true
+
 scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
@@ -26,7 +29,7 @@ lazy val root = Project(id = "moie-server", base = file(".")).
     organization := "de.thm.mote",
     name := "MoPE-server",
     version := "0.6",
-    scalaVersion := "2.12.2",
+    scalaVersion := "2.12.3",
     javacOptions ++= Seq("-source", "1.8"),
     mainClass in Compile := Some("de.thm.mope.MoPE"),
     configDir := new File(System.getProperty("user.home")) / ".mope",
