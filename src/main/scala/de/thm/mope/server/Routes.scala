@@ -159,7 +159,7 @@ trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
       } ~
       path("completion") {
         postEntityWithId(as[CompletionRequest], id) { (completion, projectManager) =>
-          (projectManager ? completion).mapTo[Set[Suggestion]]
+          (projectManager ? completion).mapTo[Seq[Suggestion]]
         }
       } ~
       path("typeOf") {

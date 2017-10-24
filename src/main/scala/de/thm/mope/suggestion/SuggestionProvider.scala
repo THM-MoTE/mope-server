@@ -28,6 +28,7 @@ import de.thm.mope.Global
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.StreamUtils
 
 import scala.concurrent.Future
 
@@ -47,7 +48,7 @@ class SuggestionProvider(compiler:CompletionLike)
     Global.readValuesFromResource(
         getClass.getResource("/completion/types.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
 
-  val logSuggestions: String => Set[Suggestion] => Set[Suggestion] = { word => suggestions =>
+  val logSuggestions: String => Seq[Suggestion] => Seq[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
     else log.info("found {} suggestion(s) for {}", suggestions.size, word)
     suggestions
@@ -61,11 +62,11 @@ class SuggestionProvider(compiler:CompletionLike)
   override def receive: Receive = {
     case CompletionRequest(_,_,word) if word.isEmpty =>
       //ignore empty strings
-      sender ! Set.empty[Suggestion]
+      sender ! Seq.empty[Suggestion]
     case CompletionRequest(_,_,word) if word.endsWith(".") =>
       //searching for a class inside another class
       containingPackages(word.dropRight(1)).
-        toMat(toSet)(Keep.right).
+        toMat(Sink.seq)(Keep.right).
         run().
         map(logSuggestions(word)) pipeTo sender
     case CompletionRequest(filename,FilePosition(line,_),word) =>
@@ -90,7 +91,7 @@ class SuggestionProvider(compiler:CompletionLike)
     }
 
   /** Filters all possible suggestions based on String#startsWith or Levenshtein distance */
-  private def toStartsWith(word:String):Sink[Suggestion, Future[Set[Suggestion]]] = {
+  private def toStartsWith(word:String):Sink[Suggestion, Future[Seq[Suggestion]]] = {
     val matcher = new PrefixMatcher(word)
     /*
       Creates the following graph:
@@ -105,14 +106,15 @@ class SuggestionProvider(compiler:CompletionLike)
     val suggestionFilter = Flow.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
       val bcast = builder.add(Broadcast[Suggestion](2))
-      val merge = builder.add(Merge[Suggestion](2))
+      // val merge = builder.add(Merge[Suggestion](2))
+      val zip = builder.add(ZipWith[Seq[Suggestion], Seq[Suggestion], Seq[Suggestion]] { _++_ })
 
-      bcast.out(0) ~> matcher.startsWith ~> merge.in(0)
-      bcast.out(1) ~> matcher.levenshtein ~> merge.in(1)
+      bcast ~> matcher.startsWith().via(StreamUtils.seq) ~> zip.in0
+      bcast ~> matcher.startsWith(true).via(matcher.levenshtein) ~> zip.in1
 
-      FlowShape(bcast.in, merge.out)
+      FlowShape(bcast.in, zip.out)
     })
-    suggestionFilter.toMat(toSet)(Keep.right)
+    suggestionFilter.toMat(Sink.head)(Keep.right)
   }
 
   /** Adds to the given tupel of (className, classType) - returned from CompletionLike#getClasse - a list of parameters. */

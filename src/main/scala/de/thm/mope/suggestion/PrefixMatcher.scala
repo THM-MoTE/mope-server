@@ -17,31 +17,36 @@
 
 package de.thm.mope.suggestion
 
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Flow
+import de.thm.mope.utils.StreamUtils
 import org.apache.commons.lang3.StringUtils
 
-class PrefixMatcher(prefix:String)(implicit mat: ActorMaterializer) {
-  def startsWith =
-    Flow[Suggestion].filter { suggestion =>
+class PrefixMatcher(prefix:String) {
+  def startsWith(negate:Boolean=false) = {
+    val pred = { suggestion:Suggestion =>
       suggestion.name.startsWith(prefix)
     }
+    if(negate) Flow[Suggestion].filterNot(pred)
+    else Flow[Suggestion].filter(pred)
+  }
 
+  /** Returns Seq[Suggestion] sorted by their closest distance to `prefix`. */
   def levenshtein =
-    Flow[Suggestion].filter { suggestion =>
-      val (objectName, suffixMember) = sliceAtLastDot(prefix)
-      val (suggestionObjectName, suggestionMember) = sliceAtLastDot(suggestion.name)
-      if(!suffixMember.isEmpty) {
-        //match on suffix of .
-        distance(suggestionMember, suffixMember)
+    Flow[Suggestion].via(StreamUtils.seq).map { seq =>
+      seq.map { suggestion =>
+        //map to (distance -> suggestion)
+        val (objectName, suffixMember) = sliceAtLastDot(prefix)
+        val (suggestionObjectName, suggestionMember) = sliceAtLastDot(suggestion.name)
+        (if(!suffixMember.isEmpty) {
+          //match on suffix of .
+          StringUtils.getLevenshteinDistance(suggestionMember, suffixMember).intValue()
+        } else {
+          //match on prefix of .
+          StringUtils.getLevenshteinDistance(suggestionObjectName, objectName).intValue()
+        }, suggestion)
+      }.sortBy { case (v,_) => v } //sort by their distance
+        .collect { //only elements that contain the prefix
+        case (v,suggestion) if v<suggestion.name.size => suggestion
       }
-      else if(!objectName.isEmpty) {
-        //match on prefix of .
-        distance(suggestionObjectName, objectName)
-      }
-      else false
     }
-
-  private def distance(str1:String,str2:String): Boolean =
-    StringUtils.getLevenshteinDistance(str1, str2) < Math.min(5, str1.length / 2)
 }
