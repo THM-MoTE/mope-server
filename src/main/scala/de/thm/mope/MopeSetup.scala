@@ -21,12 +21,12 @@ import org.slf4j.{LoggerFactory}
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.Level
 
-import de.thm.mope.Global._
-
 /** Application wide initializations */
 trait MopeSetup {
 
-  val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
+  import Global._
+
+  val applicationMode = ApplicationMode.parseString(Global.config.getString("app.mode"))
 
   /* ================ SLF4J & LOGBACK */
   /* Route java.util.logging into slf4j */

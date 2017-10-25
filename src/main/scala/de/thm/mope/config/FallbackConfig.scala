@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.thm.mope
+package de.thm.mope.config
 
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
