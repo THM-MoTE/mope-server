@@ -18,16 +18,22 @@
 package de.thm.mope.server
 
 import java.nio.file.Paths
-
+import com.typesafe.config.Config
+import com.softwaremill.tagging._
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
 import de.thm.mope.Global
+import de.thm.mope.tags._
 import de.thm.mope.compiler.CompilerFactory
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectRegister._
 import de.thm.mope.utils.actors.UnhandledReceiver
 
 /** Root actor for all registered projects. */
-class ProjectsManagerActor
+class ProjectsManagerActor(
+  register:ProjectRegister,
+  recentFilesHandler:ActorRef @@ RecentHandlerMarker,
+  projectManagerFactory:(ProjectDescription,Int) => ActorRef@@ProjectManagerMarker,
+  config:Config)
   extends Actor
   with UnhandledReceiver
   with ActorLogging {
@@ -35,29 +41,25 @@ class ProjectsManagerActor
   import ProjectsManagerActor._
   import RecentFilesActor._
 
-  private val register = new ProjectRegister()
-  private val compilerFactory = new CompilerFactory(Global.config)
-  private val indexFiles = Global.config.getBoolean("indexFiles")
-
-  private val recentFilesHandler = context.actorOf(Props(new RecentFilesActor()), name = s"recentFilesHandler")
-
   private def withIdExists[T](id:ID)(f: (ProjectDescription, ActorRef) => T):Option[T] =
     register.get(id) map {
       case ProjectEntry(descr, actor, _) => f(descr, actor)
     }
 
-  private def newManager(description:ProjectDescription, id:ID): ActorRef = {
-    val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
-    try {
-      val compiler = compilerFactory.newCompiler(outputPath)
-      log.info("new manager for id:{}", id)
-      context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
-    } catch {
-      case ex:Exception =>
-        log.error("Couldn't initialize a new ProjectManager - blow up system")
-        throw ex
-    }
-  }
+  // private def newManager(description:ProjectDescription, id:ID): ActorRef = {
+  //   val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
+  //   try {
+  //     val compiler = compilerFactory.newCompiler(outputPath)
+  //     log.info("new manager for id:{}", id)
+  //     context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
+  //   } catch {
+  //     case ex:Exception =>
+  //       log.error("Couldn't initialize a new ProjectManager - blow up system")
+  //       throw ex
+  //   }
+  // }
+
+  private def newManager(description:ProjectDescription, id:ID): ActorRef = ???
 
   override def receive: Receive = {
     case GetRecentFiles => recentFilesHandler forward GetRecentFiles

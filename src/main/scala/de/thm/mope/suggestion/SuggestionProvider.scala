@@ -17,7 +17,7 @@
 
 package de.thm.mope.suggestion
 
-import java.nio.file.Paths
+import java.nio.file.{Paths, Path}
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
@@ -33,13 +33,17 @@ import de.thm.mope.utils.StreamUtils
 import scala.concurrent.Future
 
 /** An Actor which provides suggestions (code completions) for a given word. */
-class SuggestionProvider(compiler:CompletionLike)
-  extends Actor
+class SuggestionProvider(
+  compiler:CompletionLike,
+  fileInspectorFactory: Path => SrcFileInspector,
+  prefixMatcherFactory: String => PrefixMatcher)(
+  implicit
+    mat:ActorMaterializer)
+    extends Actor
     with UnhandledReceiver
     with ActorLogging {
 
   import context.dispatcher
-  implicit val mat = ActorMaterializer(namePrefix = Some("suggestion-stream"))
 
   val keywords =
     Global.readValuesFromResource(
@@ -79,7 +83,7 @@ class SuggestionProvider(compiler:CompletionLike)
         run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
-      new SrcFileInspector(Paths.get(filename)).typeOf(word, line).
+      fileInspectorFactory(Paths.get(filename)).typeOf(word, line).
         toMat(Sink.headOption)(Keep.right).
         run().
         map(logType(word)) pipeTo sender
@@ -92,7 +96,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
   /** Filters all possible suggestions based on String#startsWith or Levenshtein distance */
   private def toStartsWith(word:String):Sink[Suggestion, Future[Seq[Suggestion]]] = {
-    val matcher = new PrefixMatcher(word)
+    val matcher = prefixMatcherFactory(word)
     /*
       Creates the following graph:
           -------> startswith ------
@@ -191,10 +195,10 @@ class SuggestionProvider(compiler:CompletionLike)
     val (objectName, member) = sliceAtLastDot(word)
     if(member.isEmpty) Source.empty
     else {
-      new SrcFileInspector(Paths.get(filename))
+      fileInspectorFactory(Paths.get(filename))
         .typeOf(objectName, lineNo)
         .via(srcFile)
-        .flatMapConcat{ file => new SrcFileInspector(Paths.get(file)).localVariables(None) }
+        .flatMapConcat{ file => fileInspectorFactory(Paths.get(file)).localVariables(None) }
         .map { objectVariable =>
         Suggestion(Kind.Property, objectName+"."+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
       }

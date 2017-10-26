@@ -18,12 +18,15 @@
 package de.thm.mope.server
 
 import java.nio.file._
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{ExecutorService, TimeUnit}
+import com.softwaremill.tagging._
+import com.typesafe.config.Config
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorRef, ActorLogging, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import de.thm.mope._
+import de.thm.mope.tags._
 import de.thm.mope.tree._
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
@@ -45,9 +48,16 @@ import scala.language.postfixOps
  *
   * @note This actor starts several subactors for serving all requests
   */
-class ProjectManagerActor(description:ProjectDescription,
-                          compiler:ModelicaCompiler,
-                          indexFiles:Boolean = true)
+class ProjectManagerActor(
+  description:ProjectDescription,
+  compiler:ModelicaCompiler,
+  executor:ExecutorService,
+  fileWatchingActorFactory:(ActorRef,Path,String) => ActorRef @@ FileWatchingMarker,
+  completionActor:ActorRef @@ CompletionMarker,
+  jumpProvider:ActorRef @@ JumpProviderMarker,
+  docProvider:ActorRef @@ DocProviderMarker,
+  config:Config)
+(implicit timeout:Timeout)
   extends Actor
   with UnhandledReceiver
   with ActorLogging {
@@ -55,15 +65,9 @@ class ProjectManagerActor(description:ProjectDescription,
   import ProjectManagerActor._
   import context.dispatcher
 
-  implicit val timeout = Timeout(5 seconds)
-
-  val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-"+self.path.name))
-  implicit val projConfig = InternalProjectConfig(executor, timeout)
+  private val indexFiles = config.getBoolean("indexFiles")
   val rootDir = Paths.get(description.path)
-  val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
-  val completionActor = context.actorOf(Props(new SuggestionProvider(compiler)))
-  val jumpProvider = context.actorOf(Props(new JumpToProvider(compiler)))
-  val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
+  val fileWatchingActor = fileWatchingActorFactory(self, rootDir, description.outputDirectory)
 
   val treeFilter:PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
@@ -176,11 +180,11 @@ class ProjectManagerActor(description:ProjectDescription,
 
   override def postStop(): Unit = {
     compiler.stop()
-    executor.shutdown()
-    if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-      log.warning("Force shutdown threadpool")
-      executor.shutdownNow()
-    }
+    // executor.shutdown()
+    // if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+    //   log.warning("Force shutdown threadpool")
+    //   executor.shutdownNow()
+    // }
 
     log.info("stopping")
   }

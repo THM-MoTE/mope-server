@@ -27,6 +27,7 @@ import de.thm.mope.utils.actors.UnhandledReceiver
 import scala.concurrent.Future
 import scala.io.Source
 import java.nio.file.{Path, Paths}
+import java.nio.charset.Charset
 
 import omc.corba.ScriptingHelper
 import de.thm.mope.Global
@@ -34,14 +35,17 @@ import akka.stream._
 import akka.stream.scaladsl._
 
 /*+ An Actor which finds the source (file) of a `className`. */
-class JumpToProvider(jumpLike:JumpToLike)
-  extends Actor
+class JumpToProvider(
+  jumpLike:JumpToLike,
+  encoding:Charset,
+  fileInspectorFactory: Path => SrcFileInspector)(
+  implicit
+    mat:ActorMaterializer)
+    extends Actor
     with UnhandledReceiver
     with ActorLogging {
 
   import context.dispatcher
-
-  implicit val mat = ActorMaterializer(namePrefix = Some("declaration-stream"))
 
   override def receive: Receive = {
     case DeclarationRequest(cursorPos) =>
@@ -54,7 +58,7 @@ class JumpToProvider(jumpLike:JumpToLike)
   }
 
   private def lineNrOfModel(file:Path, model:String): Option[Int] = {
-    val src = Source.fromFile(file.toUri, Global.encoding.name)
+    val src = Source.fromFile(file.toUri, encoding.name)
     src.getLines.zipWithIndex.find {
       case (line, idx) =>
         val matcher = ScriptingHelper.modelPattern.matcher(line)
@@ -83,7 +87,7 @@ class JumpToProvider(jumpLike:JumpToLike)
   }
 
   private def findVariable(cursorPos:CursorPosition): Future[Option[FileWithLine]] = {
-    new SrcFileInspector(Paths.get(cursorPos.file))
+    fileInspectorFactory(Paths.get(cursorPos.file))
       .localVariables(None)
       .filter(x => x.name == cursorPos.word)
       .map(x => FileWithLine(cursorPos.file, x.lineNo))

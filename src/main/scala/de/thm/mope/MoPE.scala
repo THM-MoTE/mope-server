@@ -17,11 +17,17 @@
 
 package de.thm.mope
 
-import de.thm.mope.server.Server
-
+import de.thm.mope.server._
+import RecentFilesActor._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 
 object MoPE
-  extends MopeSetup {
+    extends MopeSetup
+    with MopeModule {
+
+  override implicit lazy val system = ActorSystem("moie-system")
+  override implicit lazy val mat = ActorMaterializer()
 
   def main(args:Array[String]) = {
     val server = new Server()
