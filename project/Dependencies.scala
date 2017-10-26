@@ -38,8 +38,16 @@ object Dependencies {
     "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
   )
 
+
+  val macWireVersion = "2.3.0"
+  val depInjection = Seq(
+    "com.softwaremill.macwire" %% "macros" % macWireVersion % Provided,
+    "com.softwaremill.macwire" %% "macrosakka" % macWireVersion % Provided,
+    "com.softwaremill.macwire" %% "util" % macWireVersion % Provided
+  )
+
   val ewsProject = fromGithub("https://github.com/THM-MoTE/EnhancedWatchService.git")
   val recentlyProject = fromGithub("https://github.com/THM-MoTE/recently.git")
 
-  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib)
+  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib ++ depInjection)
 }
