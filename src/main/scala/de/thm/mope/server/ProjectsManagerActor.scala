@@ -59,7 +59,16 @@ class ProjectsManagerActor(
   //   }
   // }
 
-  private def newManager(description:ProjectDescription, id:ID): ActorRef = ???
+  private def newManager(description:ProjectDescription, id:ID): ActorRef = {
+    try {
+      log.info("new manager for id:{}", id)
+      projectManagerFactory(description, id)
+    } catch {
+      case ex:Exception =>
+        log.error("Couldn't initialize a new ProjectManager - blow up system")
+        throw ex
+    }
+  }
 
   override def receive: Receive = {
     case GetRecentFiles => recentFilesHandler forward GetRecentFiles

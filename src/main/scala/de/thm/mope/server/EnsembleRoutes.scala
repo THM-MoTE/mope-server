@@ -26,7 +26,7 @@ import de.thm.mope.position.FilePath
 import scala.concurrent.Future
 
 trait EnsembleRoutes {
-  this: ServerSetup with JsonSupport with ErrorHandling =>
+  this: JsonSupport =>
 
   def ensembleHandler: EnsembleHandler
 

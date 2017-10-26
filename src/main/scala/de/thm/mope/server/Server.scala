@@ -20,23 +20,24 @@ package de.thm.mope.server
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
+import akka.event.Logging
 import de.thm.mope.Global
 import de.thm.mope.utils.MopeExitCodes
 import de.thm.mope.Global.ApplicationMode
+import de.thm.mope.MopeModule
 
 import scala.concurrent.{Future, blocking}
 import scala.io.StdIn
 
 class Server()
-    extends Routes
-    with ServerSetup
+    extends MopeModule
     with ValidateConfig {
 
-  override implicit lazy val actorSystem = ActorSystem("moie-system", akkaConfig)
-  override implicit lazy val materializer = ActorMaterializer()
-  override val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
-  override val ensembleHandler = new EnsembleHandler(Global.config, blockingDispatcher)
-
+  override implicit lazy val actorSystem = ActorSystem("moie-system", config)
+  override implicit lazy val mat = ActorMaterializer()
+  import actorSystem.dispatcher
+  val serverlog = Logging(actorSystem, classOf[Server])
+  serverlog.info("{} - Version {}", build.ProjectInfo.name, build.ProjectInfo.version)
 
   val errors = validateConfig(Global.config)
   if(!Global.configDidExist) {
@@ -50,25 +51,28 @@ class Server()
     MopeExitCodes.waitAndExit(MopeExitCodes.CONFIG_ERROR)
   }
 
-  val bindingFuture =
-    Http().bindAndHandle(routes, interface, port)
 
-  bindingFuture onComplete {
-    case scala.util.Success(_) =>
-      serverlog.info("Server running at {}:{}", interface, port)
-    case scala.util.Failure(ex) =>
-      serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
-      actorSystem.terminate()
-  }
+  def start():Unit = {
+    val bindingFuture =
+      Http().bindAndHandle(router.routes, interface, port)
 
-  if(applicationMode == ApplicationMode.Development) {
-    Future {
-      blocking {
-        serverlog.info("Press Ctrl+D to interrupt")
-        while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
-        bindingFuture.
-          flatMap(_.unbind()).
-          onComplete(_ => actorSystem.terminate())
+    bindingFuture onComplete {
+      case scala.util.Success(_) =>
+        serverlog.info("Server running at {}:{}", interface, port)
+      case scala.util.Failure(ex) =>
+        serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
+        actorSystem.terminate()
+    }
+
+    if(applicationMode == ApplicationMode.Development) {
+      Future {
+        blocking {
+          serverlog.info("Press Ctrl+D to interrupt")
+          while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
+          bindingFuture.
+            flatMap(_.unbind()).
+            onComplete(_ => actorSystem.terminate())
+        }
       }
     }
   }

@@ -23,13 +23,10 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 
 object MoPE
-    extends MopeSetup
-    with MopeModule {
-
-  override implicit lazy val system = ActorSystem("moie-system")
-  override implicit lazy val mat = ActorMaterializer()
+    extends MopeSetup {
 
   def main(args:Array[String]) = {
     val server = new Server()
+    server.start()
   }
 }

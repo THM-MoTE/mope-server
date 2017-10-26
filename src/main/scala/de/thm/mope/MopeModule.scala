@@ -19,13 +19,18 @@ package de.thm.mope
 
 import akka.actor.{ActorSystem, ActorRef}
 import akka.stream.ActorMaterializer
+import akka.util.Timeout
 
 import java.nio.file.{Path,Paths}
-import java.util.concurrent.{Executors, TimeUnit}
+import java.nio.charset.Charset
+import java.util.concurrent.{Executors, ExecutorService, TimeUnit}
 
 import com.softwaremill.macwire._
 import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
+import com.typesafe.config.Config
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 import de.thm.mope.compiler._
 import de.thm.mope.project._
@@ -36,16 +41,24 @@ import de.thm.mope.suggestion._
 import de.thm.mope.utils.ThreadUtils
 
 trait MopeModule {
-  import tags._
-  lazy val config = Global.config //FIXME: inject & kill the global object
-  lazy val encoding = Global.encoding
+  import de.thm.mope.tags._
+  lazy val config:Config = Global.config //FIXME: inject & kill the global object
+  lazy val encoding:Charset = Global.encoding
+  lazy val interface = config.getString("http.interface")
+  lazy val port = config.getInt("http.port")
+  lazy val applicationMode = Global.ApplicationMode.parseString(config.getString("app.mode"))
+  implicit lazy val defaultTimeout:Timeout = Timeout(config.getInt("defaultAskTimeout") seconds)
 
   //TODO: use 1 executor for all projects? move up into ProjectSmanager?
-  lazy val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
+  lazy val executor:ExecutorService = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
 
 
+  lazy val ensembleHandler:EnsembleHandler = {
+    val context = actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io")
+    wire[EnsembleHandler]
+  }
   lazy val compilerFactory:CompilerFactory = wire[CompilerFactory]
-  lazy val projRegister:ProjectRegister = wire[ProjectRegister]
+  def projRegister:ProjectRegister = wire[ProjectRegister]
   lazy val recentFilesHandler:ActorRef@@RecentHandlerMarker = wireActor[RecentFilesActor]("recent-files").taggedWith[RecentHandlerMarker]
   lazy val projectsManager:ActorRef@@ProjectsManagerMarker = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
 
@@ -57,13 +70,15 @@ trait MopeModule {
   lazy val suggestionProviderFactory:CompletionLike => ActorRef@@CompletionMarker = (c:CompletionLike) => wireAnonymousActor[SuggestionProvider].taggedWith[CompletionMarker]
 
   lazy val projManagerFactory:(ProjectDescription,Int) => ActorRef@@ProjectManagerMarker = (d:ProjectDescription, id:Int) => {
-    val compiler = compilerFactory.newCompiler(Paths.get(d.outputDirectory))
+    val compiler = compilerFactory.newCompiler(Paths.get(d.path).resolve(d.outputDirectory))
     val doc:ActorRef@@DocProviderMarker = docProviderFactory(compiler)
     val jump:ActorRef@@JumpProviderMarker = jumpToProviderFactory(compiler)
     val sug:ActorRef@@CompletionMarker = suggestionProviderFactory(compiler)
     wireActor[ProjectManagerActor]("project-manager-$id").taggedWith[ProjectManagerMarker]
   }
 
-  def system:ActorSystem
-  def mat:ActorMaterializer
+  lazy val router = wire[Routes]
+
+  implicit def actorSystem:ActorSystem
+  implicit def mat:ActorMaterializer
 }

@@ -20,13 +20,18 @@ package de.thm.mope.server
 import java.util.NoSuchElementException
 import java.nio.file.Path
 
-import akka.actor.{ActorRef, PoisonPill}
+import akka.actor.{ActorSystem, ActorRef, PoisonPill}
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
-import de.thm.mope.Global
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import akka.event.Logging
+import com.typesafe.config.Config
+import com.softwaremill.tagging._
+
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo._
@@ -41,18 +46,29 @@ import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeReques
 import de.thm.mope.templates.TemplateEngine
 import de.thm.mope.templates.TemplateEngine._
 import de.thm.mope.utils.IOUtils
-
+import de.thm.mope.tags._
 import de.thm.recent.JsProtocol._
 
 import scala.concurrent.Future
 
-trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
-  this: ServerSetup =>
+class Routes(
+  projectsManager:ActorRef@@ProjectsManagerMarker,
+  config:Config,
+  override val ensembleHandler:EnsembleHandler)(
+  implicit
+    timeout:Timeout,
+    actorSystem:ActorSystem,
+    mat:ActorMaterializer)
+    extends JsonSupport
+    with ErrorHandling 
+    with EnsembleRoutes {
+   // this: ServerSetup =>
 
-  def projectsManager: ActorRef
+  override val serverlog = Logging(actorSystem, classOf[Routes])
+  implicit val dispatcher =  actorSystem.dispatcher
 
   private val exitOnLastDisconnect =
-    Global.config.getBoolean("exitOnLastDisconnect")
+    config.getBoolean("exitOnLastDisconnect")
 
   private val cssStream = getClass.getResourceAsStream("/templates/style.css")
   private val docStream = getClass.getResourceAsStream("/templates/documentation.html")

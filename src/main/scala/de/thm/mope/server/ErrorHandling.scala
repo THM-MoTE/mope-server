@@ -22,6 +22,7 @@ import java.util.NoSuchElementException
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.ExceptionHandler
+import akka.event.LoggingAdapter
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
   * handling a HTTP Request.
   */
 trait ErrorHandling {
-  this: ServerSetup =>
+
+  def serverlog:LoggingAdapter
 
   def exceptionHandler: ExceptionHandler = ExceptionHandler {
     case ex:NotFoundException =>

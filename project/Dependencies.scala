@@ -43,7 +43,7 @@ object Dependencies {
   val depInjection = Seq(
     "com.softwaremill.macwire" %% "macros" % macWireVersion % Provided,
     "com.softwaremill.macwire" %% "macrosakka" % macWireVersion % Provided,
-    "com.softwaremill.macwire" %% "util" % macWireVersion % Provided
+    "com.softwaremill.macwire" %% "util" % macWireVersion
   )
 
   val ewsProject = fromGithub("https://github.com/THM-MoTE/EnhancedWatchService.git")
