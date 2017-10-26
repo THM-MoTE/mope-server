@@ -19,6 +19,8 @@ package de.thm.mope.server
 
 import java.nio.file._
 import java.util.concurrent.{ExecutorService, TimeUnit}
+import com.softwaremill.macwire._
+import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
 import com.typesafe.config.Config
 
@@ -53,9 +55,9 @@ class ProjectManagerActor(
   compiler:ModelicaCompiler,
   executor:ExecutorService,
   fileWatchingActorFactory:(ActorRef,Path,String) => ActorRef @@ FileWatchingMarker,
-  completionActor:ActorRef @@ CompletionMarker,
-  jumpProvider:ActorRef @@ JumpProviderMarker,
-  docProvider:ActorRef @@ DocProviderMarker,
+  // completionActor:ActorRef @@ CompletionMarker,
+  // jumpProvider:ActorRef @@ JumpProviderMarker,
+  // docProvider:ActorRef @@ DocProviderMarker,
   config:Config)
 (implicit timeout:Timeout)
   extends Actor
@@ -68,6 +70,10 @@ class ProjectManagerActor(
   private val indexFiles = config.getBoolean("indexFiles")
   val rootDir = Paths.get(description.path)
   val fileWatchingActor = fileWatchingActorFactory(self, rootDir, description.outputDirectory)
+  val completionActor = context.actorOf(Props(wire[SuggestionProvider]))
+  val jumpProvider =  context.actorOf(Props(wire[JumpToProvider]))
+  val docProvider =  context.actorOf(Props(wire[DocumentationProvider]))
+
 
   val treeFilter:PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
