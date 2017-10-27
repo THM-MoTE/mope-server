@@ -10,6 +10,7 @@ echo "===> Cloning server repos"
 git clone https://github.com/THM-MoTE/mope-server.git
 git clone https://github.com/THM-MoTE/omc-java-api.git
 git clone https://github.com/THM-MoTE/EnhancedWatchService.git
+git clone https://github.com/THM-MoTE/recently.git
 
 echo
 echo "===> Cloning atom plugin"
@@ -27,6 +28,7 @@ echo "./"$root"/mope-server"
 echo "./"$root"/omc-java-api"
 echo "./"$root"/EnhancedWatchService"
 echo "./"$root"/mope-atom-plugin"
+echo "./"$root"/recently"
 echo
 echo "================"
 echo "===> Now installing Atom-Plugin into Atom"
