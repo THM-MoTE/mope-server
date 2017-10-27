@@ -30,7 +30,7 @@ import java.nio.file.{Path, Paths}
 import java.nio.charset.Charset
 
 import omc.corba.ScriptingHelper
-import de.thm.mope.Global
+
 import akka.stream._
 import akka.stream.scaladsl._
 

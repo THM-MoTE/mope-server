@@ -21,7 +21,7 @@ import java.nio.file.Paths
 import com.typesafe.config.Config
 import com.softwaremill.tagging._
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
-import de.thm.mope.Global
+
 import de.thm.mope.tags._
 import de.thm.mope.compiler.CompilerFactory
 import de.thm.mope.project.ProjectDescription

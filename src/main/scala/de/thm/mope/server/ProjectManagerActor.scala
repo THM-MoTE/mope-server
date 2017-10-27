@@ -51,25 +51,19 @@ import scala.language.postfixOps
   * @note This actor starts several subactors for serving all requests
   */
 class ProjectManagerActor(
-  description:ProjectDescription,
   compiler:ModelicaCompiler,
-  executor:ExecutorService,
-  fileWatchingActorFactory:(ActorRef,Path,String) => ActorRef @@ FileWatchingMarker,
-  // completionActor:ActorRef @@ CompletionMarker,
-  // jumpProvider:ActorRef @@ JumpProviderMarker,
-  // docProvider:ActorRef @@ DocProviderMarker,
-  config:Config)
-(implicit timeout:Timeout)
+  projConfig:ProjectConfig)
   extends Actor
   with UnhandledReceiver
   with ActorLogging {
 
   import ProjectManagerActor._
   import context.dispatcher
+  import projConfig.server.timeout
 
-  private val indexFiles = config.getBoolean("indexFiles")
+  private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
   val rootDir = Paths.get(description.path)
-  val fileWatchingActor = fileWatchingActorFactory(self, rootDir, description.outputDirectory)
+  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, description.outputDirectory))
   val completionActor = context.actorOf(Props(wire[SuggestionProvider]))
   val jumpProvider =  context.actorOf(Props(wire[JumpToProvider]))
   val docProvider =  context.actorOf(Props(wire[DocumentationProvider]))
@@ -92,7 +86,7 @@ class ProjectManagerActor(
      else newProjectTree
 
   private def getDefaultScriptPath:Future[Path] = Future {
-    val defaultScript = description.buildScript.getOrElse("build.mos")
+    val defaultScript = projConfig.project.buildScript.getOrElse("build.mos")
     val path = rootDir.resolve(defaultScript)
     if(Files.exists(path) && Files.isRegularFile(path))
       path
@@ -180,7 +174,7 @@ class ProjectManagerActor(
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
-    log.debug("Compiled project {} with {}", description.path,
+    log.debug("Compiled project {} with {}", projConfig.project.path,
       if(errors.isEmpty) " no errors" else errors.mkString("\n"))
   }
 

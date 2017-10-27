@@ -23,7 +23,7 @@ import scala.language.postfixOps
 import scala.sys.process._
 
 import de.thm.mope.tree.TreeLike
-import de.thm.mope.Global
+
 import de.thm.mope.server.{JsonSupport, FileWatchingActor}
 import de.thm.mope.utils.MonadImplicits._
 import omc.corba._

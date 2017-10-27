@@ -21,15 +21,16 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.event.Logging
-import de.thm.mope.Global
+
+import com.typesafe.config.Config
 import de.thm.mope.utils.MopeExitCodes
-import de.thm.mope.Global.ApplicationMode
 import de.thm.mope.MopeModule
+import de.thm.mope.config.Constants
 
 import scala.concurrent.{Future, blocking}
 import scala.io.StdIn
 
-class Server()
+class Server(override val config:Config)
     extends MopeModule
     with ValidateConfig {
 
@@ -39,14 +40,10 @@ class Server()
   val serverlog = Logging(actorSystem, classOf[Server])
   serverlog.info("{} - Version {}", build.ProjectInfo.name, build.ProjectInfo.version)
 
-  val errors = validateConfig(Global.config)
-  if(!Global.configDidExist) {
-    serverlog.error(s"""Your configuration (${Global.configFileURL}) got newly created!
-                        |Please adjust the settings before continuing.""".stripMargin)
-    MopeExitCodes.waitAndExit(MopeExitCodes.UNMODIFIED_CONFIG)
-  } else if(errors.nonEmpty) {
+  val errors = validateConfig(config)
+  if(errors.nonEmpty) {
     val errorString = errors.map(x => s" - $x").mkString("\n")
-    serverlog.error(s"""Your configuration (${Global.configFileURL}) contains the following errors:
+    serverlog.error(s"""Your configuration (${Constants.configFile}) contains the following errors:
                         |$errorString""".stripMargin)
     MopeExitCodes.waitAndExit(MopeExitCodes.CONFIG_ERROR)
   }
@@ -54,17 +51,17 @@ class Server()
 
   def start():Unit = {
     val bindingFuture =
-      Http().bindAndHandle(router.routes, interface, port)
+      Http().bindAndHandle(router.routes, serverConfig.interface, serverConfig.port)
 
     bindingFuture onComplete {
       case scala.util.Success(_) =>
         serverlog.info("Server running at {}:{}", interface, port)
       case scala.util.Failure(ex) =>
-        serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
+        serverlog.error("Failed to start server at {}:{} - {}", serverConfig.interface, serverConfig.port, ex.getMessage)
         actorSystem.terminate()
     }
 
-    if(applicationMode == ApplicationMode.Development) {
+    //if(applicationMode == ApplicationMode.Development) {
       Future {
         blocking {
           serverlog.info("Press Ctrl+D to interrupt")
@@ -73,7 +70,7 @@ class Server()
             flatMap(_.unbind()).
             onComplete(_ => actorSystem.terminate())
         }
-      }
+
     }
   }
 }

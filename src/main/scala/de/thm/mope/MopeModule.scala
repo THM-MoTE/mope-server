@@ -39,24 +39,19 @@ import de.thm.mope.doc._
 import de.thm.mope.server._
 import de.thm.mope.suggestion._
 import de.thm.mope.utils.ThreadUtils
+import de.thm.mope.config.ServerConfig
 
+import de.thm.mope.tags._
 trait MopeModule {
-  import de.thm.mope.tags._
-  lazy val config:Config = Global.config //FIXME: inject & kill the global object
-  lazy val encoding:Charset = Global.encoding
-  lazy val interface = config.getString("http.interface")
-  lazy val port = config.getInt("http.port")
-  lazy val applicationMode = Global.ApplicationMode.parseString(config.getString("app.mode"))
-  implicit lazy val defaultTimeout:Timeout = Timeout(config.getInt("defaultAskTimeout") seconds)
+  lazy val serverConfig:ServerConfig = ServerConfig(
+    config,
+    Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO")))(
+    Timeout(config.getInt("defaultAskTimeout") seconds),
+    actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io"))
 
-  //TODO: use 1 executor for all projects? move up into ProjectSmanager?
-  lazy val executor:ExecutorService = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
+  import serverConfig._
 
-
-  lazy val ensembleHandler:EnsembleHandler = {
-    val context = actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io")
-    wire[EnsembleHandler]
-  }
+  lazy val ensembleHandler:EnsembleHandler = wire[EnsembleHandler]
   lazy val compilerFactory:CompilerFactory = wire[CompilerFactory]
   def projRegister:ProjectRegister = wire[ProjectRegister]
   lazy val recentFilesHandler:ActorRef@@RecentHandlerMarker = wireActor[RecentFilesActor]("recent-files").taggedWith[RecentHandlerMarker]
@@ -78,7 +73,7 @@ trait MopeModule {
   }
 
   lazy val router = wire[Routes]
-
+  def config:Config
   implicit def actorSystem:ActorSystem
   implicit def mat:ActorMaterializer
 }

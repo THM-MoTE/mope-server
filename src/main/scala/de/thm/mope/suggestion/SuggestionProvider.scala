@@ -24,11 +24,13 @@ import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
-import de.thm.mope.Global
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
-import de.thm.mope.utils.StreamUtils
+import de.thm.mope.utils.{
+  StreamUtils,
+  ResourceUtils
+}
 
 import scala.concurrent.Future
 
@@ -46,11 +48,11 @@ class SuggestionProvider(
   import context.dispatcher
 
   val keywords =
-    Global.readValuesFromResource(
-        getClass.getResource("/completion/keywords.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
+    ResourceUtils.readValues(
+        getClass.getResourceAsStream("/completion/keywords.conf"))(SrcFileInspector.nonEmptyLines).toSet
   val types =
-    Global.readValuesFromResource(
-        getClass.getResource("/completion/types.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
+    ResourceUtils.readValues(
+      getClass.getResourceAsStream("/completion/types.conf"))(SrcFileInspector.nonEmptyLines).toSet
 
   val logSuggestions: String => Seq[Suggestion] => Seq[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
