@@ -19,18 +19,19 @@ package de.thm.mope.server
 
 import java.nio.file._
 import java.util.concurrent.{ExecutorService, TimeUnit}
+
 import com.softwaremill.macwire._
 import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
 import com.typesafe.config.Config
-
-import akka.actor.{Actor, ActorRef, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import de.thm.mope._
+import de.thm.mope.{ProjectManagerPropsFactory, SuggestionProviderPropsFactory, _}
 import de.thm.mope.tags._
 import de.thm.mope.tree._
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
+import de.thm.mope.config.ProjectConfig
 import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
 import de.thm.mope.doc.DocumentationProvider
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
@@ -52,7 +53,10 @@ import scala.language.postfixOps
   */
 class ProjectManagerActor(
   compiler:ModelicaCompiler,
-  projConfig:ProjectConfig)
+  projConfig:ProjectConfig,
+  jumpPropsF:JumpToPropsFactory,
+  docPropsF:DocumentationProviderPropsFactory,
+  suggestionPropsF:SuggestionProviderPropsFactory)
   extends Actor
   with UnhandledReceiver
   with ActorLogging {
@@ -62,16 +66,16 @@ class ProjectManagerActor(
   import projConfig.server.timeout
 
   private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
-  val rootDir = Paths.get(description.path)
-  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, description.outputDirectory))
-  val completionActor = context.actorOf(Props(wire[SuggestionProvider]))
-  val jumpProvider =  context.actorOf(Props(wire[JumpToProvider]))
-  val docProvider =  context.actorOf(Props(wire[DocumentationProvider]))
+  val rootDir = Paths.get(projConfig.project.path)
+  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory))
+  val completionActor = context.actorOf(suggestionPropsF(compiler))
+  val jumpProvider =  context.actorOf(jumpPropsF(compiler))
+  val docProvider =  context.actorOf(docPropsF(compiler))
 
 
   val treeFilter:PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
-    p.endsWith(description.outputDirectory)
+    p.endsWith(projConfig.project.outputDirectory)
   }
 
   def newProjectTree:Future[TreeLike[Path]] = Future {

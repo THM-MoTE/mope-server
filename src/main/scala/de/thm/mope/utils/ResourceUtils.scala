@@ -30,7 +30,7 @@ import de.thm.mope._
 object ResourceUtils {
   import de.thm.mope.config.Constants
 
-  private implicit val codec = scala.io.Codec(Constants.encoding)
+  implicit val codec = scala.io.Codec(Constants.encoding)
 
   def getFilename(uri:URI):String = {
     val uriStr = uri.toString

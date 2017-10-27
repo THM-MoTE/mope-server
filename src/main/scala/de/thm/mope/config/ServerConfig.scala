@@ -21,21 +21,26 @@ import com.typesafe.config.Config
 import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.ExecutorService
+
 import akka.util.Timeout
 import akka.dispatch.MessageDispatcher
+import de.thm.mope.server.RecentFilesActor
+import de.thm.mope.tags.RecentFileMarker
+import com.softwaremill.tagging._
 
 case class ServerConfig(
   config:Config,
   executor:ExecutorService,
   configDir:Path = Constants.configDir,
-  recentFiles:Path = Constants.recentFiles)(
+  recentFiles:Path@@RecentFileMarker = Constants.recentFiles)(
   implicit
-    timeout:Timeout,
-    blockingDispatcher:MessageDispatcher) {
+    val timeout:Timeout,
+    val blockingDispatcher:MessageDispatcher) {
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
 
   lazy val interface = config.getString("http.interface")
   lazy val port = config.getInt("http.port")
+  lazy val compilerExecutable = config.getString("compilerExecutable")
 }
 
 object Constants {
@@ -43,5 +48,5 @@ object Constants {
   val usLocale = "en_US.UTF-8"
   val configDir = Paths.get(System.getProperty("user.home"), ".config", "mope")
   val configFile = configDir.resolve("mope.conf")
-  val recentFiles = configDir.resolve("recent-files.json")
+  val recentFiles = configDir.resolve("recent-files.json").taggedWith[RecentFileMarker]
 }

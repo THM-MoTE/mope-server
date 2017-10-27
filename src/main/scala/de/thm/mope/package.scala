@@ -2,9 +2,26 @@ package de.thm
 
 import java.nio.file.Path
 
+import akka.actor.Props
+import com.softwaremill.tagging._
+import de.thm.mope.declaration.JumpToLike
+import de.thm.mope.doc.DocumentationLike
+import de.thm.mope.project.ProjectDescription
+import de.thm.mope.suggestion.{CompletionLike, PrefixMatcher, SrcFileInspector}
+
 package object mope {
   type Filter[A] = A => Boolean
   type PathFilter = Filter[Path]
+
+  import tags._
+  //factories
+  type Factory[A] = () => A
+  type SrcFileFactory = Path => SrcFileInspector
+  type PrefixMatcherFactory = String => PrefixMatcher
+  type SuggestionProviderPropsFactory = CompletionLike => Props@@CompletionMarker
+  type JumpToPropsFactory = JumpToLike => Props@@JumpProviderMarker
+  type DocumentationProviderPropsFactory = DocumentationLike => Props@@DocProviderMarker
+  type ProjectManagerPropsFactory = (ProjectDescription,Int) => Props//@@ProjectManagerMarker
 
   /** Tags for the injector to identify actors. */
   object tags {
@@ -15,5 +32,6 @@ package object mope {
     sealed trait DocProviderMarker
     sealed trait FileWatchingMarker
     sealed trait CompletionMarker
+    sealed trait RecentFileMarker
   }
 }

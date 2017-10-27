@@ -17,8 +17,13 @@
 
 package de.thm.mope.config
 
+import java.nio.file.{Path, Paths}
+
 import de.thm.mope.project.ProjectDescription
 
 case class ProjectConfig(
 	server:ServerConfig,
-	project:ProjectDescription)
+	project:ProjectDescription) {
+	val rootDir:Path = Paths.get(project.path)
+  val outputDir:Path = Paths.get(project.outputDirectory)
+}

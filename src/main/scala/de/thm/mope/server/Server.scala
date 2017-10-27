@@ -55,7 +55,7 @@ class Server(override val config:Config)
 
     bindingFuture onComplete {
       case scala.util.Success(_) =>
-        serverlog.info("Server running at {}:{}", interface, port)
+        serverlog.info("Server running at {}:{}", serverConfig.interface, serverConfig.port)
       case scala.util.Failure(ex) =>
         serverlog.error("Failed to start server at {}:{} - {}", serverConfig.interface, serverConfig.port, ex.getMessage)
         actorSystem.terminate()

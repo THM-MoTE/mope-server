@@ -20,7 +20,7 @@ package de.thm.mope.server
 import java.util.NoSuchElementException
 import java.nio.file.Path
 
-import akka.actor.{ActorSystem, ActorRef, PoisonPill}
+import akka.actor.{ActorRef, ActorSystem, PoisonPill}
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
@@ -31,8 +31,8 @@ import akka.util.Timeout
 import akka.event.Logging
 import com.typesafe.config.Config
 import com.softwaremill.tagging._
-
 import de.thm.mope.compiler.CompilerError
+import de.thm.mope.config.ServerConfig
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo._
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
@@ -53,22 +53,21 @@ import scala.concurrent.Future
 
 class Routes(
   projectsManager:ActorRef@@ProjectsManagerMarker,
-  config:Config,
+  servConf:ServerConfig,
   override val ensembleHandler:EnsembleHandler)(
   implicit
-    timeout:Timeout,
-    actorSystem:ActorSystem,
     mat:ActorMaterializer)
     extends JsonSupport
     with ErrorHandling 
     with EnsembleRoutes {
    // this: ServerSetup =>
 
-  override val serverlog = Logging(actorSystem, classOf[Routes])
-  implicit val dispatcher =  actorSystem.dispatcher
+  import servConf.timeout
+  override val serverlog = Logging(mat.system, classOf[Routes])
+  implicit val dispatcher =  mat.system.dispatcher
 
   private val exitOnLastDisconnect =
-    config.getBoolean("exitOnLastDisconnect")
+    servConf.config.getBoolean("exitOnLastDisconnect")
 
   private val cssStream = getClass.getResourceAsStream("/templates/style.css")
   private val docStream = getClass.getResourceAsStream("/templates/documentation.html")
@@ -83,7 +82,7 @@ class Routes(
     |</li>""".stripMargin
 
   private def shutdown(cause:String): Unit = {
-    actorSystem.terminate()
+    mat.system.terminate()
     serverlog.info("Shutdown because {}", cause)
   }
 

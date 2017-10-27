@@ -38,14 +38,13 @@ import scala.concurrent.Future
 class SuggestionProvider(
   compiler:CompletionLike,
   fileInspectorFactory: Path => SrcFileInspector,
-  prefixMatcherFactory: String => PrefixMatcher)(
-  implicit
-    mat:ActorMaterializer)
+  prefixMatcherFactory: String => PrefixMatcher)
     extends Actor
     with UnhandledReceiver
     with ActorLogging {
 
   import context.dispatcher
+  implicit val mat = ActorMaterializer()
 
   val keywords =
     ResourceUtils.readValues(

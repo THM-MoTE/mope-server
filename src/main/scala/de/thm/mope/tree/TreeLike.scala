@@ -17,8 +17,9 @@
 
 package de.thm.mope.tree
 
+import de.thm.mope.Filter
+
 sealed trait TreeLike[+Elem] {
-  type Filter[X] = X => Boolean
   def foreach[U](f: Elem => U): Unit
 
   def filterElements[E>:Elem](p:Filter[E]): List[Elem] = this match {

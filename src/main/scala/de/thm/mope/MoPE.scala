@@ -31,7 +31,7 @@ object MoPE
     println(path)
     val conf = new config.ConfigProvider(new config.CliConf(args.seq), path).config
     println(conf)
-    val server = new Server()
+    val server = new Server(conf)
     server.start()
   }
 }

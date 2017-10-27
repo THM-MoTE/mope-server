@@ -21,7 +21,7 @@ import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.pattern.pipe
 import de.thm.mope.suggestion.SrcFileInspector
-import de.thm.mope.position.{FileWithLine, CursorPosition}
+import de.thm.mope.position.{CursorPosition, FileWithLine}
 import de.thm.mope.utils.actors.UnhandledReceiver
 
 import scala.concurrent.Future
@@ -30,22 +30,20 @@ import java.nio.file.{Path, Paths}
 import java.nio.charset.Charset
 
 import omc.corba.ScriptingHelper
-
 import akka.stream._
 import akka.stream.scaladsl._
+import de.thm.mope.utils.ResourceUtils
 
 /*+ An Actor which finds the source (file) of a `className`. */
 class JumpToProvider(
   jumpLike:JumpToLike,
-  encoding:Charset,
-  fileInspectorFactory: Path => SrcFileInspector)(
-  implicit
-    mat:ActorMaterializer)
+  fileInspectorFactory: Path => SrcFileInspector)
     extends Actor
     with UnhandledReceiver
     with ActorLogging {
 
   import context.dispatcher
+  implicit val mat = ActorMaterializer()
 
   override def receive: Receive = {
     case DeclarationRequest(cursorPos) =>
@@ -58,7 +56,7 @@ class JumpToProvider(
   }
 
   private def lineNrOfModel(file:Path, model:String): Option[Int] = {
-    val src = Source.fromFile(file.toUri, encoding.name)
+    val src = Source.fromFile(file.toUri)(ResourceUtils.codec)
     src.getLines.zipWithIndex.find {
       case (line, idx) =>
         val matcher = ScriptingHelper.modelPattern.matcher(line)

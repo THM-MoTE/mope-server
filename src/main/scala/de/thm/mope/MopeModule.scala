@@ -17,21 +17,20 @@
 
 package de.thm.mope
 
-import akka.actor.{ActorSystem, ActorRef, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-
-import java.nio.file.{Path,Paths}
+import java.nio.file.{Path, Paths}
 import java.nio.charset.Charset
-import java.util.concurrent.{Executors, ExecutorService, TimeUnit}
+import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 import com.softwaremill.macwire._
 import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
 import com.typesafe.config.Config
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
-
 import de.thm.mope.compiler._
 import de.thm.mope.project._
 import de.thm.mope.declaration._
@@ -39,8 +38,7 @@ import de.thm.mope.doc._
 import de.thm.mope.server._
 import de.thm.mope.suggestion._
 import de.thm.mope.utils.ThreadUtils
-import de.thm.mope.config.ServerConfig
-
+import de.thm.mope.config.{ProjectConfig, ServerConfig}
 import de.thm.mope.tags._
 trait MopeModule {
   lazy val serverConfig:ServerConfig = ServerConfig(
@@ -49,30 +47,29 @@ trait MopeModule {
     Timeout(config.getInt("defaultAskTimeout") seconds),
     actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io"))
 
-  import serverConfig._
+  import serverConfig.{timeout, blockingDispatcher, recentFiles}
 
   lazy val ensembleHandler:EnsembleHandler = wire[EnsembleHandler]
   lazy val compilerFactory:CompilerFactory = wire[CompilerFactory]
   def projRegister:ProjectRegister = wire[ProjectRegister]
-  lazy val recentFilesHandler:ActorRef@@RecentHandlerMarker = wireActor[RecentFilesActor]("recent-files").taggedWith[RecentHandlerMarker]
+  lazy val recentFilesProps:Props@@RecentHandlerMarker = wireProps[RecentFilesActor].taggedWith[RecentHandlerMarker]
   lazy val projectsManager:ActorRef@@ProjectsManagerMarker = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
 
-  lazy val inspectorFactory: Path => SrcFileInspector = p => wire[SrcFileInspector]
-  lazy val prefixFactory: String => PrefixMatcher = (s:String) => wire[PrefixMatcher]
-  lazy val jumpToProviderFactory:JumpToLike => ActorRef@@JumpProviderMarker = (j:JumpToLike) => actorSystem.actorOf(Props(wire[JumpToProvider])).taggedWith[JumpProviderMarker]
-  lazy val docProviderFactory:DocumentationLike => ActorRef@@DocProviderMarker = (d:DocumentationLike) => wireAnonymousActor[DocumentationProvider].taggedWith[DocProviderMarker]
-  lazy val fileWatchingActorFactory:(ActorRef,Path,String) => ActorRef@@FileWatchingMarker = (a:ActorRef, r:Path, o:String) => wireAnonymousActor[FileWatchingActor].taggedWith[FileWatchingMarker]
-  lazy val suggestionProviderFactory:CompletionLike => ActorRef@@CompletionMarker = (c:CompletionLike) => actorSystem.actorOf(Props(wire[SuggestionProvider])).taggedWith[CompletionMarker]
+  lazy val inspectorFactory: SrcFileFactory = p => wire[SrcFileInspector]
+  lazy val prefixFactory: PrefixMatcherFactory = (s:String) => wire[PrefixMatcher]
+  lazy val jumpToProps:JumpToPropsFactory = (j:JumpToLike) => wireProps[JumpToProvider].taggedWith[JumpProviderMarker]
+  lazy val docProviderFactory:DocumentationProviderPropsFactory = (d:DocumentationLike) => wireProps[DocumentationProvider].taggedWith[DocProviderMarker]
+  lazy val suggestionProviderFactory:SuggestionProviderPropsFactory = (c:CompletionLike) => wireProps[SuggestionProvider].taggedWith[CompletionMarker]
 
-  lazy val projManagerFactory:(ProjectDescription,Int) => ActorRef@@ProjectManagerMarker = (d:ProjectDescription, id:Int) => {
-    val compiler = compilerFactory.newCompiler(Paths.get(d.path).resolve(d.outputDirectory))
-    val doc:ActorRef@@DocProviderMarker = docProviderFactory(compiler)
-    val jump:ActorRef@@JumpProviderMarker = jumpToProviderFactory(compiler)
-    val sug:ActorRef@@CompletionMarker = suggestionProviderFactory(compiler)
-    wireActor[ProjectManagerActor]("project-manager-$id").taggedWith[ProjectManagerMarker]
+  lazy val projManagerFactory:ProjectManagerPropsFactory = (d:ProjectDescription, id:Int) => {
+    val compiler:ModelicaCompiler = compilerFactory.newCompiler(d)
+    val conf:ProjectConfig = ProjectConfig(serverConfig, d)
+    wireProps[ProjectManagerActor]
   }
 
-  lazy val router = wire[Routes]
+  lazy val router = {
+    wire[Routes]
+  }
   def config:Config
   implicit def actorSystem:ActorSystem
   implicit def mat:ActorMaterializer
