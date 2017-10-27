@@ -27,16 +27,6 @@ import scala.io.Source
 
 object Global extends config.FallbackConfig {
 
-  object ApplicationMode extends Enumeration {
-    val Development, Production = Value
-
-    def parseString(str:String): Value = str.toLowerCase match {
-      case "dev" | "development" => Development
-      case "prod" | "production" => Production
-      case _ => throw new IllegalArgumentException(s"Can't decide which mode $str represents")
-    }
-  }
-
   private val configDirPath = Paths.get(System.getProperty("user.home"), ".mope")
 
   /** Check if path exist; if not create it */

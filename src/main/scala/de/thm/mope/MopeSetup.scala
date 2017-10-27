@@ -20,14 +20,10 @@ package de.thm.mope
 import org.slf4j.{LoggerFactory}
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.Level
+import de.thm.mope.config.ApplicationMode
 
 /** Application wide initializations */
 trait MopeSetup {
-
-  import Global._
-
-  val applicationMode = ApplicationMode.parseString(Global.config.getString("app.mode"))
-
   /* ================ SLF4J & LOGBACK */
   /* Route java.util.logging into slf4j */
  // remove existing handlers attached to j.u.l root logger

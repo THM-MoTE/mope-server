@@ -17,14 +17,21 @@
 
 package de.thm.mope.config
 
-import com.typesafe.config.ConfigFactory
-import java.nio.file.Path
+import com.typesafe.config.Config
+import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.file.{Path, Paths}
+import java.util.concurrent.Executors
+import akka.util.Timeout
+import akka.dispatch.Dispatcher
 
-class ConfigProvider(
-  cli:CliConf,
-  userConfig:Path) {
-
-  val config = cli.asConfig
-    .withFallback(ConfigFactory.parseURL(userConfig.toUri.toURL))
-    .withFallback(ConfigFactory.parseResources("fallback.conf"))
+case class ServerConfig(
+  config:Config,
+  encoding:Charset = StandardCharsets.UTF_8,
+  configDir:Path = Paths.get(System.getProperty("user.home"), ".mope"),
+  recentFiles:Path = configDir.resolve("recent-files.json"))(
+  implicit
+    timeout:Timeout,
+    blockingDispatcher:Dispatcher) {
+  val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
+  val executor = Executors.unconfigurableExecutorService(blockingDispatcher)
 }
