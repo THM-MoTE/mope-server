@@ -37,7 +37,7 @@ object Global extends FallbackConfig {
     }
   }
 
-  private val configDirPath = Paths.get(System.getProperty("user.home"), ".mope")
+  private val configDirPath = Paths.get(System.getProperty("user.home"), ".config", "mope")
 
   /** Check if path exist; if not create it */
   def withCheckConfigDirectory[A](fn: Path => A): A = {
