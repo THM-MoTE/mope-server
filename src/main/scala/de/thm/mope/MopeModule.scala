@@ -17,7 +17,7 @@
 
 package de.thm.mope
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorSystem, ActorRef, Props}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
@@ -64,10 +64,10 @@ trait MopeModule {
 
   lazy val inspectorFactory: Path => SrcFileInspector = p => wire[SrcFileInspector]
   lazy val prefixFactory: String => PrefixMatcher = (s:String) => wire[PrefixMatcher]
-  lazy val jumpToProviderFactory:JumpToLike => ActorRef@@JumpProviderMarker = (j:JumpToLike) => wireAnonymousActor[JumpToProvider].taggedWith[JumpProviderMarker]
+  lazy val jumpToProviderFactory:JumpToLike => ActorRef@@JumpProviderMarker = (j:JumpToLike) => actorSystem.actorOf(Props(wire[JumpToProvider])).taggedWith[JumpProviderMarker]
   lazy val docProviderFactory:DocumentationLike => ActorRef@@DocProviderMarker = (d:DocumentationLike) => wireAnonymousActor[DocumentationProvider].taggedWith[DocProviderMarker]
   lazy val fileWatchingActorFactory:(ActorRef,Path,String) => ActorRef@@FileWatchingMarker = (a:ActorRef, r:Path, o:String) => wireAnonymousActor[FileWatchingActor].taggedWith[FileWatchingMarker]
-  lazy val suggestionProviderFactory:CompletionLike => ActorRef@@CompletionMarker = (c:CompletionLike) => wireAnonymousActor[SuggestionProvider].taggedWith[CompletionMarker]
+  lazy val suggestionProviderFactory:CompletionLike => ActorRef@@CompletionMarker = (c:CompletionLike) => actorSystem.actorOf(Props(wire[SuggestionProvider])).taggedWith[CompletionMarker]
 
   lazy val projManagerFactory:(ProjectDescription,Int) => ActorRef@@ProjectManagerMarker = (d:ProjectDescription, id:Int) => {
     val compiler = compilerFactory.newCompiler(Paths.get(d.path).resolve(d.outputDirectory))
