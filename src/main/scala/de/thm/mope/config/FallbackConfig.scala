@@ -15,20 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.thm.mope
+package de.thm.mope.config
 
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
 
 trait FallbackConfig {
-  private val fallbackMap =
-    Map("force-english" -> "false",
-      "indexFiles" -> "true",
-      "exitOnLastDisconnect" -> "false",
-      "app.mode" -> "prod",
-      "defaultAskTimeout" -> "20",
-      "http.interface" -> "127.0.0.1",
-      "http.port" -> "9001")
-
-  val fallbackConfig = ConfigFactory.parseMap(fallbackMap.asJava)
+  val fallbackConfig = ConfigFactory.parseResources("fallback.conf")
 }

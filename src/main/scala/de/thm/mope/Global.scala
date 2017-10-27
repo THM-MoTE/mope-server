@@ -25,7 +25,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.io.Source
 
-object Global extends FallbackConfig {
+object Global extends config.FallbackConfig {
 
   object ApplicationMode extends Enumeration {
     val Development, Production = Value
