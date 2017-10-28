@@ -17,14 +17,24 @@
 
 package de.thm.mope.config
 
-import com.typesafe.config.ConfigFactory
-import java.nio.file.Path
+import com.typesafe.config.{Config, ConfigFactory}
+import java.nio.file.{Files, Path}
 
 class ConfigProvider(
   cli:CliConf,
   userConfig:Path) {
 
   val config = cli.asConfig
-    .withFallback(ConfigFactory.parseURL(userConfig.toUri.toURL))
+    .withFallback(ConfigProvider.createConfigFile(userConfig))
     .withFallback(ConfigFactory.parseResources("fallback.conf"))
+}
+
+object ConfigProvider {
+  def createConfigFile(file:Path):Config = {
+    if(Files.notExists(file)) {
+      Files.createDirectories(file.getParent)
+      Files.copy(getClass.getResourceAsStream("/mope.conf"), file)
+    }
+    ConfigFactory.parseURL(file.toUri.toURL)
+  }
 }
