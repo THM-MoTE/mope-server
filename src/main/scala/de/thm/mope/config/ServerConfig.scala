@@ -38,8 +38,8 @@ case class ServerConfig(
     val blockingDispatcher:MessageDispatcher) {
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
 
-  lazy val interface = config.getString("http.interface")
-  lazy val port = config.getInt("http.port")
+  lazy val interface = config.getString("protocol.interface")
+  lazy val port = config.getInt("protocol.port")
   lazy val compilerExecutable = config.getString("compilerExecutable")
 }
 

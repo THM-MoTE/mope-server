@@ -27,6 +27,7 @@ class ConfigProvider(
   val config = cli.asConfig
     .withFallback(ConfigProvider.createConfigFile(userConfig))
     .withFallback(ConfigFactory.parseResources("fallback.conf"))
+    .resolve()
 }
 
 object ConfigProvider {

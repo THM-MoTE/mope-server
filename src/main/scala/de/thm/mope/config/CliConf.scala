@@ -23,7 +23,8 @@ import scala.collection.JavaConverters._
 
 /** Configuration for CLI-arguments parser. */
 class CliConf(args:Seq[String]) extends ScallopConf(args) {
-  val protocol = opt[String]("protocol").orElse(Some("http"))
+  val protocol = opt[String]("protocol")
+  val interface = opt[String]("interface")
   val port = opt[Int]("port")
   val omc = opt[String]("omc")
   verify()
@@ -35,6 +36,7 @@ class CliConf(args:Seq[String]) extends ScallopConf(args) {
   def asConfig:Config = {
     ConfigFactory.parseMap(Map(
       Seq(configKey(port, "protocol.port"),
+        configKey(interface, "protocol.interface"),
       configKey(protocol, "protocol"),
       configKey(omc, "compilerExecutable")).flatten:_*
     ).asJava)
