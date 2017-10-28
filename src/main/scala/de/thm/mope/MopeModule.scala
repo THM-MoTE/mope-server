@@ -40,7 +40,10 @@ import de.thm.mope.suggestion._
 import de.thm.mope.utils.ThreadUtils
 import de.thm.mope.config.{ProjectConfig, ServerConfig}
 import de.thm.mope.tags._
-trait MopeModule {
+import de.thm.mope.templates.TemplateModule
+trait MopeModule
+  extends TemplateModule {
+
   lazy val serverConfig:ServerConfig = {
     val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
     actorSystem.registerOnTermination {

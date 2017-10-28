@@ -43,8 +43,7 @@ import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript,
 import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
-import de.thm.mope.templates.TemplateEngine
-import de.thm.mope.templates.TemplateEngine._
+import de.thm.mope.templates.TemplateModule._
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.tags._
 import de.thm.recent.JsProtocol._
@@ -54,6 +53,8 @@ import scala.concurrent.Future
 class Routes(
   projectsManager:ActorRef@@ProjectsManagerMarker,
   servConf:ServerConfig,
+  docEngine:DocTemplate,
+  missingDocEngine:MissingDocTemplate,
   override val ensembleHandler:EnsembleHandler)(
   implicit
     mat:ActorMaterializer)
@@ -68,13 +69,6 @@ class Routes(
 
   private val exitOnLastDisconnect =
     servConf.config.getBoolean("exitOnLastDisconnect")
-
-  private val cssStream = getClass.getResourceAsStream("/templates/style.css")
-  private val docStream = getClass.getResourceAsStream("/templates/documentation.html")
-  private val missingDocStream = getClass.getResourceAsStream("/templates/missing-doc.html")
-  private val styleEngine = new TemplateEngine(IOUtils.toString(cssStream))
-  private val docEngine = new TemplateEngine(IOUtils.toString(docStream)).merge(styleEngine, "styles")
-  private val missingDocEngine = new TemplateEngine(IOUtils.toString(missingDocStream)).merge(styleEngine, "styles")
 
   private def createSubcomponentLink(comp: DocInfo.Subcomponent, link:String): String =
     s"""<li>

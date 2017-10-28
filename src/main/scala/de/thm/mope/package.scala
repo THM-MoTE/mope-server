@@ -33,5 +33,7 @@ package object mope {
     sealed trait FileWatchingMarker
     sealed trait CompletionMarker
     sealed trait RecentFileMarker
+    sealed trait DocMarker
+    sealed trait MissingDocMarker
   }
 }
