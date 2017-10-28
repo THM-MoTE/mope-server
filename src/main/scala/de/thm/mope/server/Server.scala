@@ -20,56 +20,51 @@ package de.thm.mope.server
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import de.thm.mope.Global
+import akka.event.Logging
+import com.typesafe.config.Config
 import de.thm.mope.utils.MopeExitCodes
-import de.thm.mope.Global.ApplicationMode
+import de.thm.mope.MopeModule
+import de.thm.mope.config.{Constants, ServerConfig}
 
 import scala.concurrent.{Future, blocking}
 import scala.io.StdIn
 
-class Server()
-    extends Routes
-    with ServerSetup
-    with ValidateConfig {
+class Server(router:Routes,
+             serverConfig:ServerConfig)(
+            implicit
+            actorSystem:ActorSystem,
+            mat:ActorMaterializer)
+    extends ValidateConfig {
 
-  override implicit lazy val actorSystem = ActorSystem("moie-system", akkaConfig)
-  override implicit lazy val materializer = ActorMaterializer()
-  override val projectsManager: ActorRef = actorSystem.actorOf(Props[ProjectsManagerActor], name = "Root-ProjectsManager")
-  override val ensembleHandler = new EnsembleHandler(Global.config, blockingDispatcher)
+  import actorSystem.dispatcher
+  val serverlog = Logging(actorSystem, classOf[Server])
+  serverlog.info("{} - Version: {} - {}", build.ProjectInfo.name, build.ProjectInfo.version, serverConfig.applicationMode)
 
-
-  val errors = validateConfig(Global.config)
-  if(!Global.configDidExist) {
-    serverlog.error(s"""Your configuration (${Global.configFileURL}) got newly created!
-                        |Please adjust the settings before continuing.""".stripMargin)
-    MopeExitCodes.waitAndExit(MopeExitCodes.UNMODIFIED_CONFIG)
-  } else if(errors.nonEmpty) {
+  val errors = validateConfig(serverConfig.config)
+  if(errors.nonEmpty) {
     val errorString = errors.map(x => s" - $x").mkString("\n")
-    serverlog.error(s"""Your configuration (${Global.configFileURL}) contains the following errors:
+    serverlog.error(s"""Your configuration (${Constants.configFile}) contains the following errors:
                         |$errorString""".stripMargin)
     MopeExitCodes.waitAndExit(MopeExitCodes.CONFIG_ERROR)
   }
 
-  val bindingFuture =
-    Http().bindAndHandle(routes, interface, port)
 
-  bindingFuture onComplete {
-    case scala.util.Success(_) =>
-      serverlog.info("Server running at {}:{}", interface, port)
-    case scala.util.Failure(ex) =>
-      serverlog.error("Failed to start server at {}:{} - {}", interface, port, ex.getMessage)
-      actorSystem.terminate()
-  }
+  def start():Unit = {
+    val bindingFuture =
+      Http().bindAndHandle(router.routes, serverConfig.interface, serverConfig.port)
 
-  if(applicationMode == ApplicationMode.Development) {
-    Future {
-      blocking {
-        serverlog.info("Press Ctrl+D to interrupt")
-        while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
-        bindingFuture.
-          flatMap(_.unbind()).
-          onComplete(_ => actorSystem.terminate())
-      }
+    bindingFuture onComplete {
+      case scala.util.Success(_) =>
+        serverlog.info("Server running at {}:{}", serverConfig.interface, serverConfig.port)
+      case scala.util.Failure(ex) =>
+        serverlog.error("Failed to start server at {}:{} - {}", serverConfig.interface, serverConfig.port, ex.getMessage)
+        actorSystem.terminate()
     }
+
+    serverlog.info("Press Ctrl+D to interrupt")
+    while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
+    bindingFuture.
+      flatMap(_.unbind()).
+      onComplete(_ => actorSystem.terminate())
   }
 }

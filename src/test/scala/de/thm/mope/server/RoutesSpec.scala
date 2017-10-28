@@ -33,7 +33,7 @@ import de.thm.mope.position.{FilePath, FilePosition, FileWithLine}
 import de.thm.mope.suggestion.Suggestion
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion$}
-import de.thm.mope.Global
+
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.Await

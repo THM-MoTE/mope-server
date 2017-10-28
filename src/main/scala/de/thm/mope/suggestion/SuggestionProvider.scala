@@ -17,36 +17,41 @@
 
 package de.thm.mope.suggestion
 
-import java.nio.file.Paths
+import java.nio.file.{Paths, Path}
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.stream._
 import akka.stream.scaladsl._
-import de.thm.mope.Global
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
-import de.thm.mope.utils.StreamUtils
+import de.thm.mope.utils.{
+  StreamUtils,
+  ResourceUtils
+}
 
 import scala.concurrent.Future
 
 /** An Actor which provides suggestions (code completions) for a given word. */
-class SuggestionProvider(compiler:CompletionLike)
-  extends Actor
+class SuggestionProvider(
+  compiler:CompletionLike,
+  fileInspectorFactory: Path => SrcFileInspector,
+  prefixMatcherFactory: String => PrefixMatcher)
+    extends Actor
     with UnhandledReceiver
     with ActorLogging {
 
   import context.dispatcher
-  implicit val mat = ActorMaterializer(namePrefix = Some("suggestion-stream"))
+  implicit val mat = ActorMaterializer()
 
   val keywords =
-    Global.readValuesFromResource(
-        getClass.getResource("/completion/keywords.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
+    ResourceUtils.readValues(
+        getClass.getResourceAsStream("/completion/keywords.conf"))(SrcFileInspector.nonEmptyLines).toSet
   val types =
-    Global.readValuesFromResource(
-        getClass.getResource("/completion/types.conf").toURI.toURL)(SrcFileInspector.nonEmptyLines).toSet
+    ResourceUtils.readValues(
+      getClass.getResourceAsStream("/completion/types.conf"))(SrcFileInspector.nonEmptyLines).toSet
 
   val logSuggestions: String => Seq[Suggestion] => Seq[Suggestion] = { word => suggestions =>
     if(log.isDebugEnabled) log.debug("suggestions for {} are {}", word, suggestions.map(_.displayString))
@@ -79,7 +84,7 @@ class SuggestionProvider(compiler:CompletionLike)
         run().
         map(logSuggestions(word)) pipeTo sender
     case TypeRequest(filename, FilePosition(line, _), word) =>
-      new SrcFileInspector(Paths.get(filename)).typeOf(word, line).
+      fileInspectorFactory(Paths.get(filename)).typeOf(word, line).
         toMat(Sink.headOption)(Keep.right).
         run().
         map(logType(word)) pipeTo sender
@@ -92,7 +97,7 @@ class SuggestionProvider(compiler:CompletionLike)
 
   /** Filters all possible suggestions based on String#startsWith or Levenshtein distance */
   private def toStartsWith(word:String):Sink[Suggestion, Future[Seq[Suggestion]]] = {
-    val matcher = new PrefixMatcher(word)
+    val matcher = prefixMatcherFactory(word)
     /*
       Creates the following graph:
           -------> startswith ------
@@ -191,10 +196,10 @@ class SuggestionProvider(compiler:CompletionLike)
     val (objectName, member) = sliceAtLastDot(word)
     if(member.isEmpty) Source.empty
     else {
-      new SrcFileInspector(Paths.get(filename))
+      fileInspectorFactory(Paths.get(filename))
         .typeOf(objectName, lineNo)
         .via(srcFile)
-        .flatMapConcat{ file => new SrcFileInspector(Paths.get(file)).localVariables(None) }
+        .flatMapConcat{ file => fileInspectorFactory(Paths.get(file)).localVariables(None) }
         .map { objectVariable =>
         Suggestion(Kind.Property, objectName+"."+objectVariable.name, None, objectVariable.docString, Some(objectVariable.`type`))
       }

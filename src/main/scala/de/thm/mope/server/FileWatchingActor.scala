@@ -21,6 +21,7 @@ import java.nio.file.WatchEvent.Kind
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.function.{BiConsumer, Predicate}
+import java.util.concurrent.ExecutorService
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
@@ -31,7 +32,7 @@ import ews._
 
 import scala.concurrent.Future
 
-class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String)(implicit projConfig:InternalProjectConfig)
+class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String, executor:ExecutorService)
     extends Actor
     with UnhandledReceiver
     with ActorLogging {
@@ -65,7 +66,7 @@ class FileWatchingActor(interestee:ActorRef, rootPath:Path, outputDirName:String
 
   private val watchService = new EnhancedWatchService(rootPath, true, eventKinds:_*)
 
-  private val runningFuture = projConfig.blockingExecutor.submit(watchService.setup(listener, filter))
+  private val runningFuture = executor.submit(watchService.setup(listener, filter))
 
   private def files(path:Path) =
     getFiles(path, filter.acceptFile).sorted

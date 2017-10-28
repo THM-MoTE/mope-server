@@ -18,12 +18,13 @@
 package de.thm.mope.compiler
 import java.nio.file.{Files, Path, Paths}
 
-import de.thm.mope.Global
+
 import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
 import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
+import de.thm.mope.config.{Constants, ProjectConfig}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
 import omc.{ImportHandler, LoadLibraryException}
@@ -34,19 +35,18 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.util._
 
-class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler {
+class OMCompiler(projConfig:ProjectConfig) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
-    val forceEnglish = Global.config.getBoolean("forceEnglish")
+    val forceEnglish = projConfig.server.config.getBoolean("forceEnglish")
     val suffixProvider = new CustomIORNameProvider("mope", true)
-    if(forceEnglish) new OMCClient(executableName, Global.usLocale, suffixProvider)
-    else new OMCClient(executableName, suffixProvider)
+    if(forceEnglish) new OMCClient(projConfig.server.compilerExecutable, Constants.usLocale, suffixProvider)
+    else new OMCClient(projConfig.server.compilerExecutable, suffixProvider)
   }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
-  require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
-  val rootProjectFile = outputDir.getParent.resolve("package.mo")
+  val rootProjectFile = projConfig.rootDir.resolve("package.mo")
   val rootDir = rootProjectFile.getParent
 
   val loaderOpt = {
@@ -57,7 +57,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   omc.connect()
-  IOUtils.createDirectory(outputDir)
+  IOUtils.createDirectory(projConfig.outputDir)
 
   private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
     /** 1. load all external libraries, if they exist
@@ -76,7 +76,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       }
     }
 
-    withOutputDir(outputDir) {
+    withOutputDir(projConfig.outputDir) {
       val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
       val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
       val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))

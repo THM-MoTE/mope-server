@@ -18,22 +18,24 @@
 package de.thm.mope.compiler
 
 import java.nio.file.Path
-import com.typesafe.config.Config
 
-class CompilerFactory(config:Config) {
+import com.typesafe.config.Config
+import de.thm.mope.config._
+import de.thm.mope.project.ProjectDescription
+
+class CompilerFactory(servConf:ServerConfig) {
   import CompilerFactory._
-  val compilerKey = config.getString("compiler")
-  val compilerExecutable = config.getString("compilerExecutable")
+  val compilerKey = servConf.config.getString("compiler")
 
   require(availableCompilers.keys.exists(_ == compilerKey),
     s"The given compilerKey [$compilerKey] isn't a valid key!")
 
   def getCompilerClass: Class[_ <: ModelicaCompiler] = availableCompilers(compilerKey)
 
-  def newCompiler(outputDir:Path): ModelicaCompiler = {
+  def newCompiler(projectDescription: ProjectDescription): ModelicaCompiler = {
     val compilerClazz = getCompilerClass
-    val constructor = compilerClazz.getDeclaredConstructor(classOf[String], classOf[Path])
-    constructor.newInstance(compilerExecutable, outputDir)
+    val constructor = compilerClazz.getDeclaredConstructor(classOf[ProjectConfig])
+    constructor.newInstance(ProjectConfig(servConf,projectDescription))
   }
 }
 

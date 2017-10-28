@@ -36,7 +36,7 @@ class DocumentationProvider(docLike: DocumentationLike)
     case GetDocumentation(className) =>
       Future {
         val docOpt = docLike.getDocumentation(className)
-        log.info(
+        log.debug(
             if(docOpt.isDefined) "got documentation for {}"
             else "no documentation for {}",
             className)

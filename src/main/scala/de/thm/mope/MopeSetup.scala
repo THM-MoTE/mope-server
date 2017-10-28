@@ -20,25 +20,24 @@ package de.thm.mope
 import org.slf4j.{LoggerFactory}
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.Level
-
-import de.thm.mope.Global._
+import de.thm.mope.config.ApplicationMode
 
 /** Application wide initializations */
 trait MopeSetup {
 
-  val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
-
+ def configureLogging(applicationMode:ApplicationMode.Value):Unit = {
   /* ================ SLF4J & LOGBACK */
   /* Route java.util.logging into slf4j */
- // remove existing handlers attached to j.u.l root logger
- org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
- // add SLF4JBridgeHandler to j.u.l's root logger
- org.slf4j.bridge.SLF4JBridgeHandler.install()
+  // remove existing handlers attached to j.u.l root logger
+  org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
+  // add SLF4JBridgeHandler to j.u.l's root logger
+  org.slf4j.bridge.SLF4JBridgeHandler.install()
 
- /* ================ Application-wide max log level */
- val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
- applicationMode match {
+  /* ================ Application-wide max log level */
+  val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+  applicationMode match {
    case ApplicationMode.Development => rootLogger.setLevel(Level.DEBUG)
    case ApplicationMode.Production => rootLogger.setLevel(Level.INFO)
+  }
  }
 }

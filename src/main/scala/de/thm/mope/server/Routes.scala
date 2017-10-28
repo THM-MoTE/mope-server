@@ -20,14 +20,20 @@ package de.thm.mope.server
 import java.util.NoSuchElementException
 import java.nio.file.Path
 
-import akka.actor.{ActorRef, PoisonPill}
+import akka.actor.{ActorRef, ActorSystem, PoisonPill}
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
-import de.thm.mope.Global
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import akka.event.Logging
+import com.typesafe.config.Config
+import com.softwaremill.tagging._
+import de.thm.mope.ProjectsManagerRef
 import de.thm.mope.compiler.CompilerError
+import de.thm.mope.config.ServerConfig
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo._
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
@@ -38,28 +44,31 @@ import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript,
 import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
-import de.thm.mope.templates.TemplateEngine
-import de.thm.mope.templates.TemplateEngine._
+import de.thm.mope.templates.TemplateModule._
 import de.thm.mope.utils.IOUtils
-
+import de.thm.mope.tags._
 import de.thm.recent.JsProtocol._
 
 import scala.concurrent.Future
 
-trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
-  this: ServerSetup =>
+class Routes(
+  projectsManager:ProjectsManagerRef,
+  servConf:ServerConfig,
+  docEngine:DocTemplate,
+  missingDocEngine:MissingDocTemplate,
+  override val ensembleHandler:EnsembleHandler)(
+  implicit
+    mat:ActorMaterializer)
+    extends JsonSupport
+    with ErrorHandling 
+    with EnsembleRoutes {
 
-  def projectsManager: ActorRef
+  import servConf.timeout
+  override val serverlog = Logging(mat.system, classOf[Routes])
+  implicit val dispatcher =  mat.system.dispatcher
 
   private val exitOnLastDisconnect =
-    Global.config.getBoolean("exitOnLastDisconnect")
-
-  private val cssStream = getClass.getResourceAsStream("/templates/style.css")
-  private val docStream = getClass.getResourceAsStream("/templates/documentation.html")
-  private val missingDocStream = getClass.getResourceAsStream("/templates/missing-doc.html")
-  private val styleEngine = new TemplateEngine(IOUtils.toString(cssStream))
-  private val docEngine = new TemplateEngine(IOUtils.toString(docStream)).merge(styleEngine, "styles")
-  private val missingDocEngine = new TemplateEngine(IOUtils.toString(missingDocStream)).merge(styleEngine, "styles")
+    servConf.config.getBoolean("exitOnLastDisconnect")
 
   private def createSubcomponentLink(comp: DocInfo.Subcomponent, link:String): String =
     s"""<li>
@@ -67,7 +76,7 @@ trait Routes extends JsonSupport with ErrorHandling with EnsembleRoutes {
     |</li>""".stripMargin
 
   private def shutdown(cause:String): Unit = {
-    actorSystem.terminate()
+    mat.system.terminate()
     serverlog.info("Shutdown because {}", cause)
   }
 

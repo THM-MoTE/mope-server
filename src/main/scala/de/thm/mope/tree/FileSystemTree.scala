@@ -52,7 +52,7 @@ object FileSystemTree {
 		if(Files.isRegularFile(root))
 			Leaf(root)
 		else if(Files.isDirectory(root)) {
-			ResourceUtils.tryR(Files.newDirectoryStream(root, filter)) { dirStream =>
+			ResourceUtils.closeable(Files.newDirectoryStream(root, filter)) { dirStream =>
 				val children = (for(entry <- dirStream.asScala) yield {
 					if(Files.isDirectory(entry)) buildTree(entry, filter)
 					else Leaf(entry)

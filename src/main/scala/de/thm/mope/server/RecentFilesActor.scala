@@ -21,52 +21,51 @@ import java.nio.file.{Files, Path, Paths}
 
 import akka.pattern.pipe
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
-import de.thm.mope.Global
 import de.thm.mope.utils.actors.UnhandledReceiver
 import de.thm.recent._
+import de.thm.mope.config.Constants
 import JsProtocol._
 
 import scala.concurrent.Future
 
-class RecentFilesActor
+class RecentFilesActor(recentFilesPath:Path)
 	extends Actor
 	with UnhandledReceiver
 	with ActorLogging {
 
 	import RecentFilesActor._
-	import context._
+  import context._
+
 
 	var recent = Recent.fromList(List[Path]())
 
 	override def preStart(): Unit = {
 		val recent =
-			if(Files.exists(Global.recentFilesPath)) Recent.fromInputStream[Path](Files.newInputStream(Global.recentFilesPath))
+		  if(Files.exists(recentFilesPath)) Recent.fromInputStream[Path](Files.newInputStream(recentFilesPath))
 			else Recent.fromList(List[Path]())
 
-		log.info("Initialized with file {}", Global.recentFilesPath)
+	  log.info("Initialized with file {}", recentFilesPath)
 		log.debug("Recent files are {}", recent.recentElements)
 		self ! Initialized(recent)
 	}
 
 	override def receive:Receive = {
 		case Initialized(newRecent) =>
-			log.debug("initialized with {}", newRecent)
 			recent = newRecent
 			become(initialized)
-		case PoisonPill => log.info("got poisonpill in 'receive'")
 	}
 
 	private def initialized:Receive = {
 		case GetRecentFiles => Future(recent.recentElementsByPriority) pipeTo sender
 		case AddStr(fileStr) =>
 			val path = Paths.get(fileStr)
-			log.debug("increment priority of {}", path)
+			log.debug("Increment priority of {}", path)
 			recent = recent.incrementPriority(path)
 	}
 
 	override def postStop():Unit = {
-		log.debug("Writing {} recent files into {}", recent.recentElements.size, Global.recentFilesPath)
-		Files.write(Global.recentFilesPath, recent.toJson.getBytes(Global.encoding))
+		log.info("Writing {} recent files into {}", recent.recentElements.size, recentFilesPath)
+	  Files.write(recentFilesPath, recent.toJson.getBytes(Constants.encoding))
 	}
 }
 

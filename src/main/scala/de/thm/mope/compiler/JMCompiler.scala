@@ -19,60 +19,61 @@ package de.thm.mope.compiler
 
 import java.nio.file.{Files, Path}
 
+import de.thm.mope.config.ProjectConfig
+
 import scala.language.postfixOps
 import scala.sys.process._
-
 import de.thm.mope.tree.TreeLike
-import de.thm.mope.Global
-import de.thm.mope.server.{JsonSupport, FileWatchingActor}
+import de.thm.mope.server.{FileWatchingActor, JsonSupport}
 import de.thm.mope.utils.MonadImplicits._
 import omc.corba._
 import org.slf4j.LoggerFactory
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
-class JMCompiler(executableName:String, outputDir:Path)
+class JMCompiler(projConfig:ProjectConfig)
   extends ModelicaCompiler
   with StubCompiler
   with JsonSupport {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val rootDir = outputDir.getParent()
-  private val scriptFile = Global.withCheckConfigDirectory { configPath =>
-    val scriptDir = configPath.resolve("scripts")
-    if(Files.notExists(scriptDir))
-      Files.createDirectory(scriptDir)
-
-    val scriptPath = scriptDir.resolve("jmodelica_compile.py")
-    Global.copyIfNotExist(scriptPath, "jmodelica_compile.py")
-    Global.copyIfNotExist(scriptDir.resolve("compiler_error.py"), "compiler_error.py")
-    scriptPath
-  }
-
+  private val rootDir = projConfig.rootDir
+//  private val scriptFile = Global.withCheckConfigDirectory { configPath =>
+//    val scriptDir = configPath.resolve("scripts")
+//    if(Files.notExists(scriptDir))
+//      Files.createDirectory(scriptDir)
+//
+//    val scriptPath = scriptDir.resolve("jmodelica_compile.py")
+//    Global.copyIfNotExist(scriptPath, "jmodelica_compile.py")
+//    Global.copyIfNotExist(scriptDir.resolve("compiler_error.py"), "compiler_error.py")
+//    scriptPath
+//  }
+//
   override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
     val files = projectTree.filterElements(Files.isRegularFile(_))
     val modelname:Option[String] = ScriptingHelper.getModelName(openedFile)
-    if(files.exists(isPackageMo))
-      compile(files, modelname, true)
-    else
-      compile(files, modelname, false)
+    Seq()
+//    if(files.exists(isPackageMo))
+//      compile(files, modelname, true)
+//    else
+//      compile(files, modelname, false)
   }
-
-  private def compile(files:List[Path], modelName:Option[String], isLib:Boolean): Seq[CompilerError] = {
-    val classFlag = modelName.map(x => s"-classname $x")
-    val fileArgs = if(isLib) rootDir.toString else files.mkString(" ")
-    val args = s"${classFlag.getOrElse("")} -file $fileArgs"
-    val prog = s"$executableName -- $scriptFile $args"
-    log.debug("compiling as {} - executing {}", if(isLib) "Library" else "Files", s"$executableName -- $scriptFile":Any)
-    val stdout = prog.!!
-    if(stdout.contains("Nothing to compile")) Seq[CompilerError]()
-    else if(stdout.trim == "JVM started.") Seq[CompilerError]()
-    else {
-      val str = stdout.replace("JVM started.", "").trim
-      val erg = str.parseJson.convertTo[Seq[CompilerError]]
-      log.debug("parsed json is: {}", erg)
-      erg
-    }
-  }
+//
+//  private def compile(files:List[Path], modelName:Option[String], isLib:Boolean): Seq[CompilerError] = {
+//    val classFlag = modelName.map(x => s"-classname $x")
+//    val fileArgs = if(isLib) rootDir.toString else files.mkString(" ")
+//    val args = s"${classFlag.getOrElse("")} -file $fileArgs"
+//    val prog = s"$executableName -- $scriptFile $args"
+//    log.debug("compiling as {} - executing {}", if(isLib) "Library" else "Files", s"$executableName -- $scriptFile":Any)
+//    val stdout = prog.!!
+//    if(stdout.contains("Nothing to compile")) Seq[CompilerError]()
+//    else if(stdout.trim == "JVM started.") Seq[CompilerError]()
+//    else {
+//      val str = stdout.replace("JVM started.", "").trim
+//      val erg = str.parseJson.convertTo[Seq[CompilerError]]
+//      log.debug("parsed json is: {}", erg)
+//      erg
+//    }
+//  }
 
   override def getSrcFile(className:String): Option[String] = {
     //skip all modelica classes

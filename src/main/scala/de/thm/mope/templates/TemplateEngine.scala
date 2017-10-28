@@ -17,12 +17,15 @@
 
 package de.thm.mope.templates
 
+import java.io.InputStream
+
 import de.thm.mope.templates.TemplateEngine._
+import de.thm.mope.utils.IOUtils
 
 import scala.language.implicitConversions
 
 class TemplateEngine(fileContent:String) {
-  def insert(m:Map[String, _ <: TemplateValue]): TemplateEngine = {
+  def insert(m:Map[String,TemplateValue]): TemplateEngine = {
     new TemplateEngine(m.foldLeft(fileContent) {
       case (acc, (key, ListValue(v))) =>
         acc.replace(fileKey(key), "<ul>" + v.mkString("\n") + "</ul>")
@@ -48,4 +51,9 @@ object TemplateEngine {
 
   implicit def stringToValue(s:String): SimpleValue = SimpleValue(s)
   implicit def listToValue[A](xs:List[A]): ListValue[A] = ListValue(xs)
+
+  def apply(is:InputStream):TemplateEngine = new TemplateEngine(IOUtils.toString(is))
+  def merge(engine:TemplateEngine, other: (TemplateEngine,String)*):TemplateEngine = {
+    other.foldLeft(engine) { case (engine, (en2, key)) => engine.merge(en2,key) }
+  }
 }

@@ -17,14 +17,20 @@
 
 package de.thm.mope.utils
 
-import java.io.Closeable
+import java.io.{
+  Closeable,
+  InputStream
+}
+import scala.io.Source
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import java.util.Base64
-
-import de.thm.mope.Global
+import de.thm.mope._
 
 object ResourceUtils {
+  import de.thm.mope.config.Constants
+
+  implicit val codec = scala.io.Codec(Constants.encoding)
 
   def getFilename(uri:URI):String = {
     val uriStr = uri.toString
@@ -46,7 +52,7 @@ object ResourceUtils {
     * @see [ResourceUtils#encodeBase64]
     */
   def encodeBase64String(bytes:Array[Byte]): String =
-    new String(encodeBase64(bytes), Global.encoding)
+    new String(encodeBase64(bytes), Constants.encoding)
 
   /** Copies src into the parent-directory of target */
   def copy(src:URI, target:URI): Unit = {
@@ -57,11 +63,15 @@ object ResourceUtils {
   }
 
   /** Try-with-resources for Scala. ;-) */
-  def tryR[A <: Closeable, B](cl:A)(fn: A => B): B = {
+  def closeable[A <: Closeable, B](cl:A)(fn: A => B): B = {
     try {
       fn(cl)
     } finally {
       cl.close()
     }
+  }
+
+  def readValues(is:InputStream)(filter: Filter[String]): List[String] = {
+    Source.fromInputStream(is).getLines.filter(filter).toList
   }
 }

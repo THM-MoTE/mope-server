@@ -24,7 +24,7 @@ import akka.util.ByteString
 
 import de.thm.mope.utils.StreamUtils
 
-class SrcFileInspector(srcFile:Path)(implicit mat: ActorMaterializer) {
+class SrcFileInspector(srcFile:Path) {
   import SrcFileInspector._
 
   val lines = FileIO.fromPath(srcFile)

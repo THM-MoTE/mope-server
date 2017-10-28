@@ -18,14 +18,20 @@
 package de.thm.mope.server
 
 import java.nio.file._
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import akka.actor.{Actor, ActorLogging, Props}
+import com.softwaremill.macwire._
+import com.softwaremill.macwire.akkasupport._
+import com.softwaremill.tagging._
+import com.typesafe.config.Config
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import de.thm.mope._
+import de.thm.mope.{ProjectManagerPropsFactory, SuggestionProviderPropsFactory, _}
+import de.thm.mope.tags._
 import de.thm.mope.tree._
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
+import de.thm.mope.config.ProjectConfig
 import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
 import de.thm.mope.doc.DocumentationProvider
 import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
@@ -45,29 +51,31 @@ import scala.language.postfixOps
  *
   * @note This actor starts several subactors for serving all requests
   */
-class ProjectManagerActor(description:ProjectDescription,
-                          compiler:ModelicaCompiler,
-                          indexFiles:Boolean = true)
+class ProjectManagerActor(
+  compiler:ModelicaCompiler,
+  projConfig:ProjectConfig,
+  jumpPropsF:JumpToPropsFactory,
+  docPropsF:DocumentationProviderPropsFactory,
+  suggestionPropsF:SuggestionProviderPropsFactory)
   extends Actor
   with UnhandledReceiver
   with ActorLogging {
 
   import ProjectManagerActor._
   import context.dispatcher
+  import projConfig.server.timeout
 
-  implicit val timeout = Timeout(5 seconds)
+  private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
+  val rootDir = Paths.get(projConfig.project.path)
+  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory, projConfig.server.executor))
+  val completionActor = context.actorOf(suggestionPropsF(compiler))
+  val jumpProvider =  context.actorOf(jumpPropsF(compiler))
+  val docProvider =  context.actorOf(docPropsF(compiler))
 
-  val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-"+self.path.name))
-  implicit val projConfig = InternalProjectConfig(executor, timeout)
-  val rootDir = Paths.get(description.path)
-  val fileWatchingActor = context.actorOf(Props(new FileWatchingActor(self, rootDir, description.outputDirectory)))
-  val completionActor = context.actorOf(Props(new SuggestionProvider(compiler)))
-  val jumpProvider = context.actorOf(Props(new JumpToProvider(compiler)))
-  val docProvider = context.actorOf(Props(new DocumentationProvider(compiler)))
 
   val treeFilter:PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
-    p.endsWith(description.outputDirectory)
+    p.endsWith(projConfig.project.outputDirectory)
   }
 
   def newProjectTree:Future[TreeLike[Path]] = Future {
@@ -82,17 +90,17 @@ class ProjectManagerActor(description:ProjectDescription,
      else newProjectTree
 
   private def getDefaultScriptPath:Future[Path] = Future {
-    val defaultScript = description.buildScript.getOrElse("build.mos")
+    val defaultScript = projConfig.project.buildScript.getOrElse("build.mos")
     val path = rootDir.resolve(defaultScript)
     if(Files.exists(path) && Files.isRegularFile(path))
       path
     else
-      throw new NotFoundException(s"Can't find script called $defaultScript!")
+      throw NotFoundException(s"Can't find script called $defaultScript!")
   }
 
   def withExists[T](p:Path)(fn: => Future[T]): Future[T] =
     if(Files.exists(p)) fn
-    else Future.failed(new NotFoundException(s"Can't find file $p!"))
+    else Future.failed(NotFoundException(s"Can't find file $p!"))
 
   override def preStart() = {
     newProjectTree.map(InitialInfos) pipeTo self
@@ -136,7 +144,7 @@ class ProjectManagerActor(description:ProjectDescription,
       withExists(file) {
         for {
           tree <- getProjectFiles
-          _ = log.debug("compiling with project: {}", tree.label)
+          _ = log.debug("Compiling: {}", tree.label)
           errors <- Future(compiler.compile(tree, file))
           filteredErrors = errors.filter(errorInProjectFile)
           _ = printDebug(filteredErrors)
@@ -170,18 +178,12 @@ class ProjectManagerActor(description:ProjectDescription,
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
-    log.debug("Compiled project {} with {}", description.path,
+    log.debug("Compiled {} with {}", projConfig.project.path,
       if(errors.isEmpty) " no errors" else errors.mkString("\n"))
   }
 
   override def postStop(): Unit = {
     compiler.stop()
-    executor.shutdown()
-    if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-      log.warning("Force shutdown threadpool")
-      executor.shutdownNow()
-    }
-
     log.info("stopping")
   }
 }
