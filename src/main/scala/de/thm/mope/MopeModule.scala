@@ -41,11 +41,17 @@ import de.thm.mope.utils.ThreadUtils
 import de.thm.mope.config.{ProjectConfig, ServerConfig}
 import de.thm.mope.tags._
 trait MopeModule {
-  lazy val serverConfig:ServerConfig = ServerConfig(
-    config,
-    Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO")))(
-    Timeout(config.getInt("defaultAskTimeout") seconds),
-    actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io"))
+  lazy val serverConfig:ServerConfig = {
+    val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
+    actorSystem.registerOnTermination {
+      executor.shutdown()
+    }
+    ServerConfig(
+      config,
+      executor)(
+      Timeout(config.getInt("defaultAskTimeout") seconds),
+      actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io"))
+  }
 
   import serverConfig.{timeout, blockingDispatcher, recentFiles}
 
