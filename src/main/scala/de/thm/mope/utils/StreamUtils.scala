@@ -20,6 +20,7 @@ package de.thm.mope.utils
 import akka.stream.scaladsl._
 
 object StreamUtils {
-  val numbers: Source[Int, _] = Source.unfold(0) { n => Some(n+1 -> n)}
-  def seq[A]:Flow[A, Seq[A],_] = Flow[A].fold(List[A]()){(acc,el) => el::acc}
+  val numbers: Source[Int, _] = Source.unfold(0) { n => Some(n + 1 -> n) }
+
+  def seq[A]: Flow[A, Seq[A], _] = Flow[A].fold(List[A]()) { (acc, el) => el :: acc }
 }

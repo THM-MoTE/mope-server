@@ -1,19 +1,19 @@
 /**
- * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+  * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
 
 package de.thm.mope.server
 
@@ -24,13 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.sys.process._
 
-class EnsembleHandler(config:Config, blockingExecutor: ExecutionContext) {
+class EnsembleHandler(config: Config, blockingExecutor: ExecutionContext) {
   private val log = LoggerFactory.getLogger(this.getClass)
   val execField = "mote.moveExecutable"
   private val helpRegex = """Move\s+\-\s+V(\d+\.\d+\.\d+)""".r
-  val moveJar:Option[String] =
-    if(config.hasPath(execField)) {
-        //path known; check if it's MoVE
+  val moveJar: Option[String] =
+    if (config.hasPath(execField)) {
+      //path known; check if it's MoVE
       val jar = config.getString(execField)
       val versionCmd = Seq("java", "-jar", jar, "-version")
       try {
@@ -44,16 +44,16 @@ class EnsembleHandler(config:Config, blockingExecutor: ExecutionContext) {
             None
         }
       } catch {
-        case ex:Exception =>
-          log.error(s"Couldn't execute {}. It seems like the given jar isn't MoVE!",versionCmd.mkString(" "):Any, ex)
+        case ex: Exception =>
+          log.error(s"Couldn't execute {}. It seems like the given jar isn't MoVE!", versionCmd.mkString(" "): Any, ex)
           None
       }
     } else None
 
-  def createError(jarPath:String): String =
+  def createError(jarPath: String): String =
     s"Given jar for MoVE ($jarPath) isn't Move! Opening a file in MoVE isn't possible."
 
-  def openInMove(filepath:String): Either[String, Unit] = {
+  def openInMove(filepath: String): Either[String, Unit] = {
     moveJar.map { jar =>
       Future {
         val cmd = Seq("java", "-jar", jar, filepath)

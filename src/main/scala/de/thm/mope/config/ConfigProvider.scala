@@ -23,8 +23,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 /** Merges all settings together. */
 class ConfigProvider(
-  cli:CliConf,
-  userConfig:Path) {
+                      cli: CliConf,
+                      userConfig: Path) {
 
   val config = cli.asConfig
     .withFallback(ConfigProvider.createConfigFile(userConfig))
@@ -33,8 +33,8 @@ class ConfigProvider(
 }
 
 object ConfigProvider {
-  def createConfigFile(file:Path):Config = {
-    if(Files.notExists(file)) {
+  def createConfigFile(file: Path): Config = {
+    if (Files.notExists(file)) {
       Files.createDirectories(file.getParent)
       Files.copy(getClass.getResourceAsStream("/mope.conf"), file)
     }

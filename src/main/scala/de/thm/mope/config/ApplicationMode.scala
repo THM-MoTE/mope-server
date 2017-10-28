@@ -20,7 +20,7 @@ package de.thm.mope.config
 object ApplicationMode extends Enumeration {
   val Development, Production = Value
 
-  def parseString(str:String): Value = str.toLowerCase match {
+  def parseString(str: String): Value = str.toLowerCase match {
     case "dev" | "development" => Development
     case "prod" | "production" => Production
     case _ => throw new IllegalArgumentException(s"Can't decide which mode $str represents")

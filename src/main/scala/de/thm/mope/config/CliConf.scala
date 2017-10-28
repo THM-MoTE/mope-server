@@ -23,23 +23,23 @@ import org.rogach.scallop._
 import scala.collection.JavaConverters._
 
 /** Configuration for CLI-arguments parser. */
-class CliConf(args:Seq[String]) extends ScallopConf(args) {
+class CliConf(args: Seq[String]) extends ScallopConf(args) {
   val protocol = opt[String]("protocol")
   val interface = opt[String]("interface")
   val port = opt[Int]("port")
   val omc = opt[String]("omc")
   verify()
 
-  private def configKey[A](opt:ScallopOption[A], k:String):Option[(String,String)] = {
+  private def configKey[A](opt: ScallopOption[A], k: String): Option[(String, String)] = {
     opt.map(v => k -> v.toString).toOption
   }
 
-  def asConfig:Config = {
+  def asConfig: Config = {
     ConfigFactory.parseMap(Map(
       Seq(configKey(port, "protocol.port"),
         configKey(interface, "protocol.interface"),
-      configKey(protocol, "protocol"),
-      configKey(omc, "compilerExecutable")).flatten:_*
+        configKey(protocol, "protocol"),
+        configKey(omc, "compilerExecutable")).flatten: _*
     ).asJava)
   }
 }

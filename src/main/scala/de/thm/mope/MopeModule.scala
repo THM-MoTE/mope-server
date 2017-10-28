@@ -39,10 +39,11 @@ import de.thm.mope.utils.ThreadUtils
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+
 trait MopeModule
   extends TemplateModule {
 
-  lazy val serverConfig:ServerConfig = {
+  lazy val serverConfig: ServerConfig = {
     val executor = Executors.newCachedThreadPool(ThreadUtils.namedThreadFactory("MOPE-IO"))
     actorSystem.registerOnTermination {
       executor.shutdown()
@@ -56,27 +57,32 @@ trait MopeModule
 
   import serverConfig.{timeout, blockingDispatcher, recentFiles}
 
-  lazy val ensembleHandler:EnsembleHandler = wire[EnsembleHandler]
-  lazy val compilerFactory:CompilerFactory = wire[CompilerFactory]
-  def projRegister:ProjectRegister = wire[ProjectRegister]
-  lazy val recentFilesProps:RecentHandlerProps = wireProps[RecentFilesActor].taggedWith[RecentHandlerMarker]
-  lazy val projectsManager:ProjectsManagerRef = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
+  lazy val ensembleHandler: EnsembleHandler = wire[EnsembleHandler]
+  lazy val compilerFactory: CompilerFactory = wire[CompilerFactory]
+
+  def projRegister: ProjectRegister = wire[ProjectRegister]
+
+  lazy val recentFilesProps: RecentHandlerProps = wireProps[RecentFilesActor].taggedWith[RecentHandlerMarker]
+  lazy val projectsManager: ProjectsManagerRef = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
 
   lazy val inspectorFactory: SrcFileFactory = p => wire[SrcFileInspector]
-  lazy val prefixFactory: PrefixMatcherFactory = (s:String) => wire[PrefixMatcher]
-  lazy val jumpToProps:JumpToPropsFactory = (j:JumpToLike) => wireProps[JumpToProvider].taggedWith[JumpProviderMarker]
-  lazy val docProviderFactory:DocumentationProviderPropsFactory = (d:DocumentationLike) => wireProps[DocumentationProvider].taggedWith[DocProviderMarker]
-  lazy val suggestionProviderFactory:SuggestionProviderPropsFactory = (c:CompletionLike) => wireProps[SuggestionProvider].taggedWith[CompletionMarker]
+  lazy val prefixFactory: PrefixMatcherFactory = (s: String) => wire[PrefixMatcher]
+  lazy val jumpToProps: JumpToPropsFactory = (j: JumpToLike) => wireProps[JumpToProvider].taggedWith[JumpProviderMarker]
+  lazy val docProviderFactory: DocumentationProviderPropsFactory = (d: DocumentationLike) => wireProps[DocumentationProvider].taggedWith[DocProviderMarker]
+  lazy val suggestionProviderFactory: SuggestionProviderPropsFactory = (c: CompletionLike) => wireProps[SuggestionProvider].taggedWith[CompletionMarker]
 
-  lazy val projManagerFactory:ProjectManagerPropsFactory = (d:ProjectDescription, id:Int) => {
-    val compiler:ModelicaCompiler = compilerFactory.newCompiler(d)
-    val conf:ProjectConfig = ProjectConfig(serverConfig, d)
+  lazy val projManagerFactory: ProjectManagerPropsFactory = (d: ProjectDescription, id: Int) => {
+    val compiler: ModelicaCompiler = compilerFactory.newCompiler(d)
+    val conf: ProjectConfig = ProjectConfig(serverConfig, d)
     wireProps[ProjectManagerActor]
   }
 
   lazy val router = wire[Routes]
   lazy val server = wire[Server]
-  def config:Config
-  implicit def actorSystem:ActorSystem
-  implicit def mat:ActorMaterializer
+
+  def config: Config
+
+  implicit def actorSystem: ActorSystem
+
+  implicit def mat: ActorMaterializer
 }

@@ -23,7 +23,8 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import de.thm.mope.utils.StreamUtils
 
-class SrcFileInspector(srcFile:Path) {
+class SrcFileInspector(srcFile: Path) {
+
   import SrcFileInspector._
 
   val lines = FileIO.fromPath(srcFile)
@@ -32,10 +33,10 @@ class SrcFileInspector(srcFile:Path) {
     .zip(StreamUtils.numbers.drop(1))
     .map(_.swap)
 
-  def typeOf(word:String, lineNo:Int): Source[TypeOf, _] = {
+  def typeOf(word: String, lineNo: Int): Source[TypeOf, _] = {
     val toTypeOf =
       Flow[LocalVariable].map {
-        case LocalVariable(_,tpe,name,comment) => TypeOf(name, tpe, comment)
+        case LocalVariable(_, tpe, name, comment) => TypeOf(name, tpe, comment)
       }
 
     identRegex.r.
@@ -49,12 +50,12 @@ class SrcFileInspector(srcFile:Path) {
       }.getOrElse(Source.empty)
   }
 
-  private def nameEquals(word:String) =
+  private def nameEquals(word: String) =
     Flow[LocalVariable].filter { x =>
       x.name == word
     }
 
-  def localVariables(lineNo:Option[Int]): Source[LocalVariable, _] = {
+  def localVariables(lineNo: Option[Int]): Source[LocalVariable, _] = {
     val srcLines = lineNo match {
       case Some(no) => lines.take(no)
       case None => lines
@@ -64,18 +65,18 @@ class SrcFileInspector(srcFile:Path) {
 
   def onlyVariables =
     Flow[(Int, String)].collect {
-      case (lineNo, variableCommentRegex(tpe,name,comment)) => LocalVariable(lineNo, tpe, name, Some(comment))
-      case (lineNo, variableRegex(tpe, name)) => LocalVariable(lineNo, tpe,name,None)
+      case (lineNo, variableCommentRegex(tpe, name, comment)) => LocalVariable(lineNo, tpe, name, Some(comment))
+      case (lineNo, variableRegex(tpe, name)) => LocalVariable(lineNo, tpe, name, None)
     }
 }
 
 object SrcFileInspector {
   val ignoredModifiers =
     "(?:" + List("(?:parameter)",
-                 "(?:discrete)",
-                 "(?:input)",
-                 "(?:output)",
-                 "(?:flow)").mkString("|") + ")"
+      "(?:discrete)",
+      "(?:input)",
+      "(?:output)",
+      "(?:flow)").mkString("|") + ")"
   val typeRegex = """(\w[\w\-\_\.]*)"""
   val identRegex = """(\w[\w\-\_]*)"""
   val commentRegex = """"([^"]+)";"""
@@ -85,10 +86,11 @@ object SrcFileInspector {
   val variableCommentRegex =
     s"""\\s*(?:$ignoredModifiers\\s+)?$typeRegex\\s+$identRegex.*\\s+$commentRegex""".r
 
-  def nonEmptyLines(line:String):Boolean = !line.isEmpty
+  def nonEmptyLines(line: String): Boolean = !line.isEmpty
 
   case class LocalVariable(lineNo: Int,
-                          `type`:String,
-                          name:String,
-                          docString:Option[String])
+                           `type`: String,
+                           name: String,
+                           docString: Option[String])
+
 }

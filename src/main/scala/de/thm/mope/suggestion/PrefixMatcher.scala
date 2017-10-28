@@ -21,12 +21,12 @@ import akka.stream.scaladsl.Flow
 import de.thm.mope.utils.StreamUtils
 import org.apache.commons.lang3.StringUtils
 
-class PrefixMatcher(prefix:String) {
-  def startsWith(negate:Boolean=false) = {
-    val pred = { suggestion:Suggestion =>
+class PrefixMatcher(prefix: String) {
+  def startsWith(negate: Boolean = false) = {
+    val pred = { suggestion: Suggestion =>
       suggestion.name.startsWith(prefix)
     }
-    if(negate) Flow[Suggestion].filterNot(pred)
+    if (negate) Flow[Suggestion].filterNot(pred)
     else Flow[Suggestion].filter(pred)
   }
 
@@ -37,16 +37,16 @@ class PrefixMatcher(prefix:String) {
         //map to (distance -> suggestion)
         val (objectName, suffixMember) = sliceAtLastDot(prefix)
         val (suggestionObjectName, suggestionMember) = sliceAtLastDot(suggestion.name)
-        (if(!suffixMember.isEmpty) {
+        (if (!suffixMember.isEmpty) {
           //match on suffix of .
           StringUtils.getLevenshteinDistance(suggestionMember, suffixMember).intValue()
         } else {
           //match on prefix of .
           StringUtils.getLevenshteinDistance(suggestionObjectName, objectName).intValue()
         }, suggestion)
-      }.sortBy { case (v,_) => v } //sort by their distance
+      }.sortBy { case (v, _) => v } //sort by their distance
         .collect { //only elements that contain the prefix
-        case (v,suggestion) if v<suggestion.name.size => suggestion
+        case (v, suggestion) if v < suggestion.name.size => suggestion
       }
     }
 }

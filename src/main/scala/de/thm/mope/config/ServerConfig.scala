@@ -29,13 +29,13 @@ import de.thm.mope.tags.RecentFileMarker
 
 /** Settings for the whole server (aka environment). */
 case class ServerConfig(
-  config:Config,
-  executor:ExecutorService,
-  configDir:Path = Constants.configDir,
-  recentFiles:Path@@RecentFileMarker = Constants.recentFiles)(
-  implicit
-    val timeout:Timeout,
-    val blockingDispatcher:MessageDispatcher) {
+                         config: Config,
+                         executor: ExecutorService,
+                         configDir: Path = Constants.configDir,
+                         recentFiles: Path @@ RecentFileMarker = Constants.recentFiles)(
+                         implicit
+                         val timeout: Timeout,
+                         val blockingDispatcher: MessageDispatcher) {
   val applicationMode = ApplicationMode.parseString(config.getString("app.mode"))
 
   lazy val interface = config.getString("protocol.interface")
@@ -44,7 +44,7 @@ case class ServerConfig(
 }
 
 object Constants {
-  val encoding:Charset = StandardCharsets.UTF_8
+  val encoding: Charset = StandardCharsets.UTF_8
   val usLocale = "en_US.UTF-8"
   val configDir = Paths.get(System.getProperty("user.home"), ".config", "mope")
   val configFile = configDir.resolve("mope.conf")
