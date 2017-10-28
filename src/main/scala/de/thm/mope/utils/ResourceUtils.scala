@@ -63,7 +63,7 @@ object ResourceUtils {
   }
 
   /** Try-with-resources for Scala. ;-) */
-  def tryR[A <: Closeable, B](cl:A)(fn: A => B): B = {
+  def closeable[A <: Closeable, B](cl:A)(fn: A => B): B = {
     try {
       fn(cl)
     } finally {
