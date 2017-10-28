@@ -47,12 +47,11 @@ class OMCompiler(projConfig:ProjectConfig) extends ModelicaCompiler {
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
   val rootProjectFile = projConfig.rootDir.resolve("package.mo")
-  val rootDir = rootProjectFile.getParent
 
   val loaderOpt = {
-    val importFile = rootDir.resolve(ImportHandler.importFileName)
+    val importFile = projConfig.rootDir.resolve(ImportHandler.importFileName)
     log.info(if(Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
-    if(Files.exists(importFile)) Some(new ImportHandler(rootDir))
+    if(Files.exists(importFile)) Some(new ImportHandler(projConfig.rootDir))
     else None
   }
 
