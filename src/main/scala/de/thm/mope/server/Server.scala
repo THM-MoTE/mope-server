@@ -61,16 +61,10 @@ class Server(override val config:Config)
         actorSystem.terminate()
     }
 
-    //if(applicationMode == ApplicationMode.Development) {
-      Future {
-        blocking {
-          serverlog.info("Press Ctrl+D to interrupt")
-          while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
-          bindingFuture.
-            flatMap(_.unbind()).
-            onComplete(_ => actorSystem.terminate())
-        }
-
-    }
+    serverlog.info("Press Ctrl+D to interrupt")
+    while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
+    bindingFuture.
+      flatMap(_.unbind()).
+      onComplete(_ => actorSystem.terminate())
   }
 }

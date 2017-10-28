@@ -27,9 +27,7 @@ object MoPE
     extends MopeSetup {
 
   def main(args:Array[String]) = {
-    import java.nio.file._
     val conf = new config.ConfigProvider(new config.CliConf(args.seq), Constants.configFile).config
-    println(conf)
     val server = new Server(conf)
     server.start()
   }
