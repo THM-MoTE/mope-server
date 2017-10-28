@@ -24,18 +24,20 @@ import de.thm.mope.config.ApplicationMode
 
 /** Application wide initializations */
 trait MopeSetup {
+
+ def configureLogging(applicationMode:ApplicationMode.Value):Unit = {
   /* ================ SLF4J & LOGBACK */
   /* Route java.util.logging into slf4j */
- // remove existing handlers attached to j.u.l root logger
- org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
- // add SLF4JBridgeHandler to j.u.l's root logger
- org.slf4j.bridge.SLF4JBridgeHandler.install()
+  // remove existing handlers attached to j.u.l root logger
+  org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()
+  // add SLF4JBridgeHandler to j.u.l's root logger
+  org.slf4j.bridge.SLF4JBridgeHandler.install()
 
- /* ================ Application-wide max log level */
- //FIXME: apply logging
- // val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
- // applicationMode match {
- //   case ApplicationMode.Development => rootLogger.setLevel(Level.DEBUG)
- //   case ApplicationMode.Production => rootLogger.setLevel(Level.INFO)
- // }
+  /* ================ Application-wide max log level */
+  val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+  applicationMode match {
+   case ApplicationMode.Development => rootLogger.setLevel(Level.DEBUG)
+   case ApplicationMode.Production => rootLogger.setLevel(Level.INFO)
+  }
+ }
 }

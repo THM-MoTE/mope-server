@@ -17,7 +17,7 @@
 
 package de.thm.mope
 
-import de.thm.mope.config.{Constants,CliConf, ConfigProvider}
+import de.thm.mope.config._
 import de.thm.mope.server._
 import RecentFilesActor._
 import akka.actor.ActorSystem
@@ -33,6 +33,7 @@ object MoPE
       override implicit lazy val actorSystem:ActorSystem = ActorSystem("moie-system", config)
       override implicit lazy val mat:ActorMaterializer = ActorMaterializer()
     }
+    configureLogging(module.serverConfig.applicationMode)
     module.server.start()
   }
 }

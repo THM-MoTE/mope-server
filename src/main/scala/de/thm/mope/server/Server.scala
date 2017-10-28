@@ -38,7 +38,7 @@ class Server(router:Routes,
 
   import actorSystem.dispatcher
   val serverlog = Logging(actorSystem, classOf[Server])
-  serverlog.info("{} - Version {}", build.ProjectInfo.name, build.ProjectInfo.version)
+  serverlog.info("{} - Version: {} - {}", build.ProjectInfo.name, build.ProjectInfo.version, serverConfig.applicationMode)
 
   val errors = validateConfig(serverConfig.config)
   if(errors.nonEmpty) {
