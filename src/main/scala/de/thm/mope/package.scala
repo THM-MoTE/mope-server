@@ -2,7 +2,7 @@ package de.thm
 
 import java.nio.file.Path
 
-import akka.actor.Props
+import akka.actor.{ActorRef, Props}
 import com.softwaremill.tagging._
 import de.thm.mope.declaration.JumpToLike
 import de.thm.mope.doc.DocumentationLike
@@ -21,7 +21,9 @@ package object mope {
   type SuggestionProviderPropsFactory = CompletionLike => Props@@CompletionMarker
   type JumpToPropsFactory = JumpToLike => Props@@JumpProviderMarker
   type DocumentationProviderPropsFactory = DocumentationLike => Props@@DocProviderMarker
+  type ProjectsManagerRef = ActorRef@@ProjectsManagerMarker
   type ProjectManagerPropsFactory = (ProjectDescription,Int) => Props//@@ProjectManagerMarker
+  type RecentHandlerProps = Props@@RecentHandlerMarker
 
   /** Tags for the injector to identify actors. */
   object tags {

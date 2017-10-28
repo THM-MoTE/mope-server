@@ -21,6 +21,7 @@ import java.nio.file.{Path, Paths}
 
 import de.thm.mope.project.ProjectDescription
 
+/** Settings for a specific project, including Server's settings. */
 case class ProjectConfig(
 	server:ServerConfig,
 	project:ProjectDescription) {

@@ -31,6 +31,7 @@ import akka.util.Timeout
 import akka.event.Logging
 import com.typesafe.config.Config
 import com.softwaremill.tagging._
+import de.thm.mope.ProjectsManagerRef
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.config.ServerConfig
 import de.thm.mope.declaration.DeclarationRequest
@@ -51,7 +52,7 @@ import de.thm.recent.JsProtocol._
 import scala.concurrent.Future
 
 class Routes(
-  projectsManager:ActorRef@@ProjectsManagerMarker,
+  projectsManager:ProjectsManagerRef,
   servConf:ServerConfig,
   docEngine:DocTemplate,
   missingDocEngine:MissingDocTemplate,
@@ -61,7 +62,6 @@ class Routes(
     extends JsonSupport
     with ErrorHandling 
     with EnsembleRoutes {
-   // this: ServerSetup =>
 
   import servConf.timeout
   override val serverlog = Logging(mat.system, classOf[Routes])

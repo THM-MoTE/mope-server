@@ -61,8 +61,8 @@ trait MopeModule
   lazy val ensembleHandler:EnsembleHandler = wire[EnsembleHandler]
   lazy val compilerFactory:CompilerFactory = wire[CompilerFactory]
   def projRegister:ProjectRegister = wire[ProjectRegister]
-  lazy val recentFilesProps:Props@@RecentHandlerMarker = wireProps[RecentFilesActor].taggedWith[RecentHandlerMarker]
-  lazy val projectsManager:ActorRef@@ProjectsManagerMarker = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
+  lazy val recentFilesProps:RecentHandlerProps = wireProps[RecentFilesActor].taggedWith[RecentHandlerMarker]
+  lazy val projectsManager:ProjectsManagerRef = wireActor[ProjectsManagerActor]("projects-manager").taggedWith[ProjectsManagerMarker]
 
   lazy val inspectorFactory: SrcFileFactory = p => wire[SrcFileInspector]
   lazy val prefixFactory: PrefixMatcherFactory = (s:String) => wire[PrefixMatcher]

@@ -20,6 +20,7 @@ package de.thm.mope.config
 import com.typesafe.config.{Config, ConfigFactory}
 import java.nio.file.{Files, Path}
 
+/** Merges all settings together. */
 class ConfigProvider(
   cli:CliConf,
   userConfig:Path) {

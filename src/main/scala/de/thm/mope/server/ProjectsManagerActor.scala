@@ -33,7 +33,7 @@ import de.thm.mope.utils.actors.UnhandledReceiver
 /** Root actor for all registered projects. */
 class ProjectsManagerActor(
   register:ProjectRegister,
-  recentFilesProps:Props@@RecentHandlerMarker,
+  recentFilesProps:RecentHandlerProps,
   projectManagerPropsF:ProjectManagerPropsFactory)
   extends Actor
   with UnhandledReceiver

@@ -28,6 +28,7 @@ import de.thm.mope.server.RecentFilesActor
 import de.thm.mope.tags.RecentFileMarker
 import com.softwaremill.tagging._
 
+/** Settings for the whole server (aka environment). */
 case class ServerConfig(
   config:Config,
   executor:ExecutorService,

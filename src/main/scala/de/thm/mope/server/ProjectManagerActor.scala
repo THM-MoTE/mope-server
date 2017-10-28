@@ -95,12 +95,12 @@ class ProjectManagerActor(
     if(Files.exists(path) && Files.isRegularFile(path))
       path
     else
-      throw new NotFoundException(s"Can't find script called $defaultScript!")
+      throw NotFoundException(s"Can't find script called $defaultScript!")
   }
 
   def withExists[T](p:Path)(fn: => Future[T]): Future[T] =
     if(Files.exists(p)) fn
-    else Future.failed(new NotFoundException(s"Can't find file $p!"))
+    else Future.failed(NotFoundException(s"Can't find file $p!"))
 
   override def preStart() = {
     newProjectTree.map(InitialInfos) pipeTo self
