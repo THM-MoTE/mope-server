@@ -51,22 +51,20 @@ class RecentFilesActor(recentFilesPath:Path)
 
 	override def receive:Receive = {
 		case Initialized(newRecent) =>
-			log.debug("initialized with {}", newRecent)
 			recent = newRecent
 			become(initialized)
-		case PoisonPill => log.info("got poisonpill in 'receive'")
 	}
 
 	private def initialized:Receive = {
 		case GetRecentFiles => Future(recent.recentElementsByPriority) pipeTo sender
 		case AddStr(fileStr) =>
 			val path = Paths.get(fileStr)
-			log.debug("increment priority of {}", path)
+			log.debug("Increment priority of {}", path)
 			recent = recent.incrementPriority(path)
 	}
 
 	override def postStop():Unit = {
-		log.debug("Writing {} recent files into {}", recent.recentElements.size, recentFilesPath)
+		log.info("Writing {} recent files into {}", recent.recentElements.size, recentFilesPath)
 	  Files.write(recentFilesPath, recent.toJson.getBytes(Constants.encoding))
 	}
 }

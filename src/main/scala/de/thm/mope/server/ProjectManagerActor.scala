@@ -144,7 +144,7 @@ class ProjectManagerActor(
       withExists(file) {
         for {
           tree <- getProjectFiles
-          _ = log.debug("compiling with project: {}", tree.label)
+          _ = log.debug("Compiling: {}", tree.label)
           errors <- Future(compiler.compile(tree, file))
           filteredErrors = errors.filter(errorInProjectFile)
           _ = printDebug(filteredErrors)
@@ -178,18 +178,12 @@ class ProjectManagerActor(
   }
 
   private def printDebug(errors:Seq[CompilerError]): Unit = {
-    log.debug("Compiled project {} with {}", projConfig.project.path,
+    log.debug("Compiled {} with {}", projConfig.project.path,
       if(errors.isEmpty) " no errors" else errors.mkString("\n"))
   }
 
   override def postStop(): Unit = {
     compiler.stop()
-    // executor.shutdown()
-    // if(!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-    //   log.warning("Force shutdown threadpool")
-    //   executor.shutdownNow()
-    // }
-
     log.info("stopping")
   }
 }

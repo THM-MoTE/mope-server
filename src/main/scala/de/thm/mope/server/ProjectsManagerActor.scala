@@ -49,19 +49,6 @@ class ProjectsManagerActor(
       case ProjectEntry(descr, actor, _) => f(descr, actor)
     }
 
-  // private def newManager(description:ProjectDescription, id:ID): ActorRef = {
-  //   val outputPath = Paths.get(description.path).resolve(description.outputDirectory)
-  //   try {
-  //     val compiler = compilerFactory.newCompiler(outputPath)
-  //     log.info("new manager for id:{}", id)
-  //     context.actorOf(Props(new ProjectManagerActor(description, compiler, indexFiles)), name = s"proj-manager-$id")
-  //   } catch {
-  //     case ex:Exception =>
-  //       log.error("Couldn't initialize a new ProjectManager - blow up system")
-  //       throw ex
-  //   }
-  // }
-
   private def newManager(description:ProjectDescription, id:ID): ActorRef = {
     try {
       log.info("new manager for id:{}", id)

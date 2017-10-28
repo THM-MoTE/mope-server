@@ -42,7 +42,7 @@ trait ErrorHandling {
       }
     case ex:NoSuchElementException =>
       extractUri { uri =>
-        serverlog.debug("got NoSucheElementExc for {}", uri)
+        serverlog.debug("got NoSuchElementExc for {}", uri)
         complete(HttpResponse(StatusCodes.NotFound, entity = ex.getMessage))
       }
     case ex:Exception =>

@@ -22,7 +22,7 @@ import de.thm.mope.templates.TemplateEngine._
 import scala.language.implicitConversions
 
 class TemplateEngine(fileContent:String) {
-  def insert(m:Map[String, _ <: TemplateValue]): TemplateEngine = {
+  def insert(m:Map[String,TemplateValue]): TemplateEngine = {
     new TemplateEngine(m.foldLeft(fileContent) {
       case (acc, (key, ListValue(v))) =>
         acc.replace(fileKey(key), "<ul>" + v.mkString("\n") + "</ul>")
