@@ -67,7 +67,7 @@ class ProjectManagerActor(
 
   private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
   val rootDir = Paths.get(projConfig.project.path)
-  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory))
+  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory, projConfig.server.executor))
   val completionActor = context.actorOf(suggestionPropsF(compiler))
   val jumpProvider =  context.actorOf(jumpPropsF(compiler))
   val docProvider =  context.actorOf(docPropsF(compiler))
