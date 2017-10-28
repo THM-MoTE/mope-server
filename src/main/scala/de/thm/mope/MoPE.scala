@@ -17,18 +17,22 @@
 
 package de.thm.mope
 
-import de.thm.mope.config.Constants
+import de.thm.mope.config.{Constants,CliConf, ConfigProvider}
 import de.thm.mope.server._
 import RecentFilesActor._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.typesafe.config.Config
 
 object MoPE
     extends MopeSetup {
 
   def main(args:Array[String]) = {
-    val conf = new config.ConfigProvider(new config.CliConf(args.seq), Constants.configFile).config
-    val server = new Server(conf)
-    server.start()
+    val module = new MopeModule {
+      override lazy val config: Config = new ConfigProvider(new CliConf(args.seq), Constants.configFile).config
+      override implicit lazy val actorSystem:ActorSystem = ActorSystem("moie-system", config)
+      override implicit lazy val mat:ActorMaterializer = ActorMaterializer()
+    }
+    module.server.start()
   }
 }

@@ -73,9 +73,8 @@ trait MopeModule {
     wireProps[ProjectManagerActor]
   }
 
-  lazy val router = {
-    wire[Routes]
-  }
+  lazy val router = wire[Routes]
+  lazy val server = wire[Server]
   def config:Config
   implicit def actorSystem:ActorSystem
   implicit def mat:ActorMaterializer

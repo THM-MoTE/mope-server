@@ -21,26 +21,26 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.event.Logging
-
 import com.typesafe.config.Config
 import de.thm.mope.utils.MopeExitCodes
 import de.thm.mope.MopeModule
-import de.thm.mope.config.Constants
+import de.thm.mope.config.{Constants, ServerConfig}
 
 import scala.concurrent.{Future, blocking}
 import scala.io.StdIn
 
-class Server(override val config:Config)
-    extends MopeModule
-    with ValidateConfig {
+class Server(router:Routes,
+             serverConfig:ServerConfig)(
+            implicit
+            actorSystem:ActorSystem,
+            mat:ActorMaterializer)
+    extends ValidateConfig {
 
-  override implicit lazy val actorSystem = ActorSystem("moie-system", config)
-  override implicit lazy val mat = ActorMaterializer()
   import actorSystem.dispatcher
   val serverlog = Logging(actorSystem, classOf[Server])
   serverlog.info("{} - Version {}", build.ProjectInfo.name, build.ProjectInfo.version)
 
-  val errors = validateConfig(config)
+  val errors = validateConfig(serverConfig.config)
   if(errors.nonEmpty) {
     val errorString = errors.map(x => s" - $x").mkString("\n")
     serverlog.error(s"""Your configuration (${Constants.configFile}) contains the following errors:
