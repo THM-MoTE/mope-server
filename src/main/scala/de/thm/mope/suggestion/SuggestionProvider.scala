@@ -17,7 +17,7 @@
 
 package de.thm.mope.suggestion
 
-import java.nio.file.{Paths, Path}
+import java.nio.file.{Path, Paths}
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorLogging}
@@ -27,10 +27,7 @@ import akka.stream.scaladsl._
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.utils.actors.UnhandledReceiver
-import de.thm.mope.utils.{
-  StreamUtils,
-  ResourceUtils
-}
+import de.thm.mope.utils.{ResourceUtils, StreamUtils}
 
 import scala.concurrent.Future
 

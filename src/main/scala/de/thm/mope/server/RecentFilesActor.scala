@@ -19,12 +19,12 @@ package de.thm.mope.server
 
 import java.nio.file.{Files, Path, Paths}
 
+import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
-import de.thm.mope.utils.actors.UnhandledReceiver
-import de.thm.recent._
 import de.thm.mope.config.Constants
-import JsProtocol._
+import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.recent.JsProtocol._
+import de.thm.recent._
 
 import scala.concurrent.Future
 
@@ -34,7 +34,7 @@ class RecentFilesActor(recentFilesPath:Path)
 	with ActorLogging {
 
 	import RecentFilesActor._
-  import context._
+	import context._
 
 
 	var recent = Recent.fromList(List[Path]())

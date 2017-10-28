@@ -19,7 +19,6 @@ package de.thm.mope.compiler
 
 import de.thm.mope.position.FilePosition
 
-import java.nio.file.FileSystems
 import scala.language.postfixOps
 import scala.util.parsing.combinator.{ImplicitConversions, RegexParsers}
 

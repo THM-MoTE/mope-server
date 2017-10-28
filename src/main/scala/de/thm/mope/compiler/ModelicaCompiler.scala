@@ -19,11 +19,11 @@ package de.thm.mope.compiler
 
 import java.nio.file.Path
 
-import de.thm.mope.tree.TreeLike
 import de.thm.mope._
 import de.thm.mope.declaration.JumpToLike
 import de.thm.mope.doc.DocumentationLike
 import de.thm.mope.suggestion.CompletionLike
+import de.thm.mope.tree.TreeLike
 
 import scala.concurrent.{ExecutionContext, Future}
 

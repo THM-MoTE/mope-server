@@ -20,16 +20,13 @@ package de.thm.mope.compiler
 import java.nio.file.{Files, Path}
 
 import de.thm.mope.config.ProjectConfig
-
-import scala.language.postfixOps
-import scala.sys.process._
-import de.thm.mope.tree.TreeLike
 import de.thm.mope.server.{FileWatchingActor, JsonSupport}
+import de.thm.mope.tree.TreeLike
 import de.thm.mope.utils.MonadImplicits._
 import omc.corba._
 import org.slf4j.LoggerFactory
-import spray.json._
-import spray.json.DefaultJsonProtocol._
+
+import scala.language.postfixOps
 
 class JMCompiler(projConfig:ProjectConfig)
   extends ModelicaCompiler

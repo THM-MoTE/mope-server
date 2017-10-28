@@ -17,16 +17,15 @@
 
 package de.thm.mope.config
 
-import com.typesafe.config.Config
 import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.ExecutorService
 
-import akka.util.Timeout
 import akka.dispatch.MessageDispatcher
-import de.thm.mope.server.RecentFilesActor
-import de.thm.mope.tags.RecentFileMarker
+import akka.util.Timeout
 import com.softwaremill.tagging._
+import com.typesafe.config.Config
+import de.thm.mope.tags.RecentFileMarker
 
 /** Settings for the whole server (aka environment). */
 case class ServerConfig(

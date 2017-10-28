@@ -17,8 +17,8 @@
 
 package de.thm.mope.utils
 
-import java.nio.file.{Files, Path}
 import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.nio.file.{Files, Path}
 import java.util.function.BinaryOperator
 
 object IOUtils {

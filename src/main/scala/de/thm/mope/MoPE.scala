@@ -17,12 +17,10 @@
 
 package de.thm.mope
 
-import de.thm.mope.config._
-import de.thm.mope.server._
-import RecentFilesActor._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.Config
+import de.thm.mope.config._
 
 object MoPE
     extends MopeSetup {

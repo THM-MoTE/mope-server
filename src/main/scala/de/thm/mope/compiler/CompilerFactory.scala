@@ -17,9 +17,6 @@
 
 package de.thm.mope.compiler
 
-import java.nio.file.Path
-
-import com.typesafe.config.Config
 import de.thm.mope.config._
 import de.thm.mope.project.ProjectDescription
 

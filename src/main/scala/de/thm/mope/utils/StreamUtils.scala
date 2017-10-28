@@ -17,7 +17,6 @@
 
 package de.thm.mope.utils
 
-import akka.stream._
 import akka.stream.scaladsl._
 
 object StreamUtils {

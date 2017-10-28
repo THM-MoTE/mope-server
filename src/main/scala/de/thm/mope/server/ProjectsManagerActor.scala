@@ -17,15 +17,8 @@
 
 package de.thm.mope.server
 
-import java.nio.file.Paths
-
-import com.typesafe.config.Config
-import com.softwaremill.tagging._
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill}
 import de.thm.mope._
-import de.thm.mope.tags._
-import de.thm.mope.compiler.CompilerFactory
-import de.thm.mope.config.ServerConfig
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectRegister._
 import de.thm.mope.utils.actors.UnhandledReceiver

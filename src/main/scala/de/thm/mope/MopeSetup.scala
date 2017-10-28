@@ -17,10 +17,9 @@
 
 package de.thm.mope
 
-import org.slf4j.{LoggerFactory}
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.{Level, Logger}
 import de.thm.mope.config.ApplicationMode
+import org.slf4j.LoggerFactory
 
 /** Application wide initializations */
 trait MopeSetup {

@@ -18,32 +18,21 @@
 package de.thm.mope.server
 
 import java.nio.file._
-import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import com.softwaremill.macwire._
-import com.softwaremill.macwire.akkasupport._
-import com.softwaremill.tagging._
-import com.typesafe.config.Config
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.pattern.{ask, pipe}
-import akka.util.Timeout
-import de.thm.mope.{ProjectManagerPropsFactory, SuggestionProviderPropsFactory, _}
-import de.thm.mope.tags._
-import de.thm.mope.tree._
+import akka.actor.{Actor, ActorLogging, Props}
+import akka.pattern.pipe
 import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
 import de.thm.mope.config.ProjectConfig
-import de.thm.mope.declaration.{DeclarationRequest, JumpToProvider}
-import de.thm.mope.doc.DocumentationProvider
-import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
-import de.thm.mope.project.{InternalProjectConfig, ProjectDescription}
-import de.thm.mope.server.FileWatchingActor.{DeletedPath, GetFiles, NewPath}
-import de.thm.mope.suggestion.{CompletionRequest, SuggestionProvider, TypeRequest}
-import de.thm.mope.utils.ThreadUtils
+import de.thm.mope.declaration.DeclarationRequest
+import de.thm.mope.doc.DocumentationProvider.GetDocumentation
+import de.thm.mope.server.FileWatchingActor.{DeletedPath, NewPath}
+import de.thm.mope.suggestion.{CompletionRequest, TypeRequest}
+import de.thm.mope.tree._
 import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.{SuggestionProviderPropsFactory, _}
 
 import scala.collection._
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /** A manager for one specific project described by the given `description`.
@@ -63,7 +52,6 @@ class ProjectManagerActor(
 
   import ProjectManagerActor._
   import context.dispatcher
-  import projConfig.server.timeout
 
   private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
   val rootDir = Paths.get(projConfig.project.path)

@@ -17,12 +17,12 @@
 
 package de.thm.mope.server
 
-import scala.sys.process._
-import scala.language.postfixOps
-import scala.concurrent.Future
-import org.slf4j.LoggerFactory
 import com.typesafe.config.Config
-import scala.concurrent.ExecutionContext
+import org.slf4j.LoggerFactory
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
+import scala.sys.process._
 
 class EnsembleHandler(config:Config, blockingExecutor: ExecutionContext) {
   private val log = LoggerFactory.getLogger(this.getClass)

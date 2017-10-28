@@ -18,18 +18,16 @@
 package de.thm.mope.compiler
 import java.nio.file.{Files, Path, Paths}
 
-
+import de.thm.mope.config.{Constants, ProjectConfig}
 import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
-import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
-import de.thm.mope.config.{Constants, ProjectConfig}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
-import omc.{ImportHandler, LoadLibraryException}
 import omc.corba.ScriptingHelper._
 import omc.corba._
+import omc.{ImportHandler, LoadLibraryException}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._

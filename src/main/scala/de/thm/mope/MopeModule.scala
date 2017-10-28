@@ -1,46 +1,44 @@
 /**
   * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
-  * 
+  *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
   * the Free Software Foundation, either version 3 of the License, or
   * (at your option) any later version.
-  * 
+  *
   * This program is distributed in the hope that it will be useful,
   * but WITHOUT ANY WARRANTY; without even the implied warranty of
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
-  * 
+  *
   * You should have received a copy of the GNU General Public License
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
 package de.thm.mope
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import java.util.concurrent.Executors
+
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import java.nio.file.{Path, Paths}
-import java.nio.charset.Charset
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
-
 import com.softwaremill.macwire._
 import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
 import com.typesafe.config.Config
+import de.thm.mope.compiler._
+import de.thm.mope.config.{ProjectConfig, ServerConfig}
+import de.thm.mope.declaration._
+import de.thm.mope.doc._
+import de.thm.mope.project._
+import de.thm.mope.server._
+import de.thm.mope.suggestion._
+import de.thm.mope.tags._
+import de.thm.mope.templates.TemplateModule
+import de.thm.mope.utils.ThreadUtils
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import de.thm.mope.compiler._
-import de.thm.mope.project._
-import de.thm.mope.declaration._
-import de.thm.mope.doc._
-import de.thm.mope.server._
-import de.thm.mope.suggestion._
-import de.thm.mope.utils.ThreadUtils
-import de.thm.mope.config.{ProjectConfig, ServerConfig}
-import de.thm.mope.tags._
-import de.thm.mope.templates.TemplateModule
 trait MopeModule
   extends TemplateModule {
 

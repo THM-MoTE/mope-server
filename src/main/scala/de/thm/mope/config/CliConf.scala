@@ -17,8 +17,9 @@
 
 package de.thm.mope.config
 
+import com.typesafe.config.{Config, ConfigFactory}
 import org.rogach.scallop._
-import com.typesafe.config.{ConfigFactory, Config}
+
 import scala.collection.JavaConverters._
 
 /** Configuration for CLI-arguments parser. */

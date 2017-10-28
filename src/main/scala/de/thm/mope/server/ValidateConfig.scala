@@ -19,6 +19,7 @@ package de.thm.mope.server
 
 import com.typesafe.config.Config
 import de.thm.mope.compiler.CompilerFactory
+
 import scala.sys.process._
 
 trait ValidateConfig {

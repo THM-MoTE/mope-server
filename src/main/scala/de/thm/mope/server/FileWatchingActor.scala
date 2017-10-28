@@ -17,17 +17,13 @@
 
 package de.thm.mope.server
 
-import java.nio.file.WatchEvent.Kind
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.function.{BiConsumer, Predicate}
 import java.util.concurrent.ExecutorService
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
-import de.thm.mope.project.InternalProjectConfig
 import de.thm.mope.utils.actors.UnhandledReceiver
-import de.thm.mope.utils.ThreadUtils
 import ews._
 
 import scala.concurrent.Future

@@ -18,10 +18,9 @@
 package de.thm.mope.suggestion
 
 import java.nio.file.Path
-import akka.stream._
+
 import akka.stream.scaladsl._
 import akka.util.ByteString
-
 import de.thm.mope.utils.StreamUtils
 
 class SrcFileInspector(srcFile:Path) {

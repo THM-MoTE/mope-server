@@ -16,11 +16,12 @@
  */
 
 package de.thm.mope.compiler
-import de.thm.mope.tree.TreeLike
-import de.thm.mope.doc.DocInfo
-import de.thm.mope.suggestion.Suggestion._
-import de.thm.mope.position.FilePosition
 import java.nio.file.Path
+
+import de.thm.mope.doc.DocInfo
+import de.thm.mope.position.FilePosition
+import de.thm.mope.suggestion.Suggestion._
+import de.thm.mope.tree.TreeLike
 
 trait StubCompiler
   extends ModelicaCompiler {

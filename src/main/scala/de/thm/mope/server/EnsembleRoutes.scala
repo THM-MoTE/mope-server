@@ -17,13 +17,9 @@
 
 package de.thm.mope.server
 
-import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.{server, unmarshalling}
 import de.thm.mope.position.FilePath
-
-import scala.concurrent.Future
 
 trait EnsembleRoutes {
   this: JsonSupport =>

@@ -17,17 +17,12 @@
 
 package de.thm.mope.server
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.ActorSystem
+import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import akka.event.Logging
-import com.typesafe.config.Config
-import de.thm.mope.utils.MopeExitCodes
-import de.thm.mope.MopeModule
 import de.thm.mope.config.{Constants, ServerConfig}
-
-import scala.concurrent.{Future, blocking}
-import scala.io.StdIn
+import de.thm.mope.utils.MopeExitCodes
 
 class Server(router:Routes,
              serverConfig:ServerConfig)(

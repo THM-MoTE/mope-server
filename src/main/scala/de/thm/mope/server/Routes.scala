@@ -17,27 +17,24 @@
 
 package de.thm.mope.server
 
-import java.util.NoSuchElementException
 import java.nio.file.Path
+import java.util.NoSuchElementException
 
-import akka.actor.{ActorRef, ActorSystem, PoisonPill}
+import akka.actor.{ActorRef, PoisonPill}
+import akka.event.Logging
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
-import akka.util.Timeout
-import akka.event.Logging
-import com.typesafe.config.Config
-import com.softwaremill.tagging._
 import de.thm.mope.ProjectsManagerRef
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.config.ServerConfig
 import de.thm.mope.declaration.DeclarationRequest
+import de.thm.mope.doc.DocInfo
 import de.thm.mope.doc.DocInfo._
-import de.thm.mope.doc.DocumentationProvider.{GetClassComment, GetDocumentation}
-import de.thm.mope.doc.{ClassComment, DocInfo, DocumentationProvider}
+import de.thm.mope.doc.DocumentationProvider.GetDocumentation
 import de.thm.mope.position._
 import de.thm.mope.project._
 import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
@@ -45,8 +42,6 @@ import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, Remaining
 import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
 import de.thm.mope.templates.TemplateModule._
-import de.thm.mope.utils.IOUtils
-import de.thm.mope.tags._
 import de.thm.recent.JsProtocol._
 
 import scala.concurrent.Future
@@ -60,7 +55,7 @@ class Routes(
   implicit
     mat:ActorMaterializer)
     extends JsonSupport
-    with ErrorHandling 
+    with ErrorHandling
     with EnsembleRoutes {
 
   import servConf.timeout

@@ -17,22 +17,20 @@
 
 package de.thm.mope.declaration
 
+import java.nio.file.{Path, Paths}
+
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
-import akka.pattern.pipe
-import de.thm.mope.suggestion.SrcFileInspector
+import akka.stream._
+import akka.stream.scaladsl._
 import de.thm.mope.position.{CursorPosition, FileWithLine}
+import de.thm.mope.suggestion.SrcFileInspector
+import de.thm.mope.utils.ResourceUtils
 import de.thm.mope.utils.actors.UnhandledReceiver
+import omc.corba.ScriptingHelper
 
 import scala.concurrent.Future
 import scala.io.Source
-import java.nio.file.{Path, Paths}
-import java.nio.charset.Charset
-
-import omc.corba.ScriptingHelper
-import akka.stream._
-import akka.stream.scaladsl._
-import de.thm.mope.utils.ResourceUtils
 
 /*+ An Actor which finds the source (file) of a `className`. */
 class JumpToProvider(
