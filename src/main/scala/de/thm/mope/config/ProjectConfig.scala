@@ -25,5 +25,5 @@ case class ProjectConfig(
 	server:ServerConfig,
 	project:ProjectDescription) {
 	val rootDir:Path = Paths.get(project.path)
-  val outputDir:Path = Paths.get(project.outputDirectory)
+  val outputDir:Path = rootDir.resolve(project.outputDirectory)
 }

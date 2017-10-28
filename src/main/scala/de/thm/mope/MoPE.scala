@@ -17,6 +17,7 @@
 
 package de.thm.mope
 
+import de.thm.mope.config.Constants
 import de.thm.mope.server._
 import RecentFilesActor._
 import akka.actor.ActorSystem
@@ -27,9 +28,7 @@ object MoPE
 
   def main(args:Array[String]) = {
     import java.nio.file._
-    val path = Paths.get(System.getenv("HOME"),".mope", "mope.conf")
-    println(path)
-    val conf = new config.ConfigProvider(new config.CliConf(args.seq), path).config
+    val conf = new config.ConfigProvider(new config.CliConf(args.seq), Constants.configFile).config
     println(conf)
     val server = new Server(conf)
     server.start()
