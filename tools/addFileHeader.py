@@ -1,5 +1,5 @@
 HEADER_FILE="header.txt" #where is the header?
-INCLUDE=["../src/main/scala/de/thm/mope/lsp/messages/"] #to which files/directorys should be added?
+INCLUDE=["../src/"] #to which files/directorys should be added?
 EXCLUDE=[".DS_Store", "resources"] #which files/directorys should be ignored?
 UPDATE_HEADER=True #remove old header?
 
@@ -20,9 +20,9 @@ def writeHeader(header, filePath):
 
         if UPDATE_HEADER:
             content = itertools.dropwhile(
-                        lambda x: x.startswith(START_COMMENT) or
-                                x.startswith(LINE_COMMENT) or
-                                x.startswith(END_COMMENT)
+                        lambda x: x.strip().startswith(START_COMMENT) or
+                                x.strip().startswith(LINE_COMMENT) or
+                                x.strip().startswith(END_COMMENT)
                         , original)
         content = itertools.dropwhile(lambda x:  not x or x.isspace(), content)
         newLines = header + "\n\n" + "".join(content)
