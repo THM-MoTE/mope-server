@@ -15,6 +15,9 @@
 - Use dependency injection framework for wiring the app
 - Use Ctrl+D to terminate server app
 - several code refactorings & bug fixes
+- first preparation for inclusion of the Language Server Protocol
+
+- temporarily broke all tests!
 
 ## Version 0.6.2
 - protocol documentation now in AsciiDoc
