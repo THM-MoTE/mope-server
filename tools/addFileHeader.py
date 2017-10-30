@@ -5,8 +5,8 @@ UPDATE_HEADER=True #remove old header?
 
 #which comment characters should be used?
 START_COMMENT="/**" #first line of comment
-LINE_COMMENT=" *" #lines between first and last comment
-END_COMMENT=" */" #last line of comment, can be empty
+LINE_COMMENT="  *" #lines between first and last comment
+END_COMMENT="  */" #last line of comment, can be empty
 BLANK_FIRST_LINE=True #leave first line empty?
 
 import os
@@ -17,14 +17,10 @@ def writeHeader(header, filePath):
         original = f.readlines()
     with open(filePath, "w") as f:
         content = original
+        headerLength = len(header.split('\n'))
 
         if UPDATE_HEADER:
-            content = itertools.dropwhile(
-                        lambda x: x.strip().startswith(START_COMMENT) or
-                                x.strip().startswith(LINE_COMMENT) or
-                                x.strip().startswith(END_COMMENT)
-                        , original)
-        content = itertools.dropwhile(lambda x:  not x or x.isspace(), content)
+           content = original[headerLength:]
         newLines = header + "\n\n" + "".join(content)
         f.write(newLines)
 
