@@ -27,7 +27,7 @@ class CliConf(args: Seq[String]) extends ScallopConf(args) {
   val protocol = opt[String]("protocol")
   val interface = opt[String]("interface")
   val port = opt[Int]("port")
-  val omc = opt[String]("omc")
+  val compiler = opt[String]("compiler")
   verify()
 
   private def configKey[A](opt: ScallopOption[A], k: String): Option[(String, String)] = {
@@ -39,7 +39,7 @@ class CliConf(args: Seq[String]) extends ScallopConf(args) {
       Seq(configKey(port, "protocol.port"),
         configKey(interface, "protocol.interface"),
         configKey(protocol, "protocol"),
-        configKey(omc, "compilerExecutable")).flatten: _*
+        configKey(compiler, "compilerExecutable")).flatten: _*
     ).asJava)
   }
 }
