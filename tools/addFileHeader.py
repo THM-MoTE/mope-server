@@ -19,7 +19,7 @@ def writeHeader(header, filePath):
         content = original
         headerLength = len(header.split('\n'))
 
-        if UPDATE_HEADER:
+        if UPDATE_HEADER and original[0].startswith(START_COMMENT):
            content = original[headerLength:]
         newLines = header + "\n\n" + "".join(content)
         f.write(newLines)
