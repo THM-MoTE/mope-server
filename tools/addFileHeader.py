@@ -1,5 +1,5 @@
 HEADER_FILE="header.txt" #where is the header?
-INCLUDE=["../src"] #to which files/directorys should be added?
+INCLUDE=["../src/main/scala/de/thm/mope/lsp/messages/"] #to which files/directorys should be added?
 EXCLUDE=[".DS_Store", "resources"] #which files/directorys should be ignored?
 UPDATE_HEADER=True #remove old header?
 
@@ -38,7 +38,7 @@ def asComment(lines):
     comment += lines[0]
 
     for line in lines[1:]:
-        commentedLine = LINE_COMMENT + " " + line
+        commentedLine = LINE_COMMENT + (" " + line if line.strip() else line)
         comment += commentedLine
 
     comment += END_COMMENT
