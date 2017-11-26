@@ -63,7 +63,6 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
         remainingBytes -= currentBuffer.size
         if(remainingBytes <= 0) {
           //payload complete: push downstream, reset buffers & continue reading header from remaining buffer
-          log.debug("payload: {}", payloadBuffer.utf8String)
           emit(out, payloadBuffer.utf8String)
           headerBuffer = ByteString.empty
           payloadBuffer = ByteString.empty

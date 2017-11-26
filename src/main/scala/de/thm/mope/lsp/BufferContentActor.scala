@@ -10,6 +10,12 @@ class BufferContentActor
     with ActorLogging {
   import BufferContentActor._
 
+  /* TODO:
+   - hold a map of all opened files Path -> Content, keep it up-to-date
+   - use this map to query infos, e.g.: word of goToDefinition
+     - if map for path empty: use file from disk
+   */
+
   var currentContent:BufferContent = null
 
   val wordPattern = """[\w\d\.\-]+""".r

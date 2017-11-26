@@ -49,7 +49,7 @@ class LspServer(implicit val system:ActorSystem)
     Flow[ByteString]
       .via(new ProtocolHandler())
       .map { s => s.parseJson.convertTo[RpcMessage] }
-      .log("in")
+      .log("in", msg => msg.method)
       .flatMapConcat { msg =>
         val responseMessage =
           Flow[Try[JsValue]]
