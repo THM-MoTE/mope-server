@@ -43,8 +43,7 @@ trait Routes extends JsonSupport with LspJsonSupport {
       "definitionProvider" -> true.toJson,
     ).toJson
 
-  def routes = request("compile"){ i:Int => Future.successful(i*2) } |:
-    request("complete"){ s:String => Future.successful(s.toUpperCase) } |:
+  def routes =
     request("initialize") { params: InitializeParams =>
       (projectsManager ? ProjectDescription(params.projectFolder.getRawPath, "target", None)).mapTo[Either[List[String], ProjectId]]
         .flatMap {
