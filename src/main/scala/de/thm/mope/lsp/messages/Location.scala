@@ -7,7 +7,7 @@ case class Location(uri:DocumentUri, range:Range)
 
 object Location {
   def apply(file:FileWithLine):Location = {
-    val pos = Position(file.line, 0)
-    Location(new java.net.URI(file.path), Range(pos,pos))
+    val pos = Position(file.line-1, 0) //turn lines into indexes
+    Location(file.path.toUri, Range(pos,pos))
   }
 }

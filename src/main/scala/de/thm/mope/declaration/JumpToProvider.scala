@@ -75,7 +75,7 @@ class JumpToProvider(jumpLike:JumpToLike)
         filename <- jumpLike.getSrcFile(className)
         path = Paths.get(filename)
         lineNo <- lineNrOfModel(path, modelname)
-      } yield FileWithLine(filename, lineNo)
+      } yield FileWithLine(path, lineNo)
       val fileInfo = fileOpt.map(f => s"${f.path}:${f.line}").getOrElse("undefined")
       log.debug("declaration of {} is {}", className, fileInfo:Any)
       fileOpt
@@ -83,10 +83,11 @@ class JumpToProvider(jumpLike:JumpToLike)
   }
 
   private def findVariable(cursorPos:CursorPosition): Future[Option[FileWithLine]] = {
-    new SrcFileInspector(Paths.get(cursorPos.file))
+    val path = Paths.get(cursorPos.file)
+    new SrcFileInspector(path)
       .localVariables(None)
       .filter(x => x.name == cursorPos.word)
-      .map(x => FileWithLine(cursorPos.file, x.lineNo))
+      .map(x => FileWithLine(path, x.lineNo))
       .toMat(Sink.headOption)(Keep.right)
       .run()
   }

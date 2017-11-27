@@ -29,11 +29,22 @@ import de.thm.mope.lsp._
 import de.thm.mope.lsp.messages._
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
+import java.nio.file.{Path, Paths}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsObject, JsString, JsValue, JsonReader, JsonWriter, RootJsonFormat}
 
 import scala.util.Try
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+
+  implicit val pathFormat = new RootJsonFormat[Path] {
+    override def write(obj: Path):JsValue = JsString(obj.toAbsolutePath.toString)
+    override def read(json: JsValue) = Paths.get(json.convertTo[String])
+  }
+  implicit val uriFormat = new RootJsonFormat[URI] {
+    override def write(obj: DocumentUri):JsValue = JsString(obj.toString)
+    override def read(json: JsValue) = new URI(json.convertTo[String])
+  }
+
   implicit val projectDescriptionFormat: RootJsonFormat[ProjectDescription] = jsonFormat3(ProjectDescription.apply)
   implicit val filePositionFormat:RootJsonFormat[FilePosition] = jsonFormat2(FilePosition)
   implicit val compileErrorFormat:RootJsonFormat[CompilerError] = jsonFormat5(CompilerError)

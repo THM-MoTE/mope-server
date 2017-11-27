@@ -17,4 +17,7 @@
 
 package de.thm.mope.position
 
-case class FileWithLine(path:String, line:Int)
+import java.nio.file.Path
+
+
+case class FileWithLine(path:Path, line:Int)

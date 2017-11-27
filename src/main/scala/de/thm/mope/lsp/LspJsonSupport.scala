@@ -28,11 +28,6 @@ trait LspJsonSupport {
     }
   }
 
-  implicit val documentUriFormat = new RootJsonFormat[DocumentUri] {
-    override def write(obj: DocumentUri):JsValue = JsString(obj.toString)
-    override def read(json: JsValue) = new URI(json.convertTo[String])
-  }
-
   implicit val positionFormat = jsonFormat2(Position.apply)
   implicit val rangeFormat = jsonFormat2(Range)
   implicit val locationFormat = jsonFormat2(Location.apply)
