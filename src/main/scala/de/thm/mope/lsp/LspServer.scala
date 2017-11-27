@@ -40,7 +40,7 @@ class LspServer(implicit val system:ActorSystem)
   def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,ActorRef] = {
     val handlers = StreamUtils.broadcastAll(userHandlers.toFlows(parallelism))
     val methods = userHandlers.methods
-    log.debug("Available methods: {}", methods)
+    log.info("Available methods: {}", methods)
 
     val notificationSource:Source[String, ActorRef] =
       Source.actorRef[NotificationMessage](notificationBufferSize, OverflowStrategy.dropHead)

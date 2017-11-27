@@ -57,7 +57,7 @@ trait Routes extends JsonSupport with LspJsonSupport {
           JsObject("capabilities" -> initializeResponse)
         }
     } |: request[TextDocumentPositionParams, JsObject]("textDocument/completion") { case TextDocumentPositionParams(textDocument, position) =>
-      (bufferActor ? BufferContentActor.GetWord(position)).mapTo[Option[String]]
+        (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
       .flatMap {
         case Some(word) =>
           askProjectManager[Set[Suggestion]](CompletionRequest(textDocument.uri.getRawPath, position.filePosition,word))
@@ -70,7 +70,7 @@ trait Routes extends JsonSupport with LspJsonSupport {
       }
     } |: request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
       (for {
-          optWord <- (bufferActor ? BufferContentActor.GetWord(position)).mapTo[Option[String]]
+          optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
           word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
           optFile <- askProjectManager[Option[FileWithLine]](DeclarationRequest(CursorPosition(textDocument.uri.getRawPath, position.filePosition, word)))
           file <- optionToNotFoundExc(optFile, s"Can't find a definition :(")
