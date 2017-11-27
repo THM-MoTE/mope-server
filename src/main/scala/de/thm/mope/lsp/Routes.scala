@@ -80,18 +80,22 @@ trait Routes extends JsonSupport with LspJsonSupport {
     } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
         askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
         .map { seq =>
-          //TODO: send empty errors to client to clear the error list
-           val errMap = seq.map { //to lsp Diagnostic
+          val errMap = if(seq.nonEmpty) {
+            seq.map { //to lsp Diagnostic
               case CompilerError("Error", file, start,end,msg) =>
                 (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
-                  Diagnostic.Error, file, file, msg))
+                  Diagnostic.Error, "modelica", msg))
               case CompilerError("Warning", file, start,end,msg) =>
                 (Paths.get(file).toUri, Diagnostic(Range(Position(start),Position(end)),
-                  Diagnostic.Warning, file, file, msg))
-            }.groupBy(_._1)
+                  Diagnostic.Warning, "modelica", msg))
+            }.groupBy(_._1) //group by file uri
+              .mapValues{ seq => seq.map(_._2) } //remove uri from values
+          } else {
+            //if there are no errors: at least answer with no errors
+            Map(params.textDocument.uri -> List.empty[Diagnostic])
+          }
 
-           errMap.foreach { case (fileUri, errors) =>
-             val diagnostics = errors.map(_._2)
+          errMap.foreach { case (fileUri, diagnostics) =>
              notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileUri.toJson, "diagnostics" -> diagnostics.toJson)))
            }
         }

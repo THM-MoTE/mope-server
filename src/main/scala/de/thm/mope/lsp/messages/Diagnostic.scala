@@ -2,7 +2,6 @@ package de.thm.mope.lsp.messages
 
 case class Diagnostic(range:Range,
                       severity:Int,
-                      code:String,
                       source:String,
                       message:String)
 object Diagnostic {
