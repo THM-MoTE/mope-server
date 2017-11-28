@@ -200,13 +200,13 @@ class RoutesSpec extends WordSpec with Matchers with ScalatestRouteTest with Jso
       val uri = "/mope/project/0/declaration?class=Modelica.Electrical"
       Get(uri) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo", 1)
+        responseAs[FileWithLine] shouldBe FileWithLine(Paths.get("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/package.mo"), 1)
       }
 
       val uri2 = "/mope/project/0/declaration?class=Modelica.Electrical.Analog"
       Get(uri2) ~> service.routes ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[FileWithLine] shouldBe FileWithLine("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo", 1)
+        responseAs[FileWithLine] shouldBe FileWithLine(Paths.get("/opt/openmodelica/lib/omlibrary/Modelica 3.2.1/Electrical/Analog/package.mo"), 1)
       }
 
       val faultyUri = "/mope/project/0/declaration?class=Modelica.nico"
