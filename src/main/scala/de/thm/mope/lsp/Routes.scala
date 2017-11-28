@@ -72,7 +72,8 @@ trait Routes extends JsonSupport with LspJsonSupport {
         case None =>
           Future.successful(JsObject("isIncomplete" -> false.toJson, "items" -> Seq.empty[CompletionItem].toJson))
       }
-    } || request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
+     } ||
+    request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
       (for {
           optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
           word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
@@ -82,7 +83,10 @@ trait Routes extends JsonSupport with LspJsonSupport {
         .recover {
           case NotFoundException(_) => Seq.empty[Location]
         }
-     }
+    } ||
+    request[TextDocumentPositionParams, Hover]("textDocument/hover") { case TextDocumentPositionParams(textDocument, position) =>
+      ???
+    }
   }
 
   def notifications =
