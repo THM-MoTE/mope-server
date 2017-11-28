@@ -55,7 +55,12 @@ trait Routes extends JsonSupport with LspJsonSupport {
           projectManagerPromise.success(ref)
           JsObject("capabilities" -> initializeResponse)
         }
-    } |: request[TextDocumentPositionParams, JsObject]("textDocument/completion") { case TextDocumentPositionParams(textDocument, position) =>
+    } || features || notifications
+
+
+
+  def features = {
+     request[TextDocumentPositionParams, JsObject]("textDocument/completion") { case TextDocumentPositionParams(textDocument, position) =>
         (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
       .flatMap {
         case Some(word) =>
@@ -67,7 +72,7 @@ trait Routes extends JsonSupport with LspJsonSupport {
         case None =>
           Future.successful(JsObject("isIncomplete" -> false.toJson, "items" -> Seq.empty[CompletionItem].toJson))
       }
-    } |: request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
+    } || request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
       (for {
           optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
           word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
@@ -77,9 +82,13 @@ trait Routes extends JsonSupport with LspJsonSupport {
         .recover {
           case NotFoundException(_) => Seq.empty[Location]
         }
-    } |: notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
+     }
+  }
+
+  def notifications =
+     notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
         askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
-        .map { seq =>
+          .map { seq =>
           val errMap = if(seq.nonEmpty) {
             seq.map { //to lsp Diagnostic
               case CompilerError("Error", file, start,end,msg) =>
@@ -99,8 +108,9 @@ trait Routes extends JsonSupport with LspJsonSupport {
              notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileUri.toJson, "diagnostics" -> diagnostics.toJson)))
            }
         }
-    } |: notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
+    } || notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
       bufferActor ! BufferContentActor.BufferContent(change.textDocument.path, change.contentChanges.head.text)
       Future.successful(())
     }
+
 }

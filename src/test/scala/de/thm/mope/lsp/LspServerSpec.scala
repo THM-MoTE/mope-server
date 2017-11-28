@@ -19,7 +19,7 @@ class LspServerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
   val fut = Promise[Int]()
   val handler =
-    RpcMethod.request("double"){ i:Int => Future.successful(i*2) } |:
+    RpcMethod.request("double"){ i:Int => Future.successful(i*2) } ||
     RpcMethod.notification("notify")  { i:Int => fut.success(i); Future.successful(()) }
 
   val createMsg = Flow[RpcMessage]
