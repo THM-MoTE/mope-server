@@ -41,5 +41,6 @@ trait LspJsonSupport {
   implicit val didSaveNotifyFormat = jsonFormat1(DidSaveTextDocumentParams)
   implicit val documentChangeEvFormat = jsonFormat3(TextDocumentContentChangeEvent)
   implicit val documentChangeParFormat = jsonFormat2(DidChangeTextDocumentParams)
+  implicit val markedStringFormat = jsonFormat2(MarkedString)
   implicit val hoverFormat = jsonFormat2(Hover)
 }

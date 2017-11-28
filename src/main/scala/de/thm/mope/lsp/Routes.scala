@@ -1,4 +1,5 @@
 package de.thm.mope.lsp
+
 import java.net.URI
 import java.nio.file.Paths
 
@@ -8,6 +9,7 @@ import akka.stream.scaladsl._
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.server.{JsonSupport, NotFoundException, ServerSetup}
+import de.thm.mope.doc.{ DocInfo, DocumentationProvider }
 import spray.json._
 import de.thm.mope.lsp.messages._
 import de.thm.mope.position.{CursorPosition, FileWithLine}
@@ -24,7 +26,7 @@ trait Routes extends JsonSupport with LspJsonSupport {
   this: ServerSetup =>
   import RpcMethod._
 
-  //TODO: split notificatinos & requests into 2 handlers
+  //TODO: refactor Future[Option[A]] using transformer OptionT from cats
 
   def notificationActor:Future[ActorRef]
   lazy val bufferActor = actorSystem.actorOf(Props[BufferContentActor], "BCA")
@@ -39,8 +41,9 @@ trait Routes extends JsonSupport with LspJsonSupport {
   val initializeResponse =
     Map[String, JsValue](
       "textDocumentSync" -> 1.toJson,
+      "hoverProvider" -> true.toJson,
       "completionProvider" -> JsObject("resolveProvider" -> false.toJson, "triggerCharacters" -> Seq(".").toJson),
-      "definitionProvider" -> true.toJson,
+      "definitionProvider" -> true.toJson
     ).toJson
 
   def routes =
@@ -85,7 +88,15 @@ trait Routes extends JsonSupport with LspJsonSupport {
         }
     } ||
     request[TextDocumentPositionParams, Hover]("textDocument/hover") { case TextDocumentPositionParams(textDocument, position) =>
-      ???
+      (for {
+        optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
+        word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
+        docOpt <- askProjectManager[Option[DocInfo]](DocumentationProvider.GetDocumentation(word))
+        doc <- optionToNotFoundExc(docOpt, s"No documentation available :(")
+      } yield Hover(Seq(doc.info)))
+        .recover {
+          case NotFoundException(_) => Hover(Seq())
+        }
     }
   }
 

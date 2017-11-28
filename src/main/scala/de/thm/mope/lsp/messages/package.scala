@@ -7,7 +7,7 @@ import de.thm.mope.suggestion.CompletionRequest
 
 package object messages {
   type DocumentUri = URI
-  type MarkedString = String
+  
   case class TextDocumentIdentifier (uri: DocumentUri, version:Option[Int]) {
     def path:Path = Paths.get(uri)
   }
@@ -20,5 +20,6 @@ package object messages {
   case class DidSaveTextDocumentParams(textDocument: TextDocumentIdentifier)
   case class DidChangeTextDocumentParams(textDocument: TextDocumentIdentifier, contentChanges:Seq[TextDocumentContentChangeEvent])
   case class TextDocumentContentChangeEvent(range:Option[Range], rangeLength:Option[Int], text:String)
-  case class Hover(contents:MarkedString, range:Range)
+  case class MarkedString(language:String,value:String)
+  case class Hover(contents:Seq[String], range:Option[Range]=None)
 }
