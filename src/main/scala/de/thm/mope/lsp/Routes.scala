@@ -22,11 +22,12 @@ import de.thm.mope.utils._
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 
+import cats.data.OptionT
+import cats.implicits._
+
 trait Routes extends JsonSupport with LspJsonSupport {
   this: ServerSetup =>
   import RpcMethod._
-
-  //TODO: refactor Future[Option[A]] using transformer OptionT from cats
 
   def notificationActor:Future[ActorRef]
   lazy val bufferActor = actorSystem.actorOf(Props[BufferContentActor], "BCA")
@@ -78,25 +79,19 @@ trait Routes extends JsonSupport with LspJsonSupport {
      } ||
     request[TextDocumentPositionParams, Seq[Location]]("textDocument/definition") { case TextDocumentPositionParams(textDocument, position) =>
       (for {
-          optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
-          word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
-          optFile <- askProjectManager[Option[FileWithLine]](DeclarationRequest(CursorPosition(textDocument.uri.getRawPath, position.filePosition, word)))
-          file <- optionToNotFoundExc(optFile, s"Can't find a definition :(")
-        } yield Seq(Location(file)))
-        .recover {
-          case NotFoundException(_) => Seq.empty[Location]
-        }
+        word <- OptionT((bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]])
+        file <- OptionT(askProjectManager[Option[FileWithLine]](DeclarationRequest(CursorPosition(textDocument.uri.getRawPath, position.filePosition, word))))
+      } yield Seq(Location(file)))
+        .value
+        .map(_.getOrElse(Seq.empty[Location]))
     } ||
     request[TextDocumentPositionParams, Hover]("textDocument/hover") { case TextDocumentPositionParams(textDocument, position) =>
       (for {
-        optWord <- (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
-        word <- optionToNotFoundExc(optWord, s"Don't know the word below the cursor:(")
-        docOpt <- askProjectManager[Option[DocInfo]](DocumentationProvider.GetDocumentation(word))
-        doc <- optionToNotFoundExc(docOpt, s"No documentation available :(")
+        word <- OptionT((bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]])
+        doc <- OptionT(askProjectManager[Option[DocInfo]](DocumentationProvider.GetDocumentation(word)))
       } yield Hover(Seq(doc.info)))
-        .recover {
-          case NotFoundException(_) => Hover(Seq())
-        }
+        .value
+        .map(_.getOrElse(Hover(Seq.empty[String])))
     }
   }
 
