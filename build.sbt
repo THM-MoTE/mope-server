@@ -4,7 +4,8 @@ connectInput in run := true
 scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
-    "-feature"
+  "-feature",
+  "-Ypartial-unification"
 )
 
 //include ./conf in classpath

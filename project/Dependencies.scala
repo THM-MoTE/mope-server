@@ -10,6 +10,7 @@ object Dependencies {
   private val akkaGroup = "com.typesafe.akka"
 
   val configLib = "com.typesafe" % "config" % "1.3.0"
+  val cats = "org.typelevel" %% "cats-core" % "1.0.0-RC1"
 
   val logging = Seq(
     "ch.qos.logback" % "logback-classic" % "1.1.3",
@@ -41,5 +42,5 @@ object Dependencies {
   val ewsProject = fromGithub("https://github.com/THM-MoTE/EnhancedWatchService.git")
   val recentlyProject = fromGithub("https://github.com/THM-MoTE/recently.git")
 
-  val usedDependencies = configLib +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib)
+  val usedDependencies = configLib +: cats +: (akka ++ logging ++ scalaUtils ++ testLib ++ moteLib)
 }
