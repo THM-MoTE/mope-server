@@ -27,3 +27,11 @@ Used libraries:
     == ScalaTest ==
     Homepage: http://www.scalatest.org/
     License: Apache License v2 (http://www.apache.org/licenses/LICENSE-2.0.html)
+
+    == MacWire ==
+    Homepage: https://github.com/adamw/macwire
+    License: Apache License v2 (http://www.apache.org/licenses/LICENSE-2.0.html)
+
+    == ScallOp ==
+    Homepage: https://github.com/scallop/scallop
+    License: MIT (https://github.com/scallop/scallop/blob/develop/license.txt)

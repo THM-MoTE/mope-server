@@ -16,16 +16,14 @@
   */
 
 
-package de.thm.mope
+package de.thm.mope.config
 
-import akka.util.Timeout
+object ApplicationMode extends Enumeration {
+  val Development, Production = Value
 
-import scala.concurrent.duration._
-import scala.language.postfixOps
-
-package object server {
-  object timeouts {
-    val defaultTime = 5 seconds
-    implicit val defaultTimeout = Timeout(defaultTime)
+  def parseString(str: String): Value = str.toLowerCase match {
+    case "dev" | "development" => Development
+    case "prod" | "production" => Production
+    case _ => throw new IllegalArgumentException(s"Can't decide which mode $str represents")
   }
 }

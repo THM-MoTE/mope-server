@@ -16,16 +16,16 @@
   */
 
 
-package de.thm.mope
+package de.thm.mope.config
 
-import akka.util.Timeout
+import java.nio.file.{Path, Paths}
 
-import scala.concurrent.duration._
-import scala.language.postfixOps
+import de.thm.mope.project.ProjectDescription
 
-package object server {
-  object timeouts {
-    val defaultTime = 5 seconds
-    implicit val defaultTimeout = Timeout(defaultTime)
-  }
+/** Settings for a specific project, including Server's settings. */
+case class ProjectConfig(
+                          server: ServerConfig,
+                          project: ProjectDescription) {
+  val rootDir: Path = Paths.get(project.path)
+  val outputDir: Path = rootDir.resolve(project.outputDirectory)
 }

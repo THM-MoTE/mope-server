@@ -1,0 +1,111 @@
+= MoPE - Modelica Integration for Editors
+
+image::https://rawgit.com/THM-MoTE/Logos/master/svgs/MoPE.svg[link="https://rawgit.com/THM-MoTE/Logos/master/svgs/MoPE.svg", align="center"]
+
+MoPE brings IDE-features for Modelica into your favourite Editor.
+
+NOTE: This is the server-process for MoPE.
+CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
+
+CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
+
+== Subprojects
+MoPE uses the following sub projects:
+
+- https://github.com/THM-MoTE/omc-java-api[omc-java-api] -
+  Java-implementation of OMC's CORBA interface
+- https://github.com/THM-MoTE/EnhancedWatchService[EnhancedWatchService] -
+  Wrapper for Java WatchServices
+- https://github.com/THM-MoTE/recently[recently] -
+  Handles recently used files/projects
+
+
+== Developer setup
+IMPORTANT: Installation instructions for users are available https://thm-mote.github.io//projects/mope[here].
+
+The following guide is for developers:
+
+1. Please install https://openmodelica.org/[OpenModelica] and check that its working correctly (`which omc`).
+2. Install a
+	http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[Java JDK] (version >= 8)
+	and http://www.scala-sbt.org/[sbt].
+3. Set up a `$JAVA_HOME` environment variable.
+	On Linux-Systems you can create one by adding the following line to your `~/.bashrc`-file:
++
+[source,sh]
+----
+export JAVA_HOME=<path-to-java>
+----
++
+TIP: There is a script which automates step 4 till 6 and 8 available: link:tools/setup.sh[setup.sh]
+
+4. Because MoPE uses sub projects you need to clone all sub projects and this project into
+one directory. This should look like this:
++
+----
+parent/
+  - mope-server/
+  - omc-java-api/
+  - EnhancedWatchService/
+  - recently/
+----
++
+5. compile the `omc-java-api`:
++
+[source, sh]
+----
+$ cd omc-java-api/
+$ sbt compile
+----
++
+6. open up sbt in the `mope-server` and type `compile` into the sbt prompt:
++
+[source, sh]
+----
+$ cd mope-server/
+$ sbt
+sbt: compile
+----
++
+7. Execute `run` to start the server. MoPE will produce several logs during runtime.
+  Especially the starting log should look similar to this:
++
+----
+[info] Running de.thm.mope.MoPE
+2016-07-08 19:26:50,077 [INFO ] a.e.s.Slf4jLogger [] - Slf4jLogger started
+2016-07-08 19:26:50,077 [INFO ] a.e.s.Slf4jLogger [] - Slf4jLogger started
+2016-07-08 19:26:50,828 [INFO ] d.t.m.s.Server [mope-server] - Server running at localhost:9001
+2016-07-08 19:26:50,838 [INFO ] d.t.m.s.Server [mope-server] - Press Enter to interrupt
+----
++
+The log tells you on which server (localhost) and port (9001) the server is listening.
+
+8. Setup the https://github.com/THM-MoTE/mope-atom-plugin[Atom plugin]
+9. Set the `interface` and `port` in the Atom plugin in order to connect to the server.
+
+[NOTE]
+====
+After first execution, MoPE generates a configuration file located at ```~/.mope/mope.conf```.
+You can change it to suit your needs.
+
+*DO NOT CHANGE THE ```akka { .. }```-SECTION!*
+If you messed up your configuration just kill the whole ```~/.moie``` directory.
+====
+
+== Creating a jar
+You can create an executable-jar using the `sbt assembly` command. This command packages
+everything - including all dependencies - in one jar which is executable using `java -jar <jar>`.
+
+
+== REST-API / Protocol documentation
+A documentation for the REST-API can be found in `doc/protocol/`.
+The documentation is in `asciidoc` and can be converted into html or pdf by executing
+`make html` & `make pdf` in the `protocl` directory.
+
+# Notes
+  - The idea of an server-process and several editors that are communicating with
+  the server isn't new. This project is heavily inspired by the http://ensime.github.io/[ENSIME-project].
+  ENSIME is a convenient way to develop Scala projects. If you are a Scala developer please give it a try.
+
+NOTE: Our main goal is to provide a similar development environment for Modelica
+like ENSIME for Scala.

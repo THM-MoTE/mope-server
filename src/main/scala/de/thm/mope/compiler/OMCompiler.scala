@@ -1,65 +1,64 @@
 /**
- * Copyright (C) 2016 Nicola Justus <nicola.justus@mni.thm.de>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+  * Copyright (C) 2016,2017 Nicola Justus <nicola.justus@mni.thm.de>
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+
 
 package de.thm.mope.compiler
+
 import java.nio.file.{Files, Path, Paths}
 
-import de.thm.mope.Global
+import de.thm.mope.config.{Constants, ProjectConfig}
 import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
-import de.thm.mope.server.NotFoundException
 import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
-import omc.{ImportHandler, LoadLibraryException}
 import omc.corba.ScriptingHelper._
 import omc.corba._
+import omc.{ImportHandler, LoadLibraryException}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.util._
 
-class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler {
+class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
-    val forceEnglish = Global.config.getBoolean("forceEnglish")
+    val forceEnglish = projConfig.server.config.getBoolean("forceEnglish")
     val suffixProvider = new CustomIORNameProvider("mope", true)
-    if(forceEnglish) new OMCClient(executableName, Global.usLocale, suffixProvider)
-    else new OMCClient(executableName, suffixProvider)
+    if (forceEnglish) new OMCClient(projConfig.server.compilerExecutable, Constants.usLocale, suffixProvider)
+    else new OMCClient(projConfig.server.compilerExecutable, suffixProvider)
   }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 
-  require(outputDir.getParent != null, s"${outputDir.toAbsolutePath} parent can't be null")
-  val rootProjectFile = outputDir.getParent.resolve("package.mo")
-  val rootDir = rootProjectFile.getParent
+  val rootProjectFile = projConfig.rootDir.resolve("package.mo")
 
   val loaderOpt = {
-    val importFile = rootDir.resolve(ImportHandler.importFileName)
-    log.info(if(Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
-    if(Files.exists(importFile)) Some(new ImportHandler(rootDir))
+    val importFile = projConfig.rootDir.resolve(ImportHandler.importFileName)
+    log.info(if (Files.exists(importFile)) s"Load libraries from $importFile" else "No libraries given")
+    if (Files.exists(importFile)) Some(new ImportHandler(projConfig.rootDir))
     else None
   }
 
   omc.connect()
-  IOUtils.createDirectory(outputDir)
+  IOUtils.createDirectory(projConfig.outputDir)
 
-  private def parseFiles[A](projectTree:TreeLike[Path])(fn: Seq[CompilerError] => A):A = {
+  private def parseFiles[A](projectTree: TreeLike[Path])(fn: Seq[CompilerError] => A): A = {
     /** 1. load all external libraries, if they exist
       * 2. load all package.mo files
       * 3. load all non-package.mo files
@@ -76,7 +75,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
       }
     }
 
-    withOutputDir(outputDir) {
+    withOutputDir(projConfig.outputDir) {
       val pckMoDirs = ModelicaProjectTree.packageMoDirectories(projectTree)
       val plainFiles = ModelicaProjectTree.singleFiles(projectTree, pckMoDirs)
       val pckMoFiles = pckMoDirs.map(_.resolve(ModelicaProjectTree.packageFilename))
@@ -87,11 +86,11 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
             loader.loadLibraries(omc)
             Nil
           } catch {
-            case ex:LoadLibraryException =>
+            case ex: LoadLibraryException =>
               log.warn("Coudln't load all libraries")
               //transform exception into compiler warning
-              for(error <- ex.errors.asScala)
-                yield CompilerError("Warning", "", FilePosition(0,0), FilePosition(0,0), error)
+              for (error <- ex.errors.asScala)
+                yield CompilerError("Warning", "", FilePosition(0, 0), FilePosition(0, 0), error)
           }
         }.getOrElse(Nil)
 
@@ -100,12 +99,12 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  override def compile(projectTree:TreeLike[Path], openedFile:Path): Seq[CompilerError] = {
+  override def compile(projectTree: TreeLike[Path], openedFile: Path): Seq[CompilerError] = {
     /** 1. load all package.mo files
       * 2. load all non-package.mo files
       * 3. typecheck
       */
-     parseFiles(projectTree) { parseErrors =>
+    parseFiles(projectTree) { parseErrors =>
       val modelNameOp: Option[String] = ScriptingHelper.getModelName(openedFile)
       modelNameOp.
         map(typecheckIfEmpty(parseErrors, _)).
@@ -114,15 +113,15 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
 
-  private def loadAllFiles(files:List[Path]): Seq[CompilerError] = {
+  private def loadAllFiles(files: List[Path]): Seq[CompilerError] = {
     val fileList = asArray(files.map(convertPath).asJava)
     val expr = s"""loadFiles($fileList)"""
     val res = omc.sendExpression(expr)
-    val errOpt:Option[String] = res.error
+    val errOpt: Option[String] = res.error
     errOpt.map(parseErrorMsg).getOrElse(Seq[CompilerError]())
   }
 
-  override def compileScript(path:Path): Seq[CompilerError] = {
+  override def compileScript(path: Path): Seq[CompilerError] = {
     val startDir = path.getParent
     omc.sendExpression("clear()")
     withOutputDir(startDir) {
@@ -132,9 +131,9 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     }
   }
 
-  override def checkModel(projectTree:TreeLike[Path], path:Path): String = {
+  override def checkModel(projectTree: TreeLike[Path], path: Path): String = {
     parseFiles(projectTree) { _ =>
-      val modelnameOpt:Option[String] = ScriptingHelper.getModelName(path)
+      val modelnameOpt: Option[String] = ScriptingHelper.getModelName(path)
       modelnameOpt.
         map(omc.checkModel(_)).
         map(killTrailingQuotes).
@@ -157,14 +156,14 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
   }
 
   override def getParameters(className: String): List[(String, Option[String])] = {
-    if(omc.is_("Model", className) || omc.is_("Class", className)) {
+    if (omc.is_("Model", className) || omc.is_("Class", className)) {
       val xs = omc.getList("getParameterNames", className)
       xs.asScala.
         map(killTrailingQuotes).
         map(_ -> None).toList
-    } else if(omc.is_("Function", className)) {
+    } else if (omc.is_("Function", className)) {
       val res = omc.call("list", className)
-      if(res.error.isPresent())
+      if (res.error.isPresent())
         Nil
       else {
         val xs = getParametersFromFunction(res.result).map {
@@ -175,16 +174,16 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     } else Nil
   }
 
-  override def getClassDocumentation(className:String): Option[String] = {
+  override def getClassDocumentation(className: String): Option[String] = {
     val res = omc.call("getClassComment", className)
     val comment = killTrailingQuotes(res.result)
-    if(comment.isEmpty) None
+    if (comment.isEmpty) None
     else Some(comment)
   }
 
-  override def getDocumentation(className:String): Option[DocInfo] = {
+  override def getDocumentation(className: String): Option[DocInfo] = {
     val res = omc.call("getDocumentationAnnotation", className)
-    if(res.error.isPresent) None
+    if (res.error.isPresent) None
     else {
       val lst = fromArray(res.result).asScala.map(killTrailingQuotes).toList
       lst match {
@@ -193,48 +192,48 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
           val classComments = classes.map(getClassDocumentation)
           val subcomponents =
             classes.
-            zip(classComments).
-            map { case (name, comment) => DocInfo.Subcomponent(name, comment) }
+              zip(classComments).
+              map { case (name, comment) => DocInfo.Subcomponent(name, comment) }
           Some(DocInfo(info, rev, header, subcomponents))
         case _ => None
       }
     }
   }
 
-  private def getCompletionType(classNames:Seq[String]): Seq[Kind.Value] = {
+  private def getCompletionType(classNames: Seq[String]): Seq[Kind.Value] = {
     classNames.map { x =>
-      if(omc.is_("Function", x)) Kind.Function
-      else if(omc.is_("Package", x)) Kind.Package
-      else if(omc.is_("Type", x)) Kind.Type
-      else if(omc.is_("Model", x)) Kind.Model
+      if (omc.is_("Function", x)) Kind.Function
+      else if (omc.is_("Package", x)) Kind.Package
+      else if (omc.is_("Type", x)) Kind.Type
+      else if (omc.is_("Model", x)) Kind.Model
       else Kind.Class
     }
   }
 
-  override def getSrcFile(className:String): Option[String] = {
+  override def getSrcFile(className: String): Option[String] = {
     val res = omc.call("getSourceFile", className)
     extractPath(res.result)
   }
 
-  private def parseResult(result:Result)  = {
-    val errOpt:Option[String] = result.error
+  private def parseResult(result: Result) = {
+    val errOpt: Option[String] = result.error
     errOpt.map(parseErrorMsg).getOrElse(parseErrorMsg(result.result))
   }
 
-  private def typecheckIfEmpty(xs:Seq[CompilerError], model:String):Seq[CompilerError] = {
+  private def typecheckIfEmpty(xs: Seq[CompilerError], model: String): Seq[CompilerError] = {
     log.debug(s"$model is instantiatable: [{}]", !notInstantiatable(model))
-    if(xs.nonEmpty) xs
-    else if(notInstantiatable(model)) Seq()
+    if (xs.nonEmpty) xs
+    else if (notInstantiatable(model)) Seq()
     else {
       val res = omc.checkAllModelsRecursive(model)
       parseErrorMsg(res)
     }
   }
 
-  private def notInstantiatable(model:String):Boolean =
+  private def notInstantiatable(model: String): Boolean =
     omc.is_("Partial", model) || omc.is_("Function", model)
 
-  def parseErrorMsg(msg:String): Seq[CompilerError] = {
+  def parseErrorMsg(msg: String): Seq[CompilerError] = {
     log.debug("parsing OM error: {}", msg)
     msgParser.parse(msg) match {
       case Success(v) => v
@@ -253,7 +252,7 @@ class OMCompiler(executableName:String, outputDir:Path) extends ModelicaCompiler
     if (Paths.get(killTrailingQuotes(res.result)).toRealPath() equals dir.toRealPath()) {
       f
     } else {
-      log.error("Couldn't change working directory for omc into {} got {}", dir:Any, res)
+      log.error("Couldn't change working directory for omc into {} got {}", dir: Any, res)
       throw new IllegalStateException("cd() error")
     }
   }

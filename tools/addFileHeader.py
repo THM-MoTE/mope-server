@@ -1,12 +1,12 @@
 HEADER_FILE="header.txt" #where is the header?
-INCLUDE=["../src/main/scala/de/thm/mope/lsp/messages/"] #to which files/directorys should be added?
+INCLUDE=["../src/"] #to which files/directorys should be added?
 EXCLUDE=[".DS_Store", "resources"] #which files/directorys should be ignored?
 UPDATE_HEADER=True #remove old header?
 
 #which comment characters should be used?
 START_COMMENT="/**" #first line of comment
-LINE_COMMENT=" *" #lines between first and last comment
-END_COMMENT=" */" #last line of comment, can be empty
+LINE_COMMENT="  *" #lines between first and last comment
+END_COMMENT="  */" #last line of comment, can be empty
 BLANK_FIRST_LINE=True #leave first line empty?
 
 import os
@@ -17,14 +17,10 @@ def writeHeader(header, filePath):
         original = f.readlines()
     with open(filePath, "w") as f:
         content = original
+        headerLength = len(header.split('\n'))
 
-        if UPDATE_HEADER:
-            content = itertools.dropwhile(
-                        lambda x: x.startswith(START_COMMENT) or
-                                x.startswith(LINE_COMMENT) or
-                                x.startswith(END_COMMENT)
-                        , original)
-        content = itertools.dropwhile(lambda x:  not x or x.isspace(), content)
+        if UPDATE_HEADER and original[0].startswith(START_COMMENT):
+           content = original[headerLength:]
         newLines = header + "\n\n" + "".join(content)
         f.write(newLines)
 

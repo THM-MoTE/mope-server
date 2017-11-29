@@ -1,5 +1,25 @@
 # Changelog of Mo|E-Server
-## Version 0.6.2-pre
+
+## Version 0.6.3
+- Update dependency versions:
+  - scala 2.12
+  - akka 2.4.19
+  - akkaHTTP 10.0.10
+  - sbt 1.0.2
+
+- better auto completion based on `String#startsWith` and Levenshtein distance
+- allow configuration of compiler path, port and used protocol through command line arguments
+  - the configuration file doesn't need to be tweaked anymore before first usage
+- configuration directory is now `~/.config/mope` instead of `~/.mope`
+- fallback configuration is now inside the resources and called `fallback.conf`
+- Use dependency injection framework for wiring the app
+- Use Ctrl+D to terminate server app
+- several code refactorings & bug fixes
+- first preparation for inclusion of the Language Server Protocol
+
+- temporarily broke all tests!
+
+## Version 0.6.2
 - protocol documentation now in AsciiDoc
 - internal project representation now as *(filesystem) tree*; not as file list
 - adds opening a file in MoVE via `POST mope/ensemble/move`

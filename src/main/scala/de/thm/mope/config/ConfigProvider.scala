@@ -16,16 +16,29 @@
   */
 
 
-package de.thm.mope
+package de.thm.mope.config
 
-import akka.util.Timeout
+import java.nio.file.{Files, Path}
 
-import scala.concurrent.duration._
-import scala.language.postfixOps
+import com.typesafe.config.{Config, ConfigFactory}
 
-package object server {
-  object timeouts {
-    val defaultTime = 5 seconds
-    implicit val defaultTimeout = Timeout(defaultTime)
+/** Merges all settings together. */
+class ConfigProvider(
+                      cli: CliConf,
+                      userConfig: Path) {
+
+  val config = cli.asConfig
+    .withFallback(ConfigProvider.createConfigFile(userConfig))
+    .withFallback(ConfigFactory.parseResources("fallback.conf"))
+    .resolve()
+}
+
+object ConfigProvider {
+  def createConfigFile(file: Path): Config = {
+    if (Files.notExists(file)) {
+      Files.createDirectories(file.getParent)
+      Files.copy(getClass.getResourceAsStream("/mope.conf"), file)
+    }
+    ConfigFactory.parseURL(file.toUri.toURL)
   }
 }
