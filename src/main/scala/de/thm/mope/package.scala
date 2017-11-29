@@ -43,30 +43,22 @@ package object mope {
   type ProjectManagerPropsFactory = (ProjectDescription, Int) => Props
   //@@ProjectManagerMarker
   type RecentHandlerProps = Props @@ RecentHandlerMarker
+  type NotifyActorRef =  ActorRef @@ NotifyActorMarker
+  type BufferActorRef =  ActorRef @@ BufferActorMarker
 
   /** Tags for the injector to identify actors. */
   object tags {
-
     sealed trait RecentHandlerMarker
-
     sealed trait ProjectsManagerMarker
-
     sealed trait ProjectManagerMarker
-
     sealed trait JumpProviderMarker
-
     sealed trait DocProviderMarker
-
     sealed trait FileWatchingMarker
-
     sealed trait CompletionMarker
-
     sealed trait RecentFileMarker
-
     sealed trait DocMarker
-
     sealed trait MissingDocMarker
-
+    sealed trait NotifyActorMarker
+    sealed trait BufferActorMarker
   }
-
 }

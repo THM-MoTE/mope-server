@@ -3,12 +3,13 @@ package de.thm.mope.lsp
 import java.net.URI
 import java.nio.file.Paths
 
+import akka.actor.ActorSystem
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.stream.scaladsl._
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
-import de.thm.mope.server.{JsonSupport, NotFoundException, ServerSetup}
+import de.thm.mope.server.{JsonSupport, NotFoundException}
 import de.thm.mope.doc.{ DocInfo, DocumentationProvider }
 import spray.json._
 import de.thm.mope.lsp.messages._
@@ -18,6 +19,8 @@ import de.thm.mope.server.ProjectManagerActor.CompileProject
 import de.thm.mope.server.ProjectsManagerActor.ProjectId
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion}
 import de.thm.mope.utils._
+import de.thm.mope._
+import de.thm.mope.config.ServerConfig
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
@@ -25,12 +28,17 @@ import scala.reflect.ClassTag
 import cats.data.OptionT
 import cats.implicits._
 
-trait Routes extends JsonSupport with LspJsonSupport {
-  this: ServerSetup =>
+class Routes(
+  projectsManager: ProjectsManagerRef,
+  notificationActor:Future[NotifyActorRef],
+  bufferActor:BufferActorRef,
+  servConf: ServerConfig)
+  (implicit actorSystem:ActorSystem)
+    extends JsonSupport
+    with LspJsonSupport {
   import RpcMethod._
-
-  def notificationActor:Future[ActorRef]
-  lazy val bufferActor = actorSystem.actorOf(Props[BufferContentActor], "BCA")
+  import actorSystem.dispatcher
+  import servConf.timeout
 
     //manager of initialized project
   val projectManagerPromise = Promise[ActorRef]

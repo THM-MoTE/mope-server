@@ -23,9 +23,14 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import de.thm.mope.config.{Constants, ServerConfig}
-import de.thm.mope.utils.MopeExitCodes
+import de.thm.mope.utils.{
+  MopeExitCodes,
+  BindingWrapper
+}
+import de.thm.mope.Factory
+import scala.concurrent.Future
 
-class Server(router: Routes,
+class Server(bindingProvider:Factory[Future[BindingWrapper]],
              serverConfig: ServerConfig)(
               implicit
               actorSystem: ActorSystem,
@@ -48,8 +53,7 @@ class Server(router: Routes,
 
 
   def start(): Unit = {
-    val bindingFuture =
-      Http().bindAndHandle(router.routes, serverConfig.interface, serverConfig.port)
+    val bindingFuture = bindingProvider()
 
     bindingFuture onComplete {
       case scala.util.Success(_) =>

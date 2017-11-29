@@ -22,6 +22,8 @@ import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Tcp
+import akka.http.scaladsl.Http
 import akka.util.Timeout
 import com.softwaremill.macwire._
 import com.softwaremill.macwire.akkasupport._
@@ -36,8 +38,12 @@ import de.thm.mope.server._
 import de.thm.mope.suggestion._
 import de.thm.mope.tags._
 import de.thm.mope.templates.TemplateModule
-import de.thm.mope.utils.ThreadUtils
+import de.thm.mope.utils._
 
+import scala.concurrent.{
+  Future,
+  Promise
+}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -78,8 +84,29 @@ trait MopeModule
     wireProps[ProjectManagerActor]
   }
 
-  lazy val router = wire[Routes]
-  lazy val server = wire[Server]
+  lazy val bufferActor:BufferActorRef = wireActor[lsp.BufferContentActor]("BCA").taggedWith[BufferActorMarker]
+
+  lazy val provider:Factory[Future[BindingWrapper]] = () => {
+    if(serverConfig.useLsp) {
+      val notifyActorPromise = Promise[NotifyActorRef]()
+      val actorFut:Future[NotifyActorRef] = notifyActorPromise.future
+      val router:lsp.Routes = wire[lsp.Routes]
+      lazy val lspServer:lsp.LspServer = wire[lsp.LspServer]
+      val pipeline = lspServer.connectTo(router.routes).mapMaterializedValue { ref =>
+        //one's the actor is materialized; resolve the notification promise
+        notifyActorPromise.success(ref.taggedWith[NotifyActorMarker])
+        ref
+      }
+      Tcp().bindAndHandle(pipeline, serverConfig.interface, serverConfig.port)
+      .map(TcpBinding(_))
+    } else {
+      val router = wire[server.Routes]
+      Http().bindAndHandle(router.routes, serverConfig.interface, serverConfig.port)
+        .map(HttpBinding(_))
+    }
+  }
+
+  lazy val mopeServer = wire[Server]
 
   def config: Config
 
