@@ -20,7 +20,6 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
   override def createLogic(inheritedAttributes: Attributes):GraphStageLogic =
     new GraphStageLogic(shape) with StageLogging {
       var remainingBytes = 0
-//      var readPayload = false
       var state:ByteString => Unit = readHeader //are we reading header or payload?
       var headerBuffer = ByteString.empty
       var payloadBuffer = ByteString.empty
@@ -46,7 +45,6 @@ private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,Strin
           val (header, payload) = currentHeader.splitAt(idx)
           headerBuffer ++= header //now contains full header
           val headers = parseHeaders(headerBuffer)
-          log.debug("headers: {}",headers)
           remainingBytes = headers("Content-Length").toInt+separator.size //read length given in header + length(\r\n\r\n)
           state = readPayload
           readPayload(payload)
