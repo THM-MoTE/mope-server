@@ -38,6 +38,8 @@ class Routes(
     with LspJsonSupport {
   import RpcMethod._
 
+  //TODO: handle hover infos for variables (getType)
+
     //manager of initialized project
   val projectManagerPromise = Promise[ActorRef]
   def askProjectManager[S:ClassTag](x:Any):Future[S] =
@@ -65,9 +67,9 @@ class Routes(
           projectManagerPromise.success(ref)
           JsObject("capabilities" -> initializeResponse)
         }
-    } || features || notifications
-
-
+    } ||
+    features ||
+    notifications
 
   def features = {
      request[TextDocumentPositionParams, JsObject]("textDocument/completion") { case TextDocumentPositionParams(textDocument, position) =>
@@ -102,8 +104,8 @@ class Routes(
   }
 
   def notifications =
-     notification("textDocument/didSave") { params: DidSaveTextDocumentParams =>
-        askProjectManager[Seq[CompilerError]](CompileProject(params.textDocument.path))
+     notification[DidSaveTextDocumentParams]("textDocument/didSave") { case DidSaveTextDocumentParams(document) =>
+        askProjectManager[Seq[CompilerError]](CompileProject(document.path))
           .map { seq =>
           val errMap = if(seq.nonEmpty) {
             seq.map { //to lsp Diagnostic
@@ -117,16 +119,20 @@ class Routes(
               .mapValues{ seq => seq.map(_._2) } //remove uri from values
           } else {
             //if there are no errors: at least answer with no errors
-            Map(params.textDocument.uri -> List.empty[Diagnostic])
+            Map(document.uri -> List.empty[Diagnostic])
           }
 
           errMap.foreach { case (fileUri, diagnostics) =>
              notificationActor.foreach(_ ! NotificationMessage("textDocument/publishDiagnostics",JsObject("uri" -> fileUri.toJson, "diagnostics" -> diagnostics.toJson)))
            }
         }
-    } || notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
+    } ||
+     notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
       bufferActor ! BufferContentActor.BufferContent(change.textDocument.path, change.contentChanges.head.text)
       Future.successful(())
+    } ||
+     notification[DidOpenTextDocumentParams]("textDocument/didOpen") { case DidOpenTextDocumentParams(document) =>
+       bufferActor ! BufferContentActor.BufferContent(document.path, document.text)
+       Future.successful(())
     }
-
 }

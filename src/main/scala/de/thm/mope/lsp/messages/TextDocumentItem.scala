@@ -1,5 +1,7 @@
 package de.thm.mope.lsp.messages
 
+import java.nio.file.{Path, Paths}
+
 case class TextDocumentItem (
 	/**
 	 * The text document's URI.
@@ -21,4 +23,6 @@ case class TextDocumentItem (
 	 * The content of the opened text document.
 	 */
 	text: String,
-)
+) {
+  def path:Path = Paths.get(uri)
+}
