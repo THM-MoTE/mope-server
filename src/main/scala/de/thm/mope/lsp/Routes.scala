@@ -7,10 +7,11 @@ import akka.actor.ActorSystem
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.stream.scaladsl._
+import akka.util.Timeout
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.server.{JsonSupport, NotFoundException}
-import de.thm.mope.doc.{ DocInfo, DocumentationProvider }
+import de.thm.mope.doc.{DocInfo, DocumentationProvider}
 import spray.json._
 import de.thm.mope.lsp.messages._
 import de.thm.mope.position.{CursorPosition, FileWithLine}
@@ -22,23 +23,20 @@ import de.thm.mope.utils._
 import de.thm.mope._
 import de.thm.mope.config.ServerConfig
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
-
 import cats.data.OptionT
 import cats.implicits._
 
 class Routes(
   projectsManager: ProjectsManagerRef,
   notificationActor:Future[NotifyActorRef],
-  bufferActor:BufferActorRef,
-  servConf: ServerConfig)
-  (implicit actorSystem:ActorSystem)
+  bufferActor:BufferActorRef)
+  (implicit context:ExecutionContext,
+            timeout:Timeout)
     extends JsonSupport
     with LspJsonSupport {
   import RpcMethod._
-  import actorSystem.dispatcher
-  import servConf.timeout
 
     //manager of initialized project
   val projectManagerPromise = Promise[ActorRef]

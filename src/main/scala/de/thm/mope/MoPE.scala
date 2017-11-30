@@ -33,6 +33,6 @@ object MoPE
       override implicit lazy val mat: ActorMaterializer = ActorMaterializer()
     }
     configureLogging(module.serverConfig.applicationMode)
-    module.server.start()
+    module.mopeServer.start()
   }
 }

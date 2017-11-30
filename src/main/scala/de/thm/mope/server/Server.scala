@@ -23,14 +23,13 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import de.thm.mope.config.{Constants, ServerConfig}
-import de.thm.mope.utils.{
-  MopeExitCodes,
-  BindingWrapper
-}
+import de.thm.mope.utils.{BindingWrapper, MopeExitCodes}
 import de.thm.mope.Factory
+import de.thm.mope.initializers.BindingProvider
+
 import scala.concurrent.Future
 
-class Server(bindingProvider:Factory[Future[BindingWrapper]],
+class Server(bindingProvider:BindingProvider,
              serverConfig: ServerConfig)(
               implicit
               actorSystem: ActorSystem,
@@ -53,11 +52,11 @@ class Server(bindingProvider:Factory[Future[BindingWrapper]],
 
 
   def start(): Unit = {
-    val bindingFuture = bindingProvider()
+    val bindingFuture = bindingProvider.provide()
 
     bindingFuture onComplete {
       case scala.util.Success(_) =>
-        serverlog.info("Server running at {}:{}", serverConfig.interface, serverConfig.port)
+        serverlog.info("Server running at {}:{} using protocol: {}", serverConfig.interface, serverConfig.port, serverConfig.protocol)
       case scala.util.Failure(ex) =>
         serverlog.error("Failed to start server at {}:{} - {}", serverConfig.interface, serverConfig.port, ex.getMessage)
         actorSystem.terminate()

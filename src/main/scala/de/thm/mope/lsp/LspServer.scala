@@ -6,6 +6,7 @@ import akka.event.Logging
 import akka.stream._
 import akka.util.ByteString
 import akka.stream.scaladsl._
+import de.thm.mope.config.ServerConfig
 import de.thm.mope.lsp.messages._
 import spray.json._
 import de.thm.mope.server.JsonSupport
@@ -13,14 +14,13 @@ import de.thm.mope.utils.StreamUtils
 
 import scala.util._
 
-class LspServer(implicit val system:ActorSystem)
+class LspServer(servConf:ServerConfig)
+               (implicit val system:ActorSystem) //FIXME: rename into **connection**
     extends JsonSupport
       with LspJsonSupport {
 
   implicit val log = Logging(system, getClass)
   import system.dispatcher
-  val parallelism = 4 //FIXME: move into conf file
-  val notificationBufferSize = 8024
 
   def handleError(ex:Throwable):ResponseError = ex match {
     case ex:DeserializationException =>
@@ -38,12 +38,12 @@ class LspServer(implicit val system:ActorSystem)
   }
 
   def connectTo[I:JsonFormat,O:JsonFormat](userHandlers:RpcMethod[I,O]):Flow[ByteString,ByteString,ActorRef] = {
-    val handlers = StreamUtils.broadcastAll(userHandlers.toFlows(parallelism))
+    val handlers = StreamUtils.broadcastAll(userHandlers.toFlows(servConf.config.getInt("lsp.parallelHandlers")))
     val methods = userHandlers.methods
     log.info("Available methods: {}", methods)
 
     val notificationSource:Source[String, ActorRef] =
-      Source.actorRef[NotificationMessage](notificationBufferSize, OverflowStrategy.dropHead)
+      Source.actorRef[NotificationMessage](servConf.config.getInt("lsp.notificationBufferSize"), OverflowStrategy.dropHead)
       .map(_.toJson.toString)
 
     Flow[ByteString]

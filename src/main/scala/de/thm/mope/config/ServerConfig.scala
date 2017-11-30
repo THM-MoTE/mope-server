@@ -42,7 +42,8 @@ case class ServerConfig(
   lazy val interface = config.getString("protocol.interface")
   lazy val port = config.getInt("protocol.port")
   lazy val compilerExecutable = config.getString("compilerExecutable")
-  lazy val useLsp = config.getString("protocol") == "lsp"
+  lazy val protocol = config.getString("protocol.type")
+  lazy val useLsp = protocol == "lsp"
 }
 
 object Constants {

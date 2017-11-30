@@ -41,7 +41,7 @@ class CliConf(args: Seq[String]) extends ScallopConf(args) {
     ConfigFactory.parseMap(Map(
       Seq(configKey(port, "protocol.port"),
         configKey(interface, "protocol.interface"),
-        configKey(protocol, "protocol"),
+        configKey(protocol, "protocol.type"),
         configKey(compiler, "compilerExecutable")).flatten: _*
     ).asJava)
   }

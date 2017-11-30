@@ -21,8 +21,8 @@ package de.thm.mope
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Tcp
+import akka.stream.{ActorMaterializer, OverflowStrategy}
+import akka.stream.scaladsl.{Source, Tcp}
 import akka.http.scaladsl.Http
 import akka.util.Timeout
 import com.softwaremill.macwire._
@@ -33,6 +33,8 @@ import de.thm.mope.compiler._
 import de.thm.mope.config.{ProjectConfig, ServerConfig}
 import de.thm.mope.declaration._
 import de.thm.mope.doc._
+import de.thm.mope.initializers.{BindingProvider, HttpBindingProvider, LspBindingProvider}
+import de.thm.mope.lsp.messages.NotificationMessage
 import de.thm.mope.project._
 import de.thm.mope.server._
 import de.thm.mope.suggestion._
@@ -40,10 +42,7 @@ import de.thm.mope.tags._
 import de.thm.mope.templates.TemplateModule
 import de.thm.mope.utils._
 
-import scala.concurrent.{
-  Future,
-  Promise
-}
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -86,23 +85,12 @@ trait MopeModule
 
   lazy val bufferActor:BufferActorRef = wireActor[lsp.BufferContentActor]("BCA").taggedWith[BufferActorMarker]
 
-  lazy val provider:Factory[Future[BindingWrapper]] = () => {
+  lazy val provider:BindingProvider = {
     if(serverConfig.useLsp) {
-      val notifyActorPromise = Promise[NotifyActorRef]()
-      val actorFut:Future[NotifyActorRef] = notifyActorPromise.future
-      val router:lsp.Routes = wire[lsp.Routes]
-      lazy val lspServer:lsp.LspServer = wire[lsp.LspServer]
-      val pipeline = lspServer.connectTo(router.routes).mapMaterializedValue { ref =>
-        //one's the actor is materialized; resolve the notification promise
-        notifyActorPromise.success(ref.taggedWith[NotifyActorMarker])
-        ref
-      }
-      Tcp().bindAndHandle(pipeline, serverConfig.interface, serverConfig.port)
-      .map(TcpBinding(_))
+      wire[LspBindingProvider]
     } else {
-      val router = wire[server.Routes]
-      Http().bindAndHandle(router.routes, serverConfig.interface, serverConfig.port)
-        .map(HttpBinding(_))
+      val router:server.Routes = wire[server.Routes]
+      wire[HttpBindingProvider]
     }
   }
 
