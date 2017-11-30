@@ -74,7 +74,7 @@ class Routes(
         (bufferActor ? BufferContentActor.GetWord(textDocument.path, position)).mapTo[Option[String]]
       .flatMap {
         case Some(word) =>
-          askProjectManager[Set[Suggestion]](CompletionRequest(textDocument.uri.getRawPath, position.filePosition,word))
+          askProjectManager[Seq[Suggestion]](CompletionRequest(textDocument.uri.getRawPath, position.filePosition,word))
             .map { set =>
               val items = set.map(CompletionItem(word,_)).toList
               JsObject("isIncomplete" -> false.toJson, "items" -> items.toJson)
