@@ -11,7 +11,7 @@ import spray.json._
 
 import scala.concurrent.{Future, Promise}
 
-class LspServerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
+class LspConnectionSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
   val inputElem = RequestMessage(2, "double", 50.toJson)
   val notification = NotificationMessage("notify", 50.toJson)
@@ -35,7 +35,7 @@ class LspServerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
 
   "The LspServer" should {
-    val server = new LspServer()
+    val server = new LspConnection()
     val pipe = server.connectTo(handler)
 
     val pipeline = Flow[RpcMessage]
@@ -66,7 +66,7 @@ class LspServerSpec extends ActorSpec with JsonSupport with LspJsonSupport {
 
     "send notifications downstream" in {
       val msg = NotificationMessage("diagnostics", 100.toJson)
-      val server = new LspServer()
+      val server = new LspConnection()
       val pipeline = Source.actorRef[NotificationMessage](1, OverflowStrategy.dropBuffer) //delay stream completion; don't use this actor
         .via(createMsg)
         .viaMat(server.connectTo(handler))(Keep.right)

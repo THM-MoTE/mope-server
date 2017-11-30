@@ -29,7 +29,7 @@ object MoPE
   def main(args: Array[String]) = {
     val module = new MopeModule {
       override lazy val config: Config = new ConfigProvider(new CliConf(args.seq), Constants.configFile).config
-      override implicit lazy val actorSystem: ActorSystem = ActorSystem("moie-system", config)
+      override implicit lazy val actorSystem: ActorSystem = ActorSystem("mope-system", config)
       override implicit lazy val mat: ActorMaterializer = ActorMaterializer()
     }
     configureLogging(module.serverConfig.applicationMode)

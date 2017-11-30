@@ -11,9 +11,6 @@ class BufferContentActor
   import BufferContentActor._
 
   /* TODO:
-   - hold a map of all opened files Path -> Content, keep it up-to-date
-   - use this map to query infos, e.g.: word of goToDefinition
-     - if map for path empty: use file from disk
    - unload after user saved a file
    */
 
@@ -33,7 +30,7 @@ class BufferContentActor
       fileContents += x.file -> x
       log.debug("New content for: {}", x.file)
     case GetContentRange(file, Some(range)) =>
-      val lines = fileContents.get(file).map(_.lines).get //FIXME: handle non cached files
+      val lines = fileContents.get(file).map(_.lines).get
       val containingLines = lines.slice(range.start.line,range.end.line+1)
       val firstLine = containingLines.head.drop(range.start.character)
       val lastLine = containingLines.last.take(range.end.character)
@@ -42,7 +39,7 @@ class BufferContentActor
       sender ! content
     case GetContentRange(file, None) => sender ! fileContents.get(file).map(_.content)
     case GetWord(file, Position(lineIdx,charIdx)) =>
-      val content = fileContents.get(file).map(_.lines).get //FIXME: handle non cached files
+      val content = fileContents.get(file).map(_.lines).get
 
       val word = wordPattern
         .findAllMatchIn(content(lineIdx))

@@ -14,8 +14,8 @@ import de.thm.mope.utils.StreamUtils
 
 import scala.util._
 
-class LspServer(servConf:ServerConfig)
-               (implicit val system:ActorSystem) //FIXME: rename into **connection**
+class LspConnection(servConf:ServerConfig)
+                   (implicit val system:ActorSystem)
     extends JsonSupport
       with LspJsonSupport {
 

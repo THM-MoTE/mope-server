@@ -28,7 +28,7 @@ with LspJsonSupport {
   import serverConfig.timeout
 
   override def provide(): Future[BindingWrapper] = {
-    lazy val lspServer:lsp.LspServer = wire[lsp.LspServer]
+    lazy val lspServer:lsp.LspConnection = wire[lsp.LspConnection]
     val notifyActorPromise = Promise[NotifyActorRef]()
     val actorFuture:Future[NotifyActorRef] = notifyActorPromise.future
     lazy val router:lsp.Routes = wire[lsp.Routes]
