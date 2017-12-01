@@ -6,8 +6,8 @@ import akka.util.ByteString
 
 /** The stage that handles the underlying Language-Server-Protocol.
   *
-  * Parses header & body and provides the body of the message (the json object).
-  * Should be used behind line-framing and before a json-serializer.
+  * Parses incoming ByteString's until a full LSP Message is read.
+  * Provides the body (json object) afterwards.
   */
 private[lsp] class ProtocolHandler extends GraphStage[FlowShape[ByteString,String]] {
   import ProtocolHandler._
