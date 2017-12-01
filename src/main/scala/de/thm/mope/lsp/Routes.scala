@@ -129,10 +129,8 @@ class Routes(
     } ||
      notification("textDocument/didChange") { change:DidChangeTextDocumentParams =>
       bufferActor ! BufferContentActor.BufferContent(change.textDocument.path, change.contentChanges.head.text)
-      Future.successful(())
     } ||
      notification[DidOpenTextDocumentParams]("textDocument/didOpen") { case DidOpenTextDocumentParams(document) =>
        bufferActor ! BufferContentActor.BufferContent(document.path, document.text)
-       Future.successful(())
     }
 }
