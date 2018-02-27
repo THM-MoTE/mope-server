@@ -23,15 +23,13 @@ import java.util.concurrent.ExecutorService
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import ews._
 
 import scala.concurrent.Future
 
 class FileWatchingActor(interestee: ActorRef, rootPath: Path, outputDirName: String, executor: ExecutorService)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import FileWatchingActor._
   import context.dispatcher
@@ -78,7 +76,7 @@ class FileWatchingActor(interestee: ActorRef, rootPath: Path, outputDirName: Str
 
   override def postStop(): Unit = {
     runningFuture.cancel(true)
-    log.info("stopping")
+    super.postStop()
   }
 }
 

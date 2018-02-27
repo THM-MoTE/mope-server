@@ -28,7 +28,7 @@ import de.thm.mope.doc.DocumentationProvider.GetDocumentation
 import de.thm.mope.server.FileWatchingActor.{DeletedPath, NewPath}
 import de.thm.mope.suggestion.{CompletionRequest, TypeRequest}
 import de.thm.mope.tree._
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import de.thm.mope.{SuggestionProviderPropsFactory, _}
 
 import scala.collection._
@@ -46,9 +46,7 @@ class ProjectManagerActor(
                            jumpPropsF: JumpToPropsFactory,
                            docPropsF: DocumentationProviderPropsFactory,
                            suggestionPropsF: SuggestionProviderPropsFactory)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import ProjectManagerActor._
   import context.dispatcher
@@ -92,6 +90,7 @@ class ProjectManagerActor(
 
   override def preStart() = {
     newProjectTree.map(InitialInfos) pipeTo self
+    super.preStart()
   }
 
   def errorInProjectFile(error: CompilerError): Boolean = {
@@ -172,7 +171,7 @@ class ProjectManagerActor(
 
   override def postStop(): Unit = {
     compiler.stop()
-    log.info("stopping")
+    super.postStop()
   }
 }
 

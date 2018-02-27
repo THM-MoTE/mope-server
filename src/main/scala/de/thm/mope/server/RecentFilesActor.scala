@@ -22,16 +22,14 @@ import java.nio.file.{Files, Path, Paths}
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import de.thm.mope.config.Constants
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import de.thm.recent.JsProtocol._
 import de.thm.recent._
 
 import scala.concurrent.Future
 
 class RecentFilesActor(recentFilesPath: Path)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import RecentFilesActor._
   import context._
@@ -66,6 +64,7 @@ class RecentFilesActor(recentFilesPath: Path)
   override def postStop(): Unit = {
     log.info("Writing {} recent files into {}", recent.recentElements.size, recentFilesPath)
     Files.write(recentFilesPath, recent.toJson.getBytes(Constants.encoding))
+    super.postStop()
   }
 }
 

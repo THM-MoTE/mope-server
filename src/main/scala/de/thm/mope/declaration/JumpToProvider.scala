@@ -26,7 +26,7 @@ import akka.stream.scaladsl._
 import de.thm.mope.position.{CursorPosition, FileWithLine}
 import de.thm.mope.suggestion.SrcFileInspector
 import de.thm.mope.utils.ResourceUtils
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import omc.corba.ScriptingHelper
 
 import scala.concurrent.Future
@@ -36,9 +36,7 @@ import scala.io.Source
 class JumpToProvider(
                       jumpLike: JumpToLike,
                       fileInspectorFactory: Path => SrcFileInspector)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import context.dispatcher
 

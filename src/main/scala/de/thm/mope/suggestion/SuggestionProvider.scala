@@ -26,7 +26,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion.Kind
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import de.thm.mope.utils.{ResourceUtils, StreamUtils}
 
 import scala.concurrent.Future
@@ -36,9 +36,7 @@ class SuggestionProvider(
                           compiler: CompletionLike,
                           fileInspectorFactory: Path => SrcFileInspector,
                           prefixMatcherFactory: String => PrefixMatcher)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import context.dispatcher
 

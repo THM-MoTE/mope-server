@@ -21,16 +21,14 @@ import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill}
 import de.thm.mope._
 import de.thm.mope.project.ProjectDescription
 import de.thm.mope.server.ProjectRegister._
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 
 /** Root actor for all registered projects. */
 class ProjectsManagerActor(
                             register: ProjectRegister,
                             recentFilesProps: RecentHandlerProps,
                             projectManagerPropsF: ProjectManagerPropsFactory)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import ProjectsManagerActor._
   import RecentFilesActor._
@@ -74,10 +72,6 @@ class ProjectsManagerActor(
           RemainingClients(register.clientCount)
       }
       log.info("Client {} disconnected; remaining clients {}", id, register.clientCount)
-  }
-
-  override def postStop(): Unit = {
-    log.info("stopping")
   }
 }
 

@@ -19,15 +19,13 @@ package de.thm.mope.doc
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
-import de.thm.mope.utils.actors.UnhandledReceiver
+import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 
 import scala.concurrent.Future
 
 /*+ An Actor which returns the documentation (as DocInfo) of a given `className`. */
 class DocumentationProvider(docLike: DocumentationLike)
-  extends Actor
-    with UnhandledReceiver
-    with ActorLogging {
+  extends MopeActor {
 
   import DocumentationProvider._
   import context.dispatcher
