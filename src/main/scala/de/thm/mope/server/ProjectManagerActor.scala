@@ -53,11 +53,12 @@ class ProjectManagerActor(
 
   private val indexFiles = projConfig.server.config.getBoolean("indexFiles")
   val rootDir = Paths.get(projConfig.project.path)
-  val fileWatchingActor = context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory, projConfig.server.executor))
+  val fileWatchingActor =
+    if(indexFiles) Some(context.actorOf(Props(classOf[FileWatchingActor], self, rootDir, projConfig.project.outputDirectory, projConfig.server.executor)))
+    else None
   val completionActor = context.actorOf(suggestionPropsF(compiler))
   val jumpProvider = context.actorOf(jumpPropsF(compiler))
   val docProvider = context.actorOf(docPropsF(compiler))
-
 
   val treeFilter: PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
@@ -69,7 +70,6 @@ class ProjectManagerActor(
   }
 
   private var projectFiles: TreeLike[Path] = Leaf(null) //temporary set to null until in state initialized
-
 
   def getProjectFiles: Future[TreeLike[Path]] =
     if (indexFiles) Future.successful(projectFiles)
