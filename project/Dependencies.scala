@@ -1,14 +1,16 @@
 import sbt._
+import sbt.io.Path
 
 object Dependencies {
 
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
-  def omcApi(snapshot:Boolean=false) =
-    if(snapshot) "com.github.THM-MoTE" % "omc-java-api" % "zeromq-SNAPSHOT"
+  def omcApi(locale:Boolean=false) =
+    if(locale) "de.thm.mni.mote" % "omc-java-api" % "0.3.4-zmq-pre"
     else "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
 
-  val jitpack = Resolver.url("jitpack", ulr("https://jitpack.io/"))
+  val jitpack = "jitpack" at "https://jitpack.io"
+  val localeM2 = "localem2" at s"file://${Path.userHome}/.m2/repository"
 
   private val akkaVersion = "2.4.19"
   private val akkaHTTPVersion = "10.0.10"
