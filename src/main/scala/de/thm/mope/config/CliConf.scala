@@ -24,10 +24,12 @@ import scala.collection.JavaConverters._
 
 /** Configuration for CLI-arguments parser. */
 class CliConf(args: Seq[String]) extends ScallopConf(args) {
-  val protocol = opt[String]("protocol")
-  val interface = opt[String]("interface")
-  val port = opt[Int]("port")
-  val compiler = opt[String]("compiler")
+  version(s"${build.ProjectInfo.name} ${build.ProjectInfo.version} ${build.ProjectInfo.copyright}")
+
+  val protocol = opt[String]("protocol", descr="the protocol to use, either `http` or `lsp`")
+  val interface = opt[String]("interface", descr="the interface to use, defaults to `localhost`")
+  val port = opt[Int]("port", descr="the port of the protocol to use")
+  val compiler = opt[String]("compiler", descr="the executable of the compiler to use")
   verify()
 
   private def configKey[A](opt: ScallopOption[A], k: String): Option[(String, String)] = {

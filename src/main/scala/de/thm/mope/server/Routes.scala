@@ -20,10 +20,12 @@ package de.thm.mope.server
 import java.nio.file.Path
 import java.util.NoSuchElementException
 
+import akka.actor.Status.Success
 import akka.actor.{ActorRef, PoisonPill}
 import akka.event.Logging
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
@@ -85,24 +87,19 @@ class Routes(
       shutdown("no active clients left")
     }
 
-  private def withIdExists[T: ToEntityMarshaller](id: Int)(fn: ActorRef => Future[T]) = {
-    val projectsManagerOpt = (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
-    val future = projectsManagerOpt.collect {
-      case Some(ref) => ref
-      case None => throw new NoSuchElementException(s"unknown project-id $id")
-    }.flatMap(fn)
-    complete(future)
+  private def projectManager:Directive1[ActorRef] = {
+    pathPrefix("project" / IntNumber).flatMap { id =>
+      val projectsManagerOpt = (projectsManager ? ProjectId(id)).mapTo[Option[ActorRef]]
+      val future = projectsManagerOpt.collect {
+        case Some(ref) => ref
+        case None => throw new NoSuchElementException(s"unknown project-id $id")
+      }
+      onSuccess(future)
+    }
   }
 
   private def postEntity[T](tpe: unmarshalling.FromRequestUnmarshaller[T]): server.Directive1[T] =
     post & entity(tpe)
-
-  private def postEntityWithId[T, Z: ToEntityMarshaller](tpe: unmarshalling.FromRequestUnmarshaller[T], id: Int)(fn: (T, ActorRef) => Future[Z]) =
-    postEntity(tpe) { t =>
-      withIdExists(id) { ref =>
-        fn(t, ref)
-      }
-    }
 
   def routes =
     handleExceptions(exceptionHandler) {
@@ -134,54 +131,65 @@ class Routes(
     }
 
   def projectRoutes =
-    pathPrefix("project" / IntNumber) { id =>
+    projectManager { projectManager =>
       path("disconnect") {
         post {
-          disconnectWithExit(id)
+          //disconnectWithExit(id)
           complete(StatusCodes.NoContent)
         }
       } ~
         path("compile") {
-          postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
-            (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
+          postEntity(as[FilePath]) { filepath =>
+            complete {
+              (projectManager ? CompileProject(filepath)).mapTo[Seq[CompilerError]]
+            }
           }
         } ~
         path("compileScript") {
-          postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
-            (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
-
+          postEntity(as[FilePath]) { filepath =>
+            complete {
+              (projectManager ? CompileScript(filepath)).mapTo[Seq[CompilerError]]
+            }
           } ~
             get {
-              withIdExists(id) { projectManager =>
+              complete {
                 (projectManager ? CompileDefaultScript).mapTo[Seq[CompilerError]]
               }
             }
         } ~
         path("checkModel") {
-          postEntityWithId(as[FilePath], id) { (filepath, projectManager) =>
-            (projectManager ? CheckModel(filepath)).mapTo[String]
+          postEntity(as[FilePath]) { filepath =>
+            complete {
+              (projectManager ? CheckModel(filepath)).mapTo[String]
+            }
           }
         } ~
         path("completion") {
-          postEntityWithId(as[CompletionRequest], id) { (completion, projectManager) =>
-            (projectManager ? completion).mapTo[Seq[Suggestion]]
+          postEntity(as[CompletionRequest]) { completion =>
+            complete {
+              (projectManager ? completion).mapTo[Seq[Suggestion]]
+            }
           }
         } ~
         path("typeOf") {
-          postEntityWithId(as[TypeRequest], id) { (typeOf, projectManager) =>
-            (projectManager ? typeOf).mapTo[Option[TypeOf]].
-              flatMap(optionToNotFoundExc(_, s"type of ${typeOf.word} is unknown"))
+          postEntity(as[TypeRequest]) { typeOf =>
+            complete {
+              (projectManager ? typeOf).mapTo[Option[TypeOf]].
+                flatMap(optionToNotFoundExc(_, s"type of ${typeOf.word} is unknown"))
+            }
           }
         } ~
         path("declaration") {
-          postEntityWithId(as[CursorPosition], id) { (cursor, projectManager) =>
-            (projectManager ? DeclarationRequest(cursor)).
-              mapTo[Option[FileWithLine]].
-              flatMap(optionToNotFoundExc(_, s"declaration of ${cursor.word} not found"))
+          postEntity(as[CursorPosition]) { cursor =>
+            complete {
+              (projectManager ? DeclarationRequest(cursor)).
+                mapTo[Option[FileWithLine]].
+                flatMap(optionToNotFoundExc(_, s"declaration of ${cursor.word} not found"))
+            }
           }
         } ~
-        (path("doc") & get & parameters("class") & extractUri) { (clazz, uri) =>
-          withIdExists(id) { projectManager =>
+        (get & path("doc") & parameters("class") & extractUri) { (clazz, uri) =>
+          complete {
             (projectManager ? GetDocumentation(clazz)).
               mapTo[Option[DocInfo]].
               map {
