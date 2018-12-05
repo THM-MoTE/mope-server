@@ -6,7 +6,7 @@ object Dependencies {
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
   def omcApi(locale:Boolean=false) =
-    if(locale) "de.thm.mni.mote" % "omc-java-api" % "0.3.4-zmq-pre"
+    if(locale) "de.thm.mni.mote" % "omc-java-api" % "0.3.5"
     else "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
 
   val jitpack = "jitpack" at "https://jitpack.io"
