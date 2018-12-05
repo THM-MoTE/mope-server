@@ -1,5 +1,10 @@
 # Changelog of Mo|E-Server
 
+## Prerelease 0.6.4-zmq
+
+- replace OMC's CORBA interface with ZeroMQ, so that mope still works with `java-11`.
+  Java `11` will remove the CORBA APIs from the standard library.
+
 ## Version 0.6.3
 - Update dependency versions:
   - scala 2.12
