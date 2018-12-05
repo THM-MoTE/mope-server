@@ -28,6 +28,8 @@ import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
 import omc.corba.ScriptingHelper._
 import omc.corba._
+import omc.ZeroMQClient
+import omc.ior.ZMQPortFileProvider
 import omc.{ImportHandler, LoadLibraryException}
 import org.slf4j.LoggerFactory
 
@@ -39,9 +41,8 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
   private val msgParser = new MsgParser()
   private val omc: OMCInterface = {
     val forceEnglish = projConfig.server.config.getBoolean("forceEnglish")
-    val suffixProvider = new CustomIORNameProvider("mope", true)
-    if (forceEnglish) new OMCClient(projConfig.server.compilerExecutable, Constants.usLocale, suffixProvider)
-    else new OMCClient(projConfig.server.compilerExecutable, suffixProvider)
+    if (forceEnglish) new ZeroMQClient(projConfig.server.compilerExecutable, Constants.usLocale, new ZMQPortFileProvider("mope_local"))
+    else new ZeroMQClient(projConfig.server.compilerExecutable)
   }
   private val paramRegex = """input\s*([\w\d]+)\s*([\w\d]+)""".r
 

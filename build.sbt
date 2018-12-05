@@ -34,6 +34,8 @@ lazy val root = Project(id = "moie-server", base = file(".")).
     javacOptions ++= Seq("-source", "1.8"),
     mainClass in Compile := Some("de.thm.mope.MoPE"),
     configDir := new File(System.getProperty("user.home")) / ".mope",
+    resolvers += Dependencies.jitpack,
+    resolvers += Dependencies.localeM2,
     libraryDependencies ++= Dependencies.usedDependencies,
     parallelExecution in Test := false,
     aggregate in Test := false
