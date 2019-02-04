@@ -5,12 +5,11 @@ object Dependencies {
 
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
-  def omcApi(locale:Boolean=false) =
-    if(locale) "de.thm.mni.mote" % "omc-java-api" % "0.3.5"
-    else "de.thm.mni.mote" % "omc-java-api" % "0.3.4"
+  def omcApi(snapshot:Boolean=false) =
+    if(snapshot) "com.github.THM-MoTE" % "omc-java-api" % "master-SNAPSHOT"
+    else "de.thm.mni.mote" % "omc-java-api" % "0.3.5"
 
   val jitpack = "jitpack" at "https://jitpack.io"
-  val localeM2 = "localem2" at s"file://${Path.userHome}/.m2/repository"
 
   private val akkaVersion = "2.4.19"
   private val akkaHTTPVersion = "10.0.10"
@@ -36,7 +35,7 @@ object Dependencies {
   private val scalaUtilsGroup = "org.scala-lang.modules"
 
   val utils = Seq(
-    omcApi(true),
+    omcApi(false),
     scalaUtilsGroup %% "scala-parser-combinators" % scalaUtilsVersion,
     "org.rogach" %% "scallop" % "3.1.1"
   )
