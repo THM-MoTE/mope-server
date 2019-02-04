@@ -23,6 +23,8 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import de.thm.mope.config.{Constants, ServerConfig}
 import de.thm.mope.utils.MopeExitCodes
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class Server(router: Routes,
              serverConfig: ServerConfig)(
@@ -58,10 +60,13 @@ class Server(router: Routes,
         actorSystem.terminate()
     }
 
-    serverlog.info("Press Ctrl+D to interrupt")
-    while (System.in.read() != -1) {} //wait for Ctrl+D (end-of-transmission) ; EOT == -1 for JVM
-    bindingFuture.
-      flatMap(_.unbind()).
-      onComplete(_ => actorSystem.terminate())
+    scala.sys.addShutdownHook {
+      bindingFuture
+      .flatMap(_.unbind())
+      .onComplete { _ =>
+        actorSystem.terminate()
+      }
+      Await.ready(actorSystem.whenTerminated, 60.seconds)
+    }
   }
 }
