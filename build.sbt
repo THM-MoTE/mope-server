@@ -30,8 +30,8 @@ lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
     organization := "de.thm.mote",
     name := "MoPE-server",
-    version := "0.6.4-zmq",
-    scalaVersion := "2.12.3",
+    version := "0.6.5",
+    scalaVersion := "2.12.8",
     javacOptions ++= Seq("-source", "1.8"),
     mainClass in Compile := Some("de.thm.mope.MoPE"),
     configDir := new File(System.getProperty("user.home")) / ".mope",

@@ -1,5 +1,11 @@
 # Changelog of Mo|E-Server
 
+## Version 0.6.5
+
+- Use OMC's ZeroMQ interface
+- Add shutdown hook for gracefull termination in non-interactive server-sessions
+- dockerize the server
+
 ## Prerelease 0.6.4-zmq
 
 - replace OMC's CORBA interface with ZeroMQ, so that mope still works with `java-11`.
