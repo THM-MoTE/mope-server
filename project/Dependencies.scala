@@ -6,8 +6,12 @@ object Dependencies {
   def fromGithub(url:String) = RootProject(uri(url))
   def fromFile(url:String) = RootProject(file(url))
   def omcApi(snapshot:Boolean=false) =
-    if(snapshot) "com.github.THM-MoTE" % "omc-java-api" % "master-SNAPSHOT"
-    else "de.thm.mni.mote" % "omc-java-api" % "0.3.5"
+    if(snapshot) Seq(
+      "org.antlr" % "antlr4-runtime" % "4.5.3",
+      "org.apache.commons" % "commons-lang3" % "3.5",
+      "org.zeromq" % "jeromq" % "0.4.3"
+    )
+    else Seq("de.thm.mni.mote" % "omc-java-api" % "0.3.5")
 
   val jitpack = "jitpack" at "https://jitpack.io"
 
@@ -34,8 +38,7 @@ object Dependencies {
   private val scalaUtilsVersion = "1.0.6"
   private val scalaUtilsGroup = "org.scala-lang.modules"
 
-  val utils = Seq(
-    omcApi(false),
+  val utils = omcApi(true) ++ Seq(
     scalaUtilsGroup %% "scala-parser-combinators" % scalaUtilsVersion,
     "org.rogach" %% "scallop" % "3.1.1"
   )
