@@ -36,7 +36,7 @@ object ModelicaProjectTree {
 
   def singleFiles(tree: TreeLike[Path], packageDirectories: List[Path]): List[Path] = {
     tree.filterElements { path =>
-      !packageDirectories.forall(path.startsWith)
+      packageDirectories.find(path.startsWith).isEmpty
     }.filterNot(Files.isDirectory(_))
   }
 }
