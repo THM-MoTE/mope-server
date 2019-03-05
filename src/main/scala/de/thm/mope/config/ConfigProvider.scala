@@ -40,4 +40,9 @@ object ConfigProvider {
     }
     ConfigFactory.parseURL(file.toUri.toURL)
   }
+
+  def resourceProvidedConfig: Config =
+    ConfigFactory.load("mope.conf")
+      .withFallback(ConfigFactory.load("fallback.conf"))
+      .resolve()
 }
