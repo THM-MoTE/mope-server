@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.util._
+import com.github.tototoshi.csv.CSVReader
 
 class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -200,7 +201,7 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     }
   }
 
-  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, String]] = {
+  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[String]]] = {
     val code = arguments
       .updated("numberOfIntervals", "1") //first overwrite options
       .updated("outputFormat", "\"csv\"")
@@ -213,7 +214,22 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     } else {
       val str = res.result
       log.debug("simulation returned: {}", str)
-      Success(Map())
+      val pathTry = OMCompiler.simulationResultFilePattern
+        .findFirstMatchIn(str).map { m =>
+          Paths.get(m.group(1)) //path to result.csv file
+        }.toRight(SimulationError("the result string didn't contain a 'resultFile' property"))
+        .toTry
+
+      pathTry.map { p =>
+        val reader = CSVReader.open(p.toFile, Constants.encoding.name)
+        val map = reader.toStreamWithHeaders.foldLeft(Map.empty[String, List[String]]) {
+          (acc, map) => map.foldLeft(acc) {
+            case (acc, (k,v)) if acc.contains(k) => acc.updated(k, v::acc(k))
+            case (acc, (k,v)) => acc.updated(k, v::Nil)
+          }
+        }
+        map.mapValues(_.reverse)
+      }
     }
   }
 
@@ -281,4 +297,8 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
   }
 
   override def stop(): Unit = omc.disconnect()
+}
+
+object OMCompiler {
+  private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+]+)\"""".r
 }

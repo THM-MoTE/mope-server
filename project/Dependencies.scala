@@ -40,7 +40,8 @@ object Dependencies {
 
   val utils = omcApi(true) ++ Seq(
     scalaUtilsGroup %% "scala-parser-combinators" % scalaUtilsVersion,
-    "org.rogach" %% "scallop" % "3.1.1"
+    "org.rogach" %% "scallop" % "3.1.1",
+    "com.github.tototoshi" %% "scala-csv" % "1.3.+"
   )
 
 
