@@ -117,7 +117,7 @@ class ProjectManagerActor(
             _ = log.debug("Checked model from {} with {}", file, msg: Any)
           } yield msg) pipeTo sender
         case SimulateModel(modelName,options) =>
-          Future(compiler.simulate(modelName, options))
+          Future(compiler.simulate(modelName, options))(projConfig.server.blockingDispatcher)
             .flatMap(Future.fromTry(_))
             .map(res => models.SimulationResult(modelName, res))
             .pipeTo(sender)
