@@ -31,7 +31,6 @@ import de.thm.mope.tree._
 import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
 import de.thm.mope.{SuggestionProviderPropsFactory, _}
 
-import scala.collection._
 import scala.concurrent.Future
 import scala.language.postfixOps
 
@@ -117,6 +116,11 @@ class ProjectManagerActor(
             msg <- Future(compiler.checkModel(tree, file))
             _ = log.debug("Checked model from {} with {}", file, msg: Any)
           } yield msg) pipeTo sender
+        case SimulateModel(modelName,options) =>
+          Future(compiler.simulate(modelName, options))
+            .flatMap(Future.fromTry(_))
+            .map(res => models.SimulationResult(modelName, res))
+            .pipeTo(sender)
       })
 
   private def forward: Receive = {
@@ -186,6 +190,8 @@ object ProjectManagerActor {
   case class CompileScript(path: Path) extends ProjectManagerMsg
 
   case class CheckModel(path: Path) extends ProjectManagerMsg
+
+  case class SimulateModel(modelName:String, options:Map[String,String]) extends ProjectManagerMsg
 
   private[ProjectManagerActor] case class InitialInfos(files: TreeLike[Path])
 

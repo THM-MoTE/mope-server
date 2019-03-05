@@ -26,6 +26,7 @@ import de.thm.mope.suggestion.CompletionLike
 import de.thm.mope.tree.TreeLike
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 /** Defines behaviour for Modelica compilers or compiler interfaces. */
 trait ModelicaCompiler
@@ -57,6 +58,8 @@ trait ModelicaCompiler
     * This list should be identical to the `files` list in compile().
     */
   def checkModel(projectTree: TreeLike[Path], path: Path): String
+
+  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]]
 
   override def getClassComment(className: String): Option[String] = getClassDocumentation(className)
 }

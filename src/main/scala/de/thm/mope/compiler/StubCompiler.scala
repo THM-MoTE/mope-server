@@ -24,6 +24,8 @@ import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion._
 import de.thm.mope.tree.TreeLike
 
+import scala.util.{Failure, Try}
+
 trait StubCompiler
   extends ModelicaCompiler {
 
@@ -46,6 +48,8 @@ trait StubCompiler
   override def getParameters(className: String): List[(String, Option[String])] = List[(String, Option[String])]()
 
   override def getClassDocumentation(className: String): Option[String] = None
+
+  override def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]] = Failure(new IllegalStateException("StubCompiler can't simulate!"))
 
   override def getGlobalScope(): Set[(String, Kind.Value)] = Set[(String, Kind.Value)]()
 }

@@ -37,9 +37,10 @@ import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo
 import de.thm.mope.doc.DocInfo._
 import de.thm.mope.doc.DocumentationProvider.GetDocumentation
+import de.thm.mope.models.{SimulateRequest, SimulationResult}
 import de.thm.mope.position._
 import de.thm.mope.project._
-import de.thm.mope.server.ProjectManagerActor.{CheckModel, CompileDefaultScript, CompileProject, CompileScript}
+import de.thm.mope.server.ProjectManagerActor._
 import de.thm.mope.server.ProjectsManagerActor.{Disconnect, ProjectId, RemainingClients}
 import de.thm.mope.server.RecentFilesActor._
 import de.thm.mope.suggestion.{CompletionRequest, Suggestion, TypeOf, TypeRequest}
@@ -162,6 +163,14 @@ class Routes(
             complete {
               (projectManager ? CheckModel(filepath)).mapTo[String]
             }
+          }
+        } ~
+        path("simulate") {
+          postEntity(as[SimulateRequest]) { requ =>
+            complete(for {
+              opts <- requ.convertOptions
+              res <- (projectManager ? SimulateModel(requ.modelName, opts)).mapTo[SimulationResult]
+            } yield res)
           }
         } ~
         path("completion") {

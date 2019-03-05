@@ -21,6 +21,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import de.thm.mope.compiler.CompilerError
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.ClassComment
+import de.thm.mope.models.{SimulateRequest, SimulationResult}
 import de.thm.mope.position._
 import de.thm.mope.project._
 import de.thm.mope.suggestion.Suggestion.Kind
@@ -48,4 +49,6 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val typeOfFormat: RootJsonFormat[TypeOf] = jsonFormat3(TypeOf)
   implicit val typeRequestFormat: RootJsonFormat[TypeRequest] = jsonFormat3(TypeRequest)
   implicit val cursorPosFormat: RootJsonFormat[CursorPosition] = jsonFormat3(CursorPosition)
+  implicit val simRequFormat: RootJsonFormat[SimulateRequest] = jsonFormat2(SimulateRequest)
+  implicit val simRespFormat: RootJsonFormat[SimulationResult] = jsonFormat2(SimulationResult)
 }

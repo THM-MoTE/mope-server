@@ -23,6 +23,7 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.ExceptionHandler
+import spray.json.DeserializationException
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,6 +36,8 @@ trait ErrorHandling {
   def serverlog: LoggingAdapter
 
   def exceptionHandler: ExceptionHandler = ExceptionHandler {
+    case ex:DeserializationException =>
+      complete(HttpResponse(StatusCodes.BadRequest, entity = ex.getMessage))
     case ex: NotFoundException =>
       extractUri { uri =>
         serverlog.debug("got NotFoundExc for {}", uri)

@@ -201,7 +201,7 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     }
   }
 
-  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[String]]] = {
+  override def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]] = {
     val code = arguments
       .updated("numberOfIntervals", "1") //first overwrite options
       .updated("outputFormat", "\"csv\"")
@@ -232,8 +232,9 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
             case (acc, (k,v)) => acc.updated(k, v::Nil)
           }
         }
-        //finally reverse the generated list because we prepend to it
-        map.mapValues(_.reverse)
+        reader.close()
+        //finally convert stringified-numbers to Doubles & reverse the generated list because we prepend to it
+        map.mapValues(_.map(_.toDouble).reverse)
       }
     }
   }
