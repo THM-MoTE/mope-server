@@ -200,6 +200,23 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     }
   }
 
+  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, String]] = {
+    val code = arguments
+      .updated("numberOfIntervals", "1") //first overwrite options
+      .updated("outputFormat", "\"csv\"")
+      .map { case (k,v) => s"$k=$v"} //now encode in modelica code
+      .toList
+    log.debug("simulating {} with flags: {}", modelName:Any, code:Any)
+    val res = omc.call("simulate", (modelName :: code):_*)
+    if(res.error.isPresent) {
+      Failure(SimulationError(s"simulating failed with: ${res.error.get}"))
+    } else {
+      val str = res.result
+      log.debug("simulation returned: {}", str)
+      Success(Map())
+    }
+  }
+
   private def getCompletionType(classNames: Seq[String]): Seq[Kind.Value] = {
     classNames.map { x =>
       if (omc.is_("Function", x)) Kind.Function
