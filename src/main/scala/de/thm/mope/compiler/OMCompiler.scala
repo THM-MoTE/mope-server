@@ -214,6 +214,8 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     } else {
       val str = res.result
       log.debug("simulation returned: {}", str)
+      //extracts the path from teh SimulationResult record
+      //see: https://build.openmodelica.org/Documentation/OpenModelica.Scripting.simulate.html
       val pathTry = OMCompiler.simulationResultFilePattern
         .findFirstMatchIn(str).map { m =>
           Paths.get(m.group(1)) //path to result.csv file
@@ -222,12 +224,15 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
 
       pathTry.map { p =>
         val reader = CSVReader.open(p.toFile, Constants.encoding.name)
+        //CSVReader generates a stream of maps, where each map corresponds to 1 line (String -> String) but we want
+        //a map with lists as values: each variable has different values over time
         val map = reader.toStreamWithHeaders.foldLeft(Map.empty[String, List[String]]) {
-          (acc, map) => map.foldLeft(acc) {
+          (acc:Map[String, List[String]], currentMap:Map[String,String]) => currentMap.foldLeft(acc) {
             case (acc, (k,v)) if acc.contains(k) => acc.updated(k, v::acc(k))
             case (acc, (k,v)) => acc.updated(k, v::Nil)
           }
         }
+        //finally reverse the generated list because we prepend to it
         map.mapValues(_.reverse)
       }
     }
