@@ -57,10 +57,9 @@ class SimulateActor(
   override def receive:Receive = {
     case msg:SimulateActor.SimulateModel =>
       log.info("creating worker for {}", msg)
-      val id = java.util.UUID.randomUUID().toString
-      val child = context.actorOf(workerProps, name=id)
+      val child = context.actorOf(workerProps)
       child ! msg
-      sender ! SimulateActor.SimulationId(id)
+      sender ! SimulateActor.SimulationId(child.path.name)
     case SimulateActor.SimulationId(id) =>
       val selection = context.actorSelection(id)
       log.debug("searching for {} is {}", id:Any, selection:Any)
