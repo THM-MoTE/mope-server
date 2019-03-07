@@ -167,10 +167,7 @@ class Routes(
         } ~
         path("simulate") {
           postEntity(as[SimulateRequest]) { requ =>
-            complete(for {
-              opts <- requ.convertOptions
-              res <- (projectManager ? SimulateModel(requ.modelName, opts)).mapTo[SimulationResult]
-            } yield res)
+            ??? //FIXME: update this!
           }
         } ~
         path("completion") {

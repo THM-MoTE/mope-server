@@ -28,18 +28,13 @@ class SimulationTest extends ActorSpec with Inspectors {
   val descr = ProjectDescription(tmpDir.toString, tmpDir.resolve("out").toString, None)
   val compiler = new OMCompiler(ProjectConfig(module.serverConfig, descr))
 
-  val treeFilter: PathFilter = { p =>
-    Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
-      p.endsWith(descr.outputDirectory)
-  }
-
   "The OMCompiler#'simulate' function" should {
     "simulate the bouncing ball without errors" in {
-      compiler.compile(FileSystemTree(tmpDir, treeFilter), modelicaFile)
+      compiler.compile(projectTree(tmpDir, descr.outputDirectory), modelicaFile)
       compiler.simulate("BouncingBall", Map()) shouldBe an [Success[_]]
     }
     "return a map of variables" in {
-      compiler.compile(FileSystemTree(tmpDir, treeFilter), modelicaFile)
+      compiler.compile(projectTree(tmpDir, descr.outputDirectory), modelicaFile)
       val map = compiler.simulate("BouncingBall", Map("stopTime" -> "3")).get
       println(map)
       //all the same size
