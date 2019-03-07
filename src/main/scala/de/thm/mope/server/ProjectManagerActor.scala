@@ -58,6 +58,7 @@ class ProjectManagerActor(
   val completionActor = context.actorOf(suggestionPropsF(compiler))
   val jumpProvider = context.actorOf(jumpPropsF(compiler))
   val docProvider = context.actorOf(docPropsF(compiler))
+  val simulateActor = context.actorOf(Props(classOf[SimulateActor], compiler, projConfig))
 
   val treeFilter: PathFilter = { p =>
     Files.isDirectory(p) || FileWatchingActor.moFileFilter(p) ||
@@ -123,6 +124,7 @@ class ProjectManagerActor(
     case x: TypeRequest => completionActor forward x
     case x: DeclarationRequest => jumpProvider forward x
     case x: GetDocumentation => docProvider forward x
+    case x: SimulateActor.SimulateActorMsg => simulateActor forward x
   }
 
   private def compile: Receive = {

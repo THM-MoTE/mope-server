@@ -165,9 +165,18 @@ class Routes(
             }
           }
         } ~
-        path("simulate") {
-          postEntity(as[SimulateRequest]) { requ =>
-            ??? //FIXME: update this!
+      pathPrefix("simulate") {
+        (get & pathPrefix(Remaining)) { id =>
+          println(s"searching for $id")
+            val opt = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Option[SimulationResult]]
+            complete(opt)
+          } ~
+          (postEntity(as[SimulateRequest]) & extractUri) { (req, uri) =>
+            complete(for {
+              opts <- req.convertOptions
+              id <- (projectManager ? SimulateActor.SimulateModel(req.modelName, opts)).mapTo[SimulateActor.SimulationId]
+              idUri = Uri(id.id).resolvedAgainst(uri+"/")
+            } yield HttpResponse(StatusCodes.Accepted, entity = idUri.toString).withHeaders(headers.Location(idUri)))
           }
         } ~
         path("completion") {
