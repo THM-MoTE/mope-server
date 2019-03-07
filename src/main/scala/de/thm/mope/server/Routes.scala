@@ -167,7 +167,6 @@ class Routes(
         } ~
       pathPrefix("simulate") {
         (get & pathPrefix(Remaining)) { id =>
-          println(s"searching for $id")
             val opt = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Option[SimulationResult]]
             complete(opt)
           } ~
