@@ -57,9 +57,10 @@ class SimulateActor(
   override def receive:Receive = {
     case msg:SimulateActor.SimulateModel =>
       log.info("creating worker for {}", msg)
-      val child = context.actorOf(workerProps)
+      val id = java.util.UUID.randomUUID().toString
+      val child = context.actorOf(workerProps, name=id)
       child ! msg
-      sender ! SimulateActor.SimulationId(child.path.name)
+      sender ! SimulateActor.SimulationId(id)
     case SimulateActor.SimulationId(id) =>
       val selection = context.actorSelection(id)
       log.debug("searching for {} is {}", id:Any, selection:Any)
@@ -68,6 +69,7 @@ class SimulateActor(
 }
 
 object SimulateActor {
-  case class SimulationId(id:String)
-  case class SimulateModel(modelName:String, options:Map[String,String])
+  sealed trait SimulateActorMsg
+  case class SimulationId(id:String) extends SimulateActorMsg
+  case class SimulateModel(modelName:String, options:Map[String,String]) extends SimulateActorMsg
 }
