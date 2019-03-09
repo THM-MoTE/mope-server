@@ -166,9 +166,12 @@ class Routes(
           }
         } ~
       pathPrefix("simulate") {
-        (get & pathPrefix(Remaining)) { id =>
-            val opt = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Option[SimulationResult]]
-            complete(opt)
+        (get & pathPrefix(Remaining) & extractUri) { (id, uri) =>
+          val eitherF = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Either[SimulateActor.NotFinished,SimulationResult]]
+          onSuccess(eitherF) {
+            case Left(nf) => complete(HttpResponse(StatusCodes.Conflict, entity = nf.message).withHeaders(headers.Location(uri)))
+            case Right(result) => complete(result)
+          }
           } ~
           (postEntity(as[SimulateRequest]) & extractUri) { (req, uri) =>
             complete(for {

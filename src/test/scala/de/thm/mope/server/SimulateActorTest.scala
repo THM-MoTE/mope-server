@@ -62,10 +62,20 @@ class SimulateActorTest  extends ActorSpec with Inspectors {
       val sid:SimulateActor.SimulationId = expectMsgType[SimulateActor.SimulationId](5 seconds)
       Await.result(underlying.context.actorSelection(sid.id).resolveOne, 5 seconds) shouldBe an [ActorRef]
       testRef ! sid
-      expectMsgType[Option[SimulationResult]](5 seconds) shouldBe an [Option[_]]
-      Thread.sleep(5000)
+      expectMsgType[Either[SimulateActor.NotFinished,SimulationResult]](5 seconds) shouldBe an [Left[_,_]]
+      Thread.sleep(8000)
       testRef ! sid
-      expectMsgType[Option[SimulationResult]](5 seconds) shouldBe an [Some[_]]
+      expectMsgType[Either[SimulateActor.NotFinished,SimulationResult]](5 seconds) shouldBe an [Right[_,_]]
+    }
+    "return 'NotFinished' if still running" in {
+      testRef ! SimulateActor.SimulateModel("BouncingBall", Map("stopTime" -> "6"))
+      val sid:SimulateActor.SimulationId = expectMsgType[SimulateActor.SimulationId](5 seconds)
+      testRef ! sid
+      val Left(x) = expectMsgType[Left[SimulateActor.NotFinished,SimulationResult]](5 seconds)
+      x shouldBe an [SimulateActor.NotFinished]
+      Thread.sleep(8000)
+      testRef ! sid
+      expectMsgType[Right[SimulateActor.NotFinished,SimulationResult]](5 seconds)
     }
   }
 }

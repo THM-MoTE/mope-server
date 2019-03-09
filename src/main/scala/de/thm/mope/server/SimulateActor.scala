@@ -43,8 +43,8 @@ private class SimulateWorker(
   }
 
   private def running(f:Future[SimulationResult]): Receive = {
-    case SimulateActor.SimulationId(_) if f.isCompleted => f.map(Some(_)) pipeTo sender
-    case _ => sender ! None
+    case SimulateActor.SimulationId(_) if f.isCompleted => f.map(Right(_)) pipeTo sender
+    case SimulateActor.SimulationId(id) => sender ! Left(SimulateActor.NotFinished(id))
   }
 }
 
@@ -72,4 +72,7 @@ object SimulateActor {
   sealed trait SimulateActorMsg
   case class SimulationId(id:String) extends SimulateActorMsg
   case class SimulateModel(modelName:String, options:Map[String,String]) extends SimulateActorMsg
+  case class NotFinished(id:String) extends SimulateActorMsg {
+    def message:String = s"simulation for $id not finished!"
+  }
 }
