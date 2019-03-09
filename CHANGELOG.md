@@ -1,5 +1,8 @@
 # Changelog of Mo|E-Server
 
+## Version 0.6.6
+- add basic simulation route
+
 ## Version 0.6.5
 
 - Use OMC's ZeroMQ interface

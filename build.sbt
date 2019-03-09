@@ -23,14 +23,14 @@ sourceGenerators in Compile += Def.task {
     "name" -> (name in root).value,
     "version" -> (version in root).value,
     "organization" -> (organization in root).value,
-    "copyright" -> "() 2016,2017 Nicola Justus"))
+    "copyright" -> "() 2016-2018 Nicola Justus"))
 }.taskValue
 
 lazy val root = Project(id = "moie-server", base = file(".")).
   settings(
     organization := "de.thm.mote",
     name := "MoPE-server",
-    version := "0.6.5",
+    version := "0.6.6",
     scalaVersion := "2.12.8",
     javacOptions ++= Seq("-source", "1.8"),
     mainClass in Compile := Some("de.thm.mope.MoPE"),
