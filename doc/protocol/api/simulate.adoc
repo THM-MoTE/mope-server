@@ -1,0 +1,84 @@
+=== Simulate a model
+Simulates a model in background.
+Simulation will be started in background and the status can be queried using the returned Location header.
+
+----
+POST /mope/project/:id/simulate
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+|===
+
+==== Data Parameters
+An object containing the model name and simulation options.
+The options is a json object containing any option of
+https://build.openmodelica.org/Documentation/OpenModelica.Scripting.simulate.html[Openmodelica's scripting api].
+Currently only string's and number's are supported as option-values.
+Gets decoded as `de.thm.mope.models.SimulateRequest` inside the server.
+
+[source, json]
+----
+{
+  "modelName": <String>,
+  "options": <JSON-Object> //simulation options
+}
+----
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**202 Accepted**# | Location URI of simulation status. | string
+| [red]#**404 NotFound**# | Given id is unknown. | string
+|===
+
+=== Query simulation status
+Returns the status of a (possibly) running simulation.
+
+----
+GET /mope/project/:id/simulate/:sid
+----
+
+==== URL Parameters
+|===
+| Name | Description | Required | Schema
+
+| id | Project ID | y | integer
+| sid | Simulation ID | y | string
+|===
+
+==== Data Parameters
+
+==== Responses
+|===
+| Code | Description | Schema
+
+| [green]#**200 OK**#
+a| An object containing simulation results.
+  Each variable has several values over time.
+a|
+[source, json]
+----
+{
+  "modelName": <string>,
+  "variables": {
+    "<var1>": [
+      1.0,
+      5.0,
+      ...
+    ],
+    "<var2>": [
+      2.0,
+      4.5,
+      ...
+    ]
+  }
+}
+----
+| [red]#**409 Conflict**# | The simulation isn't finished yet. | string containing error message
+| [red]#**404 NotFound**# | Given id is unknown. | string
+|===
