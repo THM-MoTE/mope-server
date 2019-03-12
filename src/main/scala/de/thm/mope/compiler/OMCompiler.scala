@@ -306,5 +306,5 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
 }
 
 object OMCompiler {
-  private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+]+)\"""".r
+  private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+\s]+)\"""".r
 }
