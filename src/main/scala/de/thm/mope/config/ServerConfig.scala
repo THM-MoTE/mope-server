@@ -27,11 +27,14 @@ import com.softwaremill.tagging._
 import com.typesafe.config.Config
 import de.thm.mope.tags.RecentFileMarker
 
+case class SimulationConfig(numberOfIntervals:Int)
+
 /** Settings for the whole server (aka environment). */
 case class ServerConfig(
                          config: Config,
                          executor: ExecutorService,
                          configDir: Path = Constants.configDir,
+                         simulation: SimulationConfig = SimulationConfig(5),
                          recentFiles: Path @@ RecentFileMarker = Constants.recentFiles)(
                          implicit
                          val timeout: Timeout,

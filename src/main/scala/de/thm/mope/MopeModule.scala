@@ -27,7 +27,7 @@ import com.softwaremill.macwire.akkasupport._
 import com.softwaremill.tagging._
 import com.typesafe.config.Config
 import de.thm.mope.compiler._
-import de.thm.mope.config.{ProjectConfig, ServerConfig}
+import de.thm.mope.config.{ProjectConfig, ServerConfig, SimulationConfig}
 import de.thm.mope.declaration._
 import de.thm.mope.doc._
 import de.thm.mope.project._
@@ -50,7 +50,8 @@ trait MopeModule
     }
     ServerConfig(
       config,
-      executor)(
+      executor,
+      simulation = SimulationConfig(config.getInt("simulation.numberOfIntervals")))(
       Timeout(config.getInt("defaultAskTimeout") seconds),
       actorSystem.dispatchers.lookup("akka.dispatchers.blocking-io"))
   }
