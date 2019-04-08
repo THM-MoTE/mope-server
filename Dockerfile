@@ -7,6 +7,7 @@ RUN tar xfvz /tmp/openjdk.tar.gz --directory /opt &&\
 
 RUN useradd -ms /bin/bash openmodelica
 RUN mkdir -p /home/openmodelica/data &&\
+  mkdir -p /home/openmodelica/.config/mope &&\
   chown -R openmodelica:openmodelica /home/openmodelica
 
 ADD ./target/scala-2.12/mope-server-*.jar /opt
