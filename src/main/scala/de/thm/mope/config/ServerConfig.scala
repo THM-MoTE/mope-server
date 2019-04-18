@@ -27,6 +27,7 @@ import com.softwaremill.tagging._
 import com.typesafe.config.Config
 import de.thm.mope.tags.RecentFileMarker
 
+//currently not in use (since 2019-04-18)
 case class SimulationConfig(numberOfIntervals:Int)
 
 /** Settings for the whole server (aka environment). */

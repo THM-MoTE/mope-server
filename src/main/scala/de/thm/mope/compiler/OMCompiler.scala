@@ -203,7 +203,6 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
 
   override def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]] = {
     val code = arguments
-      .updated("numberOfIntervals", projConfig.server.simulation.numberOfIntervals.toString) //first overwrite options
       .updated("outputFormat", "\"csv\"")
       .map { case (k,v) => s"$k=$v"} //now encode in modelica code
       .toList
