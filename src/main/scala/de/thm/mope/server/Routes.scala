@@ -132,13 +132,13 @@ class Routes(
     }
 
   def projectRoutes =
+    pathPrefix("project" / IntNumber) { id =>
+      (path("disconnect") & post) {
+        disconnectWithExit(id)
+        complete(StatusCodes.NoContent)
+      }
+    } ~
     projectManager { projectManager =>
-      path("disconnect") {
-        post {
-          //disconnectWithExit(id)
-          complete(StatusCodes.NoContent)
-        }
-      } ~
         path("compile") {
           postEntity(as[FilePath]) { filepath =>
             complete {
