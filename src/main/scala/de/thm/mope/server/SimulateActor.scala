@@ -19,7 +19,7 @@ package de.thm.mope.server
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern.pipe
-import de.thm.mope.compiler.{CompilerError, ModelicaCompiler}
+import de.thm.mope.compiler.{CompilerError, ModelicaCompiler, SimulationError}
 import de.thm.mope.models.SimulationResult
 import de.thm.mope.config.ProjectConfig
 import de.thm.mope.utils.actors.{MopeActor, UnhandledReceiver}
@@ -43,7 +43,9 @@ private class SimulateWorker(
   }
 
   private def running(f:Future[SimulationResult]): Receive = {
-    case SimulateActor.SimulationId(_) if f.isCompleted => f.map(Right(_)) pipeTo sender
+    case SimulateActor.SimulationId(_) if f.isCompleted =>
+      val target = sender()
+      f.onComplete { `try` => target ! Right(`try`) }
     case SimulateActor.SimulationId(id) => sender ! Left(SimulateActor.NotFinished(id))
   }
 }

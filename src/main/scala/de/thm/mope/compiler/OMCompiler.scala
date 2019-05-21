@@ -213,7 +213,7 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     } else {
       val str = res.result
       log.debug("simulation returned: {}", str)
-      //extracts the path from teh SimulationResult record
+      //extracts the path from the SimulationResult record
       //see: https://build.openmodelica.org/Documentation/OpenModelica.Scripting.simulate.html
       val pathTry = OMCompiler.simulationResultFilePattern
         .findFirstMatchIn(str).map { m =>

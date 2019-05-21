@@ -31,7 +31,10 @@ import akka.http.scaladsl.{server, unmarshalling}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import de.thm.mope.ProjectsManagerRef
-import de.thm.mope.compiler.CompilerError
+import de.thm.mope.compiler.{
+  CompilerError,
+  SimulationError
+}
 import de.thm.mope.config.ServerConfig
 import de.thm.mope.declaration.DeclarationRequest
 import de.thm.mope.doc.DocInfo
@@ -166,11 +169,15 @@ class Routes(
           }
         } ~
       pathPrefix("simulate") {
+        import SimulateActor._
         (get & pathPrefix(Remaining) & extractUri) { (id, uri) =>
-          val eitherF = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Either[SimulateActor.NotFinished,SimulationResult]]
+          val eitherF = (projectManager ? SimulateActor.SimulationId(id)).mapTo[Either[NotFinished,scala.util.Try[SimulationResult]]]
           onSuccess(eitherF) {
             case Left(nf) => complete(HttpResponse(StatusCodes.Conflict, entity = nf.message).withHeaders(headers.Location(uri)))
-            case Right(result) => complete(result)
+            case Right(scala.util.Success(result)) => complete(result)
+            case Right(scala.util.Failure(ex:SimulationError)) =>
+              complete(HttpResponse(StatusCodes.BadRequest, entity=ex.getMessage))
+            case Right(scala.util.Failure(ex)) => complete(ex)
           }
           } ~
           (postEntity(as[SimulateRequest]) & extractUri) { (req, uri) =>
