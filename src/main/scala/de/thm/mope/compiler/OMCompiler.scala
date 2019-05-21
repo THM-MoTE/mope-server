@@ -215,11 +215,18 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
       log.debug("simulation returned: {}", str)
       //extracts the path from the SimulationResult record
       //see: https://build.openmodelica.org/Documentation/OpenModelica.Scripting.simulate.html
-      val pathTry = OMCompiler.simulationResultFilePattern
+      val pathOpt = OMCompiler.simulationResultFilePattern
         .findFirstMatchIn(str).map { m =>
           Paths.get(m.group(1)) //path to result.csv file
-        }.toRight(SimulationError("the result string didn't contain a 'resultFile' property"))
-        .toTry
+        }
+      //extract an error message from the result record
+      val errorOpt = OMCompiler.simulationErrorPattern
+        .findFirstMatchIn(str).map { m => m.group(1) }
+
+      val pathTry: Try[Path] = pathOpt match {
+        case Some(p) => Success(p)
+        case None => Failure(SimulationError(errorOpt.getOrElse("the result string didn't contain a 'resultFile' property")))
+      }
 
       pathTry.map { p =>
         val reader = CSVReader.open(p.toFile, Constants.encoding.name)
@@ -306,4 +313,5 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
 
 object OMCompiler {
   private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+\s]+)\"""".r
+  private[OMCompiler] val simulationErrorPattern = """messages\s+=\s+\"(.*)\",""".r
 }
