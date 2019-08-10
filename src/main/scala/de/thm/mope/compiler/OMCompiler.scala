@@ -215,13 +215,15 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
       log.debug("simulation returned: {}", str)
       //extracts the path from the SimulationResult record
       //see: https://build.openmodelica.org/Documentation/OpenModelica.Scripting.simulate.html
-      val pathOpt = OMCompiler.simulationResultFilePattern
-        .findFirstMatchIn(str).map { m =>
-          Paths.get(m.group(1)) //path to result.csv file
-        }
+      val pathOpt = str match {
+        case OMCompiler.simulationResultFilePattern(pathStr) => Some(Paths.get(pathStr)) //path to result.csv file
+        case _ => None
+      }
       //extract an error message from the result record
-      val errorOpt = OMCompiler.simulationErrorPattern
-        .findFirstMatchIn(str).map { m => m.group(1) }
+      val errorOpt = str match {
+        case OMCompiler.simulationErrorPattern(error) => Some(error)
+        case _ => None
+      }
 
       val pathTry: Try[Path] = pathOpt match {
         case Some(p) => Success(p)
@@ -312,6 +314,6 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
 }
 
 object OMCompiler {
-  private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+\s]+)\"""".r
-  private[OMCompiler] val simulationErrorPattern = """messages\s+=\s+\"(.*)\",""".r
+  private[OMCompiler] val simulationResultFilePattern = """resultFile\s+=\s+\"([\w\\\/\.\-\+\s]+)\"""".r.unanchored
+  private[OMCompiler] val simulationErrorPattern = """messages\s+=\s+\"\s+(.*)\",""".r.unanchored
 }
