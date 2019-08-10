@@ -33,4 +33,4 @@ case class SimulateRequest(modelName:String, options:Map[String,JsValue]) {
     .map(_.toMap)
 }
 
-case class SimulationResult(modelName:String, variables:Map[String,Seq[Double]])
+case class SimulationResult(modelName:String, variables:Map[String,Seq[Double]], warning:Option[String]=None)

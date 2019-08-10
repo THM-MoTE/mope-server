@@ -38,7 +38,6 @@ private class SimulateWorker(
     case SimulateActor.SimulateModel(modelName,options) =>
       val f = Future(compiler.simulate(modelName, options))
         .flatMap(Future.fromTry(_))
-        .map(res => SimulationResult(modelName, res))
       context.become(running(f))
   }
 

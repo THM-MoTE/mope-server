@@ -23,6 +23,7 @@ import de.thm.mope.doc.DocInfo
 import de.thm.mope.position.FilePosition
 import de.thm.mope.suggestion.Suggestion._
 import de.thm.mope.tree.TreeLike
+import de.thm.mope.models.SimulationResult
 
 import scala.util.{Failure, Try}
 
@@ -49,7 +50,7 @@ trait StubCompiler
 
   override def getClassDocumentation(className: String): Option[String] = None
 
-  override def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]] = Failure(new IllegalStateException("StubCompiler can't simulate!"))
+  override def simulate(modelName:String, arguments:Map[String,String]): Try[SimulationResult] = Failure(new IllegalStateException("StubCompiler can't simulate!"))
 
   override def getGlobalScope(): Set[(String, Kind.Value)] = Set[(String, Kind.Value)]()
 }

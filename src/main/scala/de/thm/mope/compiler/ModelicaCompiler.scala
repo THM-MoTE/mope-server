@@ -24,6 +24,7 @@ import de.thm.mope.declaration.JumpToLike
 import de.thm.mope.doc.DocumentationLike
 import de.thm.mope.suggestion.CompletionLike
 import de.thm.mope.tree.TreeLike
+import de.thm.mope.models.SimulationResult
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -59,7 +60,7 @@ trait ModelicaCompiler
     */
   def checkModel(projectTree: TreeLike[Path], path: Path): String
 
-  def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]]
+  def simulate(modelName:String, arguments:Map[String,String]): Try[SimulationResult]
 
   override def getClassComment(className: String): Option[String] = getClassDocumentation(className)
 }

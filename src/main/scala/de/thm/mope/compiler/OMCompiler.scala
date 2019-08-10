@@ -26,6 +26,7 @@ import de.thm.mope.suggestion.Suggestion.Kind
 import de.thm.mope.tree.{ModelicaProjectTree, TreeLike}
 import de.thm.mope.utils.IOUtils
 import de.thm.mope.utils.MonadImplicits._
+import de.thm.mope.models.SimulationResult
 import omc.corba.ScriptingHelper._
 import omc.corba._
 import omc.ZeroMQClient
@@ -201,14 +202,15 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
     }
   }
 
-  override def simulate(modelName:String, arguments:Map[String,String]): Try[Map[String, Seq[Double]]] = {
+  override def simulate(modelName:String, arguments:Map[String,String]): Try[SimulationResult] = {
     val code = arguments
       .updated("outputFormat", "\"csv\"")
       .map { case (k,v) => s"$k=$v"} //now encode in modelica code
       .toList
     log.debug("simulating {} with flags: {}", modelName:Any, code:Any)
     val res = omc.call("simulate", (modelName :: code):_*)
-    if(res.error.isPresent) {
+    if(res.error.isPresent && res.error.get.startsWith("Error")) {
+      //fail on errors; not on warnings that are inside the error proprety
       Failure(SimulationError(s"simulating failed with: ${res.error.get}"))
     } else {
       val str = res.result
@@ -241,8 +243,13 @@ class OMCompiler(projConfig: ProjectConfig) extends ModelicaCompiler {
           }
         }
         reader.close()
+
+        //save eventual warnings into result
+        val warningOpt:Option[String] = res.error.filter(_.startsWith("Warning"))
+
         //finally convert stringified-numbers to Doubles & reverse the generated list because we prepend to it
-        map.mapValues(_.map(_.toDouble).reverse)
+        val variables = map.mapValues(_.map(_.toDouble).reverse)
+        SimulationResult(modelName, variables, warningOpt)
       }
     }
   }
