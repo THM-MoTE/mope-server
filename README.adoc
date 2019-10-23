@@ -5,7 +5,6 @@ image::https://rawgit.com/THM-MoTE/Logos/master/svgs/MoPE.svg[link="https://rawg
 MoPE brings IDE-features for Modelica into your favourite Editor.
 
 NOTE: This is the server-process for MoPE.
-CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
 
 CAUTION: Since Version 0.6.2 the JModelica support is broken due to changes in the compiler commmunication.
 
@@ -19,6 +18,11 @@ MoPE uses the following sub projects:
 - https://github.com/THM-MoTE/recently[recently] -
   Handles recently used files/projects
 
+== Running as Docker Container
+This repository contains a `docker-compose` file which starts a local docker container containing OpenModelica and MoPE.
+The compose file mounts your home directory into the container.
+You don't have to install OpenModelica locally, just `docker` and `docker-compose`.
+Just start the compose file through: `docker-compose up` and you are all set for projects inside your home directory.
 
 == Developer setup
 IMPORTANT: Installation instructions for users are available https://thm-mote.github.io//projects/mope[here].
