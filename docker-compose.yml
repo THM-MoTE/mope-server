@@ -1,0 +1,8 @@
+version: "3"
+services:
+  mope:
+    image: "thmmote/mope-server:0.7.2"
+    ports:
+      - "9001:3000"
+    volumes:
+      - "${HOME}:${HOME}"
